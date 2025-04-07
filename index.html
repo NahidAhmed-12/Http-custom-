@@ -1,37 +1,101 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>HTTP Custom Config</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #121212;
-      color: #fff;
-      text-align: center;
-      padding: 40px;
-    }
-    a.download {
-      display: inline-block;
-      padding: 12px 24px;
-      background-color: #00c853;
-      color: white;
-      border-radius: 8px;
-      text-decoration: none;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    a.download:hover {
-      background-color: #00b342;
-    }
-  </style>
-</head>
-<body>
+<html>
+  <head>
+    <title>Real-time YouTube Sync</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: #f9f9f9;
+        padding: 20px;
+      }
+      h2 {
+        color: #333;
+      }
+      #player {
+        margin: 20px auto;
+        width: 90%;
+        max-width: 800px;
+        height: 450px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Real-time Synced YouTube Video</h2>
+    <div id="player"></div>
 
-  <h1>Download HTTP Custom Config</h1>
-  <p>Click the button below to import the config file into HTTP Custom.</p>
+    <script>
+      // Firebase config (pre-setup for your use)
+      const firebaseConfig = {
+        apiKey: "AIzaSyBzGql0-m2LHZvM-CZPekgxYgbGqyfXe6k",
+        authDomain: "yt-sync-app.firebaseapp.com",
+        databaseURL: "https://yt-sync-app-default-rtdb.firebaseio.com",
+        projectId: "yt-sync-app",
+        storageBucket: "yt-sync-app.appspot.com",
+        messagingSenderId: "1091016506113",
+        appId: "1:1091016506113:web:ddd07ea07c88026c4eb90b"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
 
-  <a class="download" href="Nahi.hc" download>Download Config</a>
+      let player;
+      const videoId = "2eFSU7TFOnk"; // আপনার দেওয়া YouTube ভিডিও ID
+      const controlRef = db.ref("realtimeControl");
 
-</body>
+      function onYouTubeIframeAPIReady() {
+        player = new YT.Player("player", {
+          height: "390",
+          width: "640",
+          videoId: videoId,
+          events: {
+            onReady: () => {
+              setupRealtimeSync();
+            }
+          }
+        });
+      }
+
+      function setupRealtimeSync() {
+        let lastAction = "";
+
+        // যখন Firebase এ কিছু পরিবর্তন হয়
+        controlRef.on("value", (snapshot) => {
+          const data = snapshot.val();
+          if (!data) return;
+
+          if (data.action === "play" && lastAction !== "play") {
+            player.seekTo(data.time || 0, true);
+            player.playVideo();
+            lastAction = "play";
+          }
+
+          if (data.action === "pause" && lastAction !== "pause") {
+            player.pauseVideo();
+            lastAction = "pause";
+          }
+        });
+
+        // লোকালি প্লে / পজ করলে Firebase এ আপডেট করে
+        setInterval(() => {
+          const state = player.getPlayerState();
+
+          if (state === 1 && lastAction !== "play") {
+            controlRef.set({
+              action: "play",
+              time: Math.floor(player.getCurrentTime())
+            });
+            lastAction = "play";
+          }
+
+          if (state === 2 && lastAction !== "pause") {
+            controlRef.set({ action: "pause" });
+            lastAction = "pause";
+          }
+        }, 1000);
+      }
+    </script>
+  </body>
 </html>

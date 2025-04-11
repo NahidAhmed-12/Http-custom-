@@ -5,104 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Sync Player</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    
     <style>
-      body {
-    font-family: 'Arial', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f5f5f5;
-    color: #333;
-}
-
-.container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-h1 {
-    text-align: center;
-    color: #ff0000;
-}
-
-.input-section {
-    display: flex;
-    margin-bottom: 20px;
-    gap: 10px;
-}
-
-#youtubeUrl {
-    flex: 1;
-    padding: 10px;
-    font-size: 16px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-button {
-    padding: 10px 20px;
-    background-color: #ff0000;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #cc0000;
-}
-
-#player-container {
-    position: relative;
-    padding-bottom: 56.25%; /* 16:9 aspect ratio */
-    height: 0;
-    overflow: hidden;
-    margin-bottom: 20px;
-    background-color: #000;
-    border-radius: 8px;
-}
-
-#player {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
-
-.status {
-    background-color: #fff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.status p {
-    margin: 5px 0;
-}
-
-#statusText {
-    font-weight: bold;
-    color: #ff0000;
-}
-
-#positionText {
-    font-weight: bold;
-}
-
-@media (max-width: 600px) {
-    .input-section {
-        flex-direction: column;
-    }
-    
-    button {
-        width: 100%;
-    }
-}
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #ff0000;
+        }
+        .input-section {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        #youtubeUrl {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #cc0000;
+        }
+        #player-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background-color: #000;
+            border-radius: 8px;
+        }
+        #player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .status {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .status p {
+            margin: 5px 0;
+        }
+        #statusText {
+            font-weight: bold;
+            color: #ff0000;
+        }
+        #positionText {
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .input-section {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -133,252 +117,266 @@ button:hover {
     <script src="https://www.youtube.com/iframe_api"></script>
     
     <script>
-// Firebase configuration
-const firebaseConfig = {
-  databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/"
-};
+        // Firebase configuration
+        const firebaseConfig = {
+            databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/"
+        };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
-// Generate a unique device ID for this session
-const deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
-document.getElementById('deviceId').textContent = deviceId;
+        // Generate a unique device ID for this session
+        const deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+        document.getElementById('deviceId').textContent = deviceId;
 
-// YouTube player variables
-let player;
-let currentVideoId = '';
-let isSeeking = false;
-let lastSyncedPosition = 0;
-let isPlaying = false;
-let initialPositionLoaded = false;
+        // YouTube player variables
+        let player;
+        let currentVideoId = '';
+        let isSeeking = false;
+        let lastSyncedPosition = 0;
+        let isPlaying = false;
+        let initialPositionLoaded = false;
+        let ignoreNextStateChange = false;
 
-// DOM elements
-const youtubeUrlInput = document.getElementById('youtubeUrl');
-const loadBtn = document.getElementById('loadBtn');
-const statusText = document.getElementById('statusText');
-const positionText = document.getElementById('positionText');
+        // DOM elements
+        const youtubeUrlInput = document.getElementById('youtubeUrl');
+        const loadBtn = document.getElementById('loadBtn');
+        const statusText = document.getElementById('statusText');
+        const positionText = document.getElementById('positionText');
 
-// Initialize YouTube Player
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('player', {
-    height: '100%',
-    width: '100%',
-    playerVars: {
-      'enablejsapi': 1,
-      'origin': window.location.origin
-    },
-    events: {
-      'onReady': onPlayerReady,
-      'onStateChange': onPlayerStateChange
-    }
-  });
-}
+        // Initialize YouTube Player
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    'enablejsapi': 1,
+                    'origin': window.location.origin
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
 
-function onPlayerReady(event) {
-  statusText.textContent = 'Player Ready';
-  loadBtn.addEventListener('click', loadVideo);
-  
-  // Also load video when Enter key is pressed
-  youtubeUrlInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      loadVideo();
-    }
-  });
-  
-  // Check for existing video in Firebase when player is ready
-  checkExistingVideo();
-}
+        function onPlayerReady(event) {
+            statusText.textContent = 'Player Ready';
+            loadBtn.addEventListener('click', loadVideo);
+            
+            youtubeUrlInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loadVideo();
+                }
+            });
+            
+            // Check for existing video in Firebase when player is ready
+            checkExistingVideo();
+        }
 
-function checkExistingVideo() {
-  database.ref('currentVideo').once('value').then((snapshot) => {
-    const videoData = snapshot.val();
-    if (videoData && videoData.videoId) {
-      currentVideoId = videoData.videoId;
-      youtubeUrlInput.value = videoData.url;
-      loadVideoById(videoData.videoId, true);
-    }
-  });
-}
+        function checkExistingVideo() {
+            database.ref('currentVideo').once('value').then((snapshot) => {
+                const videoData = snapshot.val();
+                if (videoData && videoData.videoId) {
+                    currentVideoId = videoData.videoId;
+                    youtubeUrlInput.value = videoData.url;
+                    loadVideoById(videoData.videoId, true);
+                }
+            });
+        }
 
-function loadVideo() {
-  const url = youtubeUrlInput.value.trim();
-  if (!url) return;
-  
-  // Extract video ID from URL
-  const videoId = extractVideoId(url);
-  if (!videoId) {
-    statusText.textContent = 'Invalid YouTube URL';
-    return;
-  }
-  
-  currentVideoId = videoId;
-  statusText.textContent = 'Loading Video...';
-  
-  // Save video URL to Firebase
-  database.ref('currentVideo').set({
-    url: url,
-    videoId: videoId
-  });
-  
-  // Load the video in the player
-  loadVideoById(videoId, false);
-}
-
-function loadVideoById(videoId, isExisting) {
-  initialPositionLoaded = false;
-  
-  // First cue the video (without playing)
-  player.cueVideoById(videoId).then(() => {
-    // Then setup listeners
-    setupVideoListeners(videoId, isExisting);
-  });
-}
-
-function extractVideoId(url) {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-}
-
-function setupVideoListeners(videoId, isExisting) {
-  // Remove previous listeners if any
-  database.ref(`videos/${videoId}`).off();
-  
-  // Listen for playback position updates
-  database.ref(`videos/${videoId}/position`).on('value', (snapshot) => {
-    const position = snapshot.val();
-    if (position !== null && !isSeeking) {
-      const updatingDevice = database.ref(`videos/${videoId}/updatingDevice`).val();
-      
-      if (updatingDevice !== deviceId) {
-        // For existing videos, set initial position once
-        if (isExisting && !initialPositionLoaded) {
-          player.seekTo(position, true);
-          lastSyncedPosition = position;
-          updatePositionText(position);
-          initialPositionLoaded = true;
-          
-          // Auto-play if the video was playing on another device
-          database.ref(`videos/${videoId}/isPlaying`).once('value').then((playSnapshot) => {
-            if (playSnapshot.val()) {
-              player.playVideo();
+        function loadVideo() {
+            const url = youtubeUrlInput.value.trim();
+            if (!url) return;
+            
+            const videoId = extractVideoId(url);
+            if (!videoId) {
+                statusText.textContent = 'Invalid YouTube URL';
+                return;
             }
-          });
+            
+            currentVideoId = videoId;
+            statusText.textContent = 'Loading Video...';
+            
+            // Save video URL to Firebase
+            database.ref('currentVideo').set({
+                url: url,
+                videoId: videoId
+            });
+            
+            // Load the video in the player
+            loadVideoById(videoId, false);
         }
-        // For ongoing sync updates
-        else if (initialPositionLoaded) {
-          player.seekTo(position, true);
-          lastSyncedPosition = position;
-          updatePositionText(position);
+
+        function loadVideoById(videoId, isExisting) {
+            initialPositionLoaded = false;
+            
+            if (player && typeof player.cueVideoById === 'function') {
+                player.cueVideoById({
+                    videoId: videoId,
+                    suggestedQuality: 'default'
+                }).then(() => {
+                    setupVideoListeners(videoId, isExisting);
+                });
+            } else {
+                console.error('YouTube player not ready');
+            }
         }
-      }
-    }
-  });
-  
-  // Listen for play/pause updates
-  database.ref(`videos/${videoId}/isPlaying`).on('value', (snapshot) => {
-    const isPlayingRemote = snapshot.val();
-    const updatingDevice = database.ref(`videos/${videoId}/updatingDevice`).val();
-    
-    if (updatingDevice !== deviceId && initialPositionLoaded) {
-      if (isPlayingRemote && !isPlaying) {
-        player.playVideo();
-        isPlaying = true;
-        statusText.textContent = 'Playing (synced from another device)';
-      } else if (!isPlayingRemote && isPlaying) {
-        player.pauseVideo();
-        isPlaying = false;
-        statusText.textContent = 'Paused (synced from another device)';
-      }
-    }
-  });
-}
 
-function onPlayerStateChange(event) {
-  switch (event.data) {
-    case YT.PlayerState.PLAYING:
-      isPlaying = true;
-      statusText.textContent = 'Playing';
-      updatePlaybackStatus(true);
-      break;
-    case YT.PlayerState.PAUSED:
-      isPlaying = false;
-      statusText.textContent = 'Paused';
-      updatePlaybackStatus(false);
-      break;
-    case YT.PlayerState.ENDED:
-      isPlaying = false;
-      statusText.textContent = 'Video Ended';
-      updatePlaybackStatus(false);
-      break;
-    case YT.PlayerState.BUFFERING:
-      statusText.textContent = 'Buffering';
-      break;
-    case YT.PlayerState.CUED:
-      statusText.textContent = 'Video Cued';
-      break;
-  }
-  
-  // Save current position when paused or ended
-  if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-    saveCurrentPosition();
-  }
-}
+        function extractVideoId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
 
-// Update playback status (playing/paused) in Firebase
-function updatePlaybackStatus(playing) {
-  if (!currentVideoId) return;
-  
-  database.ref(`videos/${currentVideoId}`).update({
-    isPlaying: playing,
-    updatingDevice: deviceId,
-    lastUpdated: firebase.database.ServerValue.TIMESTAMP
-  });
-}
+        function setupVideoListeners(videoId, isExisting) {
+            // Remove previous listeners if any
+            database.ref(`videos/${videoId}`).off();
+            
+            // Get initial state from Firebase
+            database.ref(`videos/${videoId}`).once('value').then((snapshot) => {
+                const videoData = snapshot.val();
+                if (videoData) {
+                    // Set initial position
+                    if (videoData.position && !isSeeking) {
+                        player.seekTo(videoData.position, true);
+                        lastSyncedPosition = videoData.position;
+                        updatePositionText(videoData.position);
+                    }
+                    
+                    // Set initial play state if this is an existing video
+                    if (isExisting && videoData.isPlaying) {
+                        ignoreNextStateChange = true;
+                        player.playVideo();
+                    }
+                    
+                    initialPositionLoaded = true;
+                }
+            });
+            
+            // Listen for playback position updates
+            database.ref(`videos/${videoId}/position`).on('value', (snapshot) => {
+                const position = snapshot.val();
+                if (position !== null && !isSeeking && initialPositionLoaded) {
+                    const updatingDevice = database.ref(`videos/${videoId}/updatingDevice`).val();
+                    
+                    if (updatingDevice !== deviceId) {
+                        isSeeking = true;
+                        player.seekTo(position, true);
+                        lastSyncedPosition = position;
+                        updatePositionText(position);
+                        
+                        // Reset seeking flag after a short delay
+                        setTimeout(() => {
+                            isSeeking = false;
+                        }, 500);
+                    }
+                }
+            });
+            
+            // Listen for play/pause updates
+            database.ref(`videos/${videoId}/isPlaying`).on('value', (snapshot) => {
+                const isPlayingRemote = snapshot.val();
+                const updatingDevice = database.ref(`videos/${videoId}/updatingDevice`).val();
+                
+                if (updatingDevice !== deviceId && initialPositionLoaded) {
+                    if (isPlayingRemote && !isPlaying) {
+                        ignoreNextStateChange = true;
+                        player.playVideo();
+                    } else if (!isPlayingRemote && isPlaying) {
+                        ignoreNextStateChange = true;
+                        player.pauseVideo();
+                    }
+                }
+            });
+        }
 
-// Save current position to Firebase
-function saveCurrentPosition() {
-  if (!currentVideoId) return;
-  
-  const position = player.getCurrentTime();
-  lastSyncedPosition = position;
-  
-  database.ref(`videos/${currentVideoId}`).update({
-    position: position,
-    updatingDevice: deviceId,
-    lastUpdated: firebase.database.ServerValue.TIMESTAMP
-  });
-  
-  updatePositionText(position);
-}
+        function onPlayerStateChange(event) {
+            if (ignoreNextStateChange) {
+                ignoreNextStateChange = false;
+                return;
+            }
+            
+            switch (event.data) {
+                case YT.PlayerState.PLAYING:
+                    if (!isPlaying) {
+                        isPlaying = true;
+                        statusText.textContent = 'Playing';
+                        updatePlaybackStatus(true);
+                    }
+                    break;
+                case YT.PlayerState.PAUSED:
+                    if (isPlaying) {
+                        isPlaying = false;
+                        statusText.textContent = 'Paused';
+                        updatePlaybackStatus(false);
+                        saveCurrentPosition();
+                    }
+                    break;
+                case YT.PlayerState.ENDED:
+                    isPlaying = false;
+                    statusText.textContent = 'Video Ended';
+                    updatePlaybackStatus(false);
+                    saveCurrentPosition();
+                    break;
+                case YT.PlayerState.BUFFERING:
+                    statusText.textContent = 'Buffering';
+                    break;
+                case YT.PlayerState.CUED:
+                    statusText.textContent = 'Video Cued';
+                    break;
+            }
+        }
 
-// Update position text display
-function updatePositionText(position) {
-  const minutes = Math.floor(position / 60);
-  const seconds = Math.floor(position % 60).toString().padStart(2, '0');
-  positionText.textContent = `${minutes}:${seconds}`;
-}
+        function updatePlaybackStatus(playing) {
+            if (!currentVideoId) return;
+            
+            database.ref(`videos/${currentVideoId}`).update({
+                isPlaying: playing,
+                updatingDevice: deviceId,
+                lastUpdated: firebase.database.ServerValue.TIMESTAMP
+            });
+        }
 
-// Periodically check and sync position when playing
-setInterval(() => {
-  if (player && isPlaying && currentVideoId) {
-    const currentPosition = player.getCurrentTime();
-    
-    // Only update if position changed significantly (more than 0.5 second)
-    if (Math.abs(currentPosition - lastSyncedPosition) > 0.5) {
-      saveCurrentPosition();
-    }
-  }
-}, 500); // Reduced interval for better sync
+        function saveCurrentPosition() {
+            if (!currentVideoId || !initialPositionLoaded) return;
+            
+            const position = player.getCurrentTime();
+            lastSyncedPosition = position;
+            
+            database.ref(`videos/${currentVideoId}`).update({
+                position: position,
+                updatingDevice: deviceId,
+                lastUpdated: firebase.database.ServerValue.TIMESTAMP
+            });
+            
+            updatePositionText(position);
+        }
 
-// Handle page visibility changes to pause when tab is inactive
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden && player && isPlaying) {
-    player.pauseVideo();
-  }
-});
+        function updatePositionText(position) {
+            const minutes = Math.floor(position / 60);
+            const seconds = Math.floor(position % 60).toString().padStart(2, '0');
+            positionText.textContent = `${minutes}:${seconds}`;
+        }
+
+        // Periodically save position when playing
+        setInterval(() => {
+            if (player && isPlaying && currentVideoId && initialPositionLoaded) {
+                const currentPosition = player.getCurrentTime();
+                
+                if (Math.abs(currentPosition - lastSyncedPosition) > 0.5) {
+                    saveCurrentPosition();
+                }
+            }
+        }, 300);
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && player && isPlaying) {
+                player.pauseVideo();
+            }
+        });
     </script>
 </body>
 </html>

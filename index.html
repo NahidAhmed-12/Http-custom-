@@ -824,8 +824,8 @@ header::after {
     </div>
   </div>
 
-  <script>
- // Firebase config
+<script>
+  // Firebase config
 const firebaseConfig = {
   databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/"
 };
@@ -841,14 +841,9 @@ let isSaving = false;
 let playlistVideos = [];
 let currentVideoIndex = -1;
 let lastUpdateTime = 0;
-let isSyncing = false;
-let deviceId = generateDeviceId();
-let isMasterDevice = false;
-
-// Generate unique device ID
-function generateDeviceId() {
-  return 'device_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
-}
+let isLocalPlayback = false; // Flag to track if playback was initiated locally
+let playbackState = -1; // Current playback state (-1: unstarted, 0: ended, 1: playing, 2: paused, 3: buffering, 5: video cued)
+let syncTimeout = null;
 
 // Function to extract YouTube video ID from different formats
 function getVideoId(link) {
@@ -881,12 +876,10 @@ function saveAndLoadVideo() {
     lastWatched: firebase.database.ServerValue.TIMESTAMP,
     duration: "0:00",
     durationSec: 1,
-    title: "Loading...",
-    channel: "Loading..."
+    playbackState: -1, // Initial state
+    lastStateChange: firebase.database.ServerValue.TIMESTAMP
   }).then(() => {
     document.getElementById("videoLink").value = "";
-    // Become the master device when adding a new video
-    becomeMasterDevice();
   });
 }
 
@@ -911,60 +904,18 @@ function loadPlayer(videoId, startTime) {
   }
   
   // Update last watched timestamp
-  db.ref("videos/" + videoId + "/lastWatched").set(firebase.database.ServerValue.TIMESTAMP);
+  db.ref("videos/" + videoId).update({
+    lastWatched: firebase.database.ServerValue.TIMESTAMP
+  });
+  
   lastWatchedVideoId = videoId;
-  
-  // Update URL hash
   window.location.hash = videoId;
-  
-  // Update current video index
   currentVideoIndex = playlistVideos.findIndex(video => video.id === videoId);
   updateNavButtons();
-  
-  // If we're the master device, update the sync status
-  if (isMasterDevice) {
-    updateSyncStatus(videoId, startTime);
-  }
-}
-
-function updateSyncStatus(videoId, currentTime) {
-  db.ref("syncStatus").set({
-    currentVideo: videoId,
-    currentTime: currentTime || 0,
-    lastUpdated: firebase.database.ServerValue.TIMESTAMP,
-    masterDevice: deviceId
-  });
-}
-
-function becomeMasterDevice() {
-  isMasterDevice = true;
-  db.ref("syncStatus/masterDevice").set(deviceId);
-  console.log("This device is now the master");
-}
-
-function checkSyncStatus() {
-  db.ref("syncStatus").on("value", (snapshot) => {
-    const syncData = snapshot.val();
-    if (!syncData || syncData.masterDevice === deviceId || isSyncing) return;
-    
-    // If another device is master and we're not currently syncing
-    if (syncData.currentVideo && syncData.currentVideo !== videoId) {
-      isSyncing = true;
-      console.log("Syncing with master device...");
-      
-      // Load the video from master device
-      loadSavedVideo(syncData.currentVideo, syncData.currentTime || 0);
-      
-      // After a short delay, allow new syncs
-      setTimeout(() => {
-        isSyncing = false;
-      }, 3000);
-    }
-  });
 }
 
 function saveCurrentTime() {
-  if (!player || !videoId || isSaving || !isMasterDevice) return;
+  if (!player || !videoId || isSaving) return;
   
   const currentTime = Math.floor(player.getCurrentTime());
   const now = Date.now();
@@ -982,11 +933,6 @@ function saveCurrentTime() {
     console.log("Time saved:", currentTime);
     isSaving = false;
     updateProgressBarForVideo(videoId, currentTime);
-    
-    // Update sync status if we're the master device
-    if (isMasterDevice) {
-      updateSyncStatus(videoId, currentTime);
-    }
   }).catch(error => {
     console.error("Error saving time:", error);
     isSaving = false;
@@ -1008,27 +954,87 @@ function onPlayerReady(event) {
     }
   }
   
-  // Check if we should become master device (if no other master exists)
-  db.ref("syncStatus/masterDevice").once("value").then((snapshot) => {
-    if (!snapshot.exists()) {
-      becomeMasterDevice();
-    }
-  });
+  // Listen for playback state changes from other devices
+  setupPlaybackStateListener();
 }
 
 function onPlayerStateChange(event) {
+  playbackState = event.data;
+  
   if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
     saveCurrentTime();
   }
   
   if (event.data === YT.PlayerState.PLAYING) {
     highlightCurrentVideo();
-    
-    // If we started playing, become the master device
-    if (!isMasterDevice) {
-      becomeMasterDevice();
-    }
   }
+  
+  // Only update the playback state in Firebase if the change was initiated locally
+  if (isLocalPlayback) {
+    db.ref("videos/" + videoId).update({
+      playbackState: event.data,
+      lastStateChange: firebase.database.ServerValue.TIMESTAMP
+    });
+    
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      isLocalPlayback = false;
+    }, 1000);
+  }
+}
+
+function setupPlaybackStateListener() {
+  db.ref("videos/" + videoId + "/playbackState").on("value", (snapshot) => {
+    if (!snapshot.exists() || !player || isLocalPlayback) return;
+    
+    const remoteState = snapshot.val();
+    const currentTime = player.getCurrentTime();
+    
+    // Only sync if the remote state is different from our current state
+    if (remoteState !== playbackState) {
+      clearTimeout(syncTimeout);
+      
+      // Add a small delay to prevent rapid state changes
+      syncTimeout = setTimeout(() => {
+        switch(remoteState) {
+          case YT.PlayerState.PLAYING:
+            if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+              player.playVideo();
+            }
+            break;
+          case YT.PlayerState.PAUSED:
+            if (player.getPlayerState() !== YT.PlayerState.PAUSED) {
+              player.pauseVideo();
+            }
+            break;
+          case YT.PlayerState.ENDED:
+            // Handle ended state if needed
+            break;
+        }
+      }, 300);
+    }
+  });
+  
+  // Also listen for time updates from other devices
+  db.ref("videos/" + videoId + "/time").on("value", (snapshot) => {
+    if (!snapshot.exists() || !player || isLocalPlayback) return;
+    
+    const remoteTime = snapshot.val();
+    const currentTime = player.getCurrentTime();
+    
+    // Only sync if the time difference is significant (> 2 seconds)
+    if (Math.abs(remoteTime - currentTime) > 2) {
+      player.seekTo(remoteTime, true);
+      
+      // If the video is paused on the other device but playing here, pause it
+      db.ref("videos/" + videoId + "/playbackState").once("value", (stateSnapshot) => {
+        if (stateSnapshot.exists() && stateSnapshot.val() === YT.PlayerState.PAUSED && 
+            player.getPlayerState() === YT.PlayerState.PLAYING) {
+          player.pauseVideo();
+        }
+      });
+    }
+  });
 }
 
 function setupRealtimeListener() {
@@ -1072,17 +1078,14 @@ function setupRealtimeListener() {
         duration: duration
       });
 
-      // Track the most recently watched video
       if (data.lastWatched && data.lastWatched > mostRecentTime) {
         mostRecentTime = data.lastWatched;
         mostRecentVideo = vid;
       }
     });
 
-    // Update playlist count
     document.getElementById("playlistCount").textContent = `${newPlaylistVideos.length} ${newPlaylistVideos.length === 1 ? 'video' : 'videos'}`;
 
-    // Only re-render if the playlist has changed
     if (JSON.stringify(playlistVideos.map(v => v.id)) !== JSON.stringify(newPlaylistVideos.map(v => v.id))) {
       list.innerHTML = "";
       newPlaylistVideos.forEach((video, index) => {
@@ -1093,7 +1096,10 @@ function setupRealtimeListener() {
           currentPlayingItem = item;
         }
         item.setAttribute("data-video-id", video.id);
-        item.onclick = () => loadSavedVideo(video.id);
+        item.onclick = () => {
+          isLocalPlayback = true;
+          loadSavedVideo(video.id);
+        };
         
         item.innerHTML = `
           <div class="thumbnail" style="background-image: url(https://img.youtube.com/vi/${video.id}/mqdefault.jpg)" data-duration="${video.duration}"></div>
@@ -1115,7 +1121,6 @@ function setupRealtimeListener() {
         list.appendChild(item);
       });
     } else {
-      // Just update progress bars for existing items
       newPlaylistVideos.forEach(video => {
         updateProgressBarForVideo(video.id, video.data.time || 0);
       });
@@ -1123,12 +1128,10 @@ function setupRealtimeListener() {
 
     playlistVideos = newPlaylistVideos;
 
-    // Auto-play the most recently watched video if available and no hash in URL
     if (mostRecentVideo && !videoId && !window.location.hash) {
       loadSavedVideo(mostRecentVideo);
     }
     
-    // Update current video index if we have a videoId but no index
     if (videoId && currentVideoIndex === -1) {
       currentVideoIndex = playlistVideos.findIndex(video => video.id === videoId);
       updateNavButtons();
@@ -1139,7 +1142,7 @@ function setupRealtimeListener() {
 function calculateProgress(currentTime, duration) {
   if (duration <= 0) return 0;
   const progress = (currentTime / duration) * 100;
-  return Math.min(100, Math.max(0, progress)); // Ensure between 0-100
+  return Math.min(100, Math.max(0, progress));
 }
 
 function formatTime(seconds) {
@@ -1148,23 +1151,27 @@ function formatTime(seconds) {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-function loadSavedVideo(vid, startTime) {
+function loadSavedVideo(vid) {
   videoId = vid;
   db.ref("videos/" + vid).once("value").then(snapshot => {
     const video = snapshot.val();
-    const playTime = startTime !== undefined ? startTime : (video.time || 0);
-    loadPlayer(videoId, playTime);
+    const startTime = video.time || 0;
+    loadPlayer(videoId, startTime);
     highlightCurrentVideo();
     
-    // If we're loading this video in response to a sync, don't become master
-    if (startTime === undefined && !isSyncing) {
-      becomeMasterDevice();
+    // If the video is playing on another device, sync the state
+    if (video.playbackState === YT.PlayerState.PLAYING) {
+      // Small delay to allow player to load
+      setTimeout(() => {
+        player.playVideo();
+      }, 500);
     }
   });
 }
 
 function playNextVideo() {
   if (currentVideoIndex < playlistVideos.length - 1) {
+    isLocalPlayback = true;
     const nextVideo = playlistVideos[currentVideoIndex + 1];
     loadSavedVideo(nextVideo.id);
   }
@@ -1172,6 +1179,7 @@ function playNextVideo() {
 
 function playPreviousVideo() {
   if (currentVideoIndex > 0) {
+    isLocalPlayback = true;
     const prevVideo = playlistVideos[currentVideoIndex - 1];
     loadSavedVideo(prevVideo.id);
   }
@@ -1195,7 +1203,6 @@ function highlightCurrentVideo() {
     if (item.getAttribute("data-video-id") === videoId) {
       item.classList.add("active");
       currentPlayingItem = item;
-      // Scroll to the item if it's not in view
       item.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   });
@@ -1210,7 +1217,6 @@ function updateProgressBarForVideo(vid, currentTime) {
   const durationDisplay = item.querySelector('.progress-info span:last-child');
   
   if (progressBar && timeDisplay) {
-    // Get duration from data attribute or calculate
     let duration = 1;
     const videoData = playlistVideos.find(v => v.id === vid);
     if (videoData && videoData.data.durationSec) {
@@ -1228,33 +1234,30 @@ window.addEventListener('beforeunload', function(e) {
   saveCurrentTime();
 });
 
-// Load video list on page load
+// Initialize when page loads
 window.onload = function() {
   setupRealtimeListener();
-  checkSyncStatus();
   
-  // Check if there's a video ID in URL hash
   const hashVideoId = window.location.hash.substring(1);
   if (hashVideoId) {
     loadSavedVideo(hashVideoId);
   }
   
-  // Add event listener for Enter key in input field
   document.getElementById("videoLink").addEventListener("keypress", function(e) {
     if (e.key === "Enter") {
       saveAndLoadVideo();
     }
   });
   
-  // Check if we should become master device after a short delay
-  setTimeout(() => {
-    db.ref("syncStatus/masterDevice").once("value").then((snapshot) => {
-      if (!snapshot.exists()) {
-        becomeMasterDevice();
-      }
-    });
-  }, 3000);
+  // Set isLocalPlayback flag when user interacts with player controls
+  document.getElementById("prevBtn").addEventListener("click", function() {
+    isLocalPlayback = true;
+  });
+  
+  document.getElementById("nextBtn").addEventListener("click", function() {
+    isLocalPlayback = true;
+  });
 };
-  </script>
+</script>
 </body>
 </html>

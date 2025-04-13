@@ -767,6 +767,18 @@ header::after {
     display: flex;
   }
 }
+
+.online-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: var(--primary);
+  color: white;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -825,7 +837,7 @@ header::after {
   </div>
 
 <script>
-  // Firebase config
+// Firebase config
 const firebaseConfig = {
   databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/"
 };
@@ -845,6 +857,7 @@ let isLocalAction = false;
 let onlineDevices = 0;
 let currentDeviceId = Math.random().toString(36).substring(2, 15);
 let isNetworkProblem = false;
+let lastSyncTime = 0;
 
 // Function to extract YouTube video ID
 function getVideoId(link) {
@@ -878,7 +891,8 @@ function saveAndLoadVideo() {
     duration: "0:00",
     durationSec: 1,
     isPlaying: false,
-    onlineDevices: 0
+    onlineDevices: 0,
+    lastStateChange: firebase.database.ServerValue.TIMESTAMP
   }).then(() => {
     document.getElementById("videoLink").value = "";
   });
@@ -973,10 +987,16 @@ function onPlayerStateChange(event) {
   // Only update Firebase if this was a local action
   if (isLocalAction) {
     const isPlaying = event.data === YT.PlayerState.PLAYING;
-    db.ref("videos/" + videoId).update({
+    const updateData = {
       isPlaying: isPlaying,
       lastStateChange: firebase.database.ServerValue.TIMESTAMP
-    });
+    };
+    
+    if (isPlaying) {
+      updateData.time = Math.floor(player.getCurrentTime());
+    }
+    
+    db.ref("videos/" + videoId).update(updateData);
     
     // Reset the flag after a short delay
     setTimeout(() => {
@@ -993,27 +1013,34 @@ function setupPlaybackSync() {
     const shouldPlay = snapshot.val();
     const currentState = player.getPlayerState();
     
-    // Only sync if states are different
-    if ((shouldPlay && currentState !== YT.PlayerState.PLAYING) || 
-        (!shouldPlay && currentState === YT.PlayerState.PLAYING)) {
+    // Only sync if states are different and the change is recent
+    db.ref("videos/" + videoId + "/lastStateChange").once("value").then(timeSnapshot => {
+      const lastChangeTime = timeSnapshot.val() || 0;
+      const now = Date.now();
       
-      // Check if all online devices have good network
-      db.ref("videos/" + videoId + "/onlineDevices").once("value").then(devicesSnapshot => {
-        onlineDevices = devicesSnapshot.val() || 0;
+      if (now - lastChangeTime > 10000) return; // Ignore if change is older than 10 seconds
+      
+      if ((shouldPlay && currentState !== YT.PlayerState.PLAYING) || 
+          (!shouldPlay && currentState === YT.PlayerState.PLAYING)) {
         
-        if (onlineDevices > 0) {
-          if (shouldPlay) {
-            player.playVideo();
+        // Check if all online devices have good network
+        db.ref("videos/" + videoId + "/onlineDevices").once("value").then(devicesSnapshot => {
+          onlineDevices = devicesSnapshot.val() || 0;
+          
+          if (onlineDevices > 0) {
+            if (shouldPlay) {
+              player.playVideo();
+            } else {
+              player.pauseVideo();
+            }
           } else {
+            // If no devices are online, pause the video
             player.pauseVideo();
+            isNetworkProblem = true;
           }
-        } else {
-          // If no devices are online, pause the video
-          player.pauseVideo();
-          isNetworkProblem = true;
-        }
-      });
-    }
+        });
+      }
+    });
   });
   
   // Listen for time updates from other devices
@@ -1023,6 +1050,7 @@ function setupPlaybackSync() {
     const remoteTime = snapshot.val();
     const currentTime = player.getCurrentTime();
     
+    // Only sync if the time difference is significant
     if (Math.abs(remoteTime - currentTime) > 2) {
       player.seekTo(remoteTime, true);
     }
@@ -1036,7 +1064,8 @@ function setupDeviceTracking() {
   // Mark device as online
   deviceRef.set({
     lastActive: firebase.database.ServerValue.TIMESTAMP,
-    videoId: videoId
+    videoId: videoId,
+    deviceType: getDeviceType()
   });
   
   // Update every 10 seconds to stay online
@@ -1067,6 +1096,23 @@ function setupDeviceTracking() {
       db.ref("videos/" + videoId + "/onlineDevices").set(0);
     }
   });
+  
+  // Cleanup old devices
+  db.ref("devices").orderByChild("lastActive").endAt(Date.now() - 30000).once("value").then(snapshot => {
+    if (snapshot.exists()) {
+      snapshot.forEach(child => {
+        child.ref.remove();
+      });
+    }
+  });
+}
+
+function getDeviceType() {
+  const userAgent = navigator.userAgent;
+  if (/Mobile|Android|iPhone|iPad|iPod/i.test(userAgent)) {
+    return 'mobile';
+  }
+  return 'desktop';
 }
 
 function setupRealtimeListener() {
@@ -1177,6 +1223,11 @@ function updateOnlineBadge(vid, count) {
   const item = document.querySelector(`.playlist-item[data-video-id="${vid}"] .online-badge`);
   if (item) {
     item.textContent = `${count} online`;
+    if (count > 0) {
+      item.style.color = "#4CAF50";
+    } else {
+      item.style.color = "#F44336";
+    }
   }
 }
 

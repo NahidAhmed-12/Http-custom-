@@ -1,182 +1,243 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
-    <!-- Previous head content remains the same -->
-</head>
-<body>
-    <!-- Previous HTML remains the same until the script -->
-        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>জেমিনি AI চ্যাটবট</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f5f5f5;
-        }
-        .container {
-            background: white;
-            border-radius: 10px;
+            margin: 0;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
-        h1 {
-            color: #4285f4;
-            text-align: center;
-        }
-        #screenView {
+        .chat-container {
             width: 100%;
-            max-width: 300px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            display: block;
-            margin: 20px auto;
+            max-width: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
         }
-        #status {
+        .chat-header {
+            background-color: #4285F4;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #e3f2fd;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .bot-message {
+            background-color: #f1f1f1;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        .chat-input {
+            display: flex;
             padding: 10px;
-            border-radius: 5px;
+            background-color: white;
+            border-top: 1px solid #eee;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+        #send-button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background-color: #4285F4;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        #send-button:hover {
+            background-color: #3367D6;
+        }
+        .typing-indicator {
+            display: none;
+            padding: 10px 15px;
+            background-color: #f1f1f1;
+            border-radius: 18px;
+            margin-bottom: 15px;
+            width: fit-content;
+        }
+        .typing-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #888;
+            margin-right: 4px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        .error-message {
+            color: #d32f2f;
+            font-size: 0.9em;
             text-align: center;
-            margin: 10px 0;
-            font-weight: bold;
-        }
-        .connected {
-            background-color: #e6f4ea;
-            color: #0d652d;
-        }
-        .disconnected {
-            background-color: #fce8e6;
-            color: #d93025;
-        }
-        #connectionInfo {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .instructions {
-            background-color: #f1f3f4;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        #qrCode {
-            margin: 20px auto;
-            text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Continuous Screen Sharing</h1>
-        
-        <div id="status" class="disconnected">Not connected</div>
-        
-        <img id="screenView" style="display: none;" alt="Shared screen will appear here">
-        
-        <div id="connectionInfo">
-            <h3>Connection Code:</h3>
-            <div id="connectionCode" style="font-size: 24px; font-weight: bold; margin: 10px 0;"></div>
-            <p>Share this code with the device you want to view</p>
-            <div id="qrCode"></div>
+    <div class="chat-container">
+        <div class="chat-header">
+            জেমিনি AI চ্যাটবট
         </div>
-        
-        <div class="instructions">
-            <h3>How to share your screen:</h3>
-            <ol>
-                <li>Open this page on the device whose screen you want to share</li>
-                <li>Click "Start Sharing" button</li>
-                <li>Allow screen sharing when prompted</li>
-                <li>You can now navigate to any app/website - sharing will continue</li>
-            </ol>
-            <p><strong>Note:</strong> On mobile devices, you may need to use Chrome and enable "Desktop site" in browser settings.</p>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message bot-message">
+                হ্যালো! আমি Google Gemini AI, কীভাবে আপনাকে সাহায্য করতে পারি?
+            </div>
+            <div class="typing-indicator" id="typing-indicator">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+            </div>
         </div>
+        <div class="chat-input">
+            <input type="text" id="user-input" placeholder="আপনার বার্তা লিখুন..." autocomplete="off">
+            <button id="send-button">পাঠান</button>
+        </div>
+        <div id="error-message" class="error-message"></div>
     </div>
 
-
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/",
-            projectId: "YOUR_PROJECT",
-            storageBucket: "YOUR_PROJECT.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const errorMessage = document.getElementById('error-message');
 
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Generate connection code
-        const connectionCode = 'viewer-' + Math.random().toString(36).substr(2, 8);
-        document.getElementById('connectionCode').textContent = connectionCode;
-
-        // Check if this is viewer page
-        const urlParams = new URLSearchParams(window.location.search);
-        const viewCode = urlParams.get('view');
-
-        if (viewCode) {
-            // Viewer code
-            setupViewer(viewCode);
-        } else {
-            // Sender code
-            setupSender();
-        }
-
-        function setupViewer(viewCode) {
-            database.ref('screens/' + viewCode).on('value', snapshot => {
-                const data = snapshot.val();
-                if (data && data.image) {
-                    document.getElementById('screenView').src = data.image;
-                    document.getElementById('screenView').style.display = 'block';
-                    document.getElementById('status').className = 'connected';
-                    document.getElementById('status').textContent = `Connected - ${new Date(data.timestamp).toLocaleTimeString()}`;
-                }
-            });
-        }
-
-        function setupSender() {
-            const shareBtn = document.createElement('button');
-            shareBtn.textContent = 'Start Sharing';
-            shareBtn.onclick = startMobileSharing;
-            document.querySelector('.container').appendChild(shareBtn);
-        }
-
-        async function startMobileSharing() {
+        const API_KEY = 'AIzaSyBH_xjcJqtOgt3ab81yg0VhwG2HSbPitqg';
+        const USE_PROXY = true;
+        const PROXY_URL = 'https://corsproxy.io/?';
+        
+        async function callGeminiAPI(message) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
             try {
-                // For mobile devices, we'll use the front camera as screen substitute
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment' }
+                showTypingIndicator();
+                errorMessage.textContent = '';
+
+                const fullUrl = USE_PROXY ? PROXY_URL + apiUrl : apiUrl;
+
+                const response = await fetch(fullUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{ text: message }]
+                        }],
+                        generationConfig: {
+                            temperature: 0.9,
+                            topP: 1,
+                            topK: 1,
+                            maxOutputTokens: 2048
+                        }
+                    })
                 });
-                
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.play();
-                
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                setInterval(() => {
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    const imageData = canvas.toDataURL('image/jpeg', 0.5);
-                    
-                    database.ref('screens/' + connectionCode).set({
-                        image: imageData,
-                        timestamp: Date.now()
-                    });
-                }, 1000);
-                
-                alert("Camera is now being shared as screen substitute");
-                
-            } catch (err) {
-                alert("Error: " + err.message);
+
+                const rawText = await response.text();
+                let data;
+
+                try {
+                    data = JSON.parse(rawText);
+                } catch (err) {
+                    throw new Error('API থেকে JSON রূপে ডেটা পার্স করা যায়নি:\n' + rawText);
+                }
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'API ত্রুটি হয়েছে');
+                }
+
+                if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return data.candidates[0].content.parts[0].text;
+                } else {
+                    throw new Error('অপ্রত্যাশিত API প্রতিক্রিয়া ফর্ম্যাট');
+                }
+
+            } catch (error) {
+                console.error('API কল ত্রুটি:', error);
+                errorMessage.textContent = `ত্রুটি: ${error.message}`;
+                return "দুঃখিত, একটি ত্রুটি হয়েছে। পরে আবার চেষ্টা করুন।";
+            } finally {
+                hideTypingIndicator();
             }
         }
+
+        function addMessageToChat(message, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', isUser ? 'user-message' : 'bot-message');
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            typingIndicator.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        async function processUserInput() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessageToChat(message, true);
+            userInput.value = '';
+            userInput.focus();
+
+            const botResponse = await callGeminiAPI(message);
+            addMessageToChat(botResponse, false);
+        }
+
+        sendButton.addEventListener('click', processUserInput);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                processUserInput();
+            }
+        });
+
+        userInput.focus();
     </script>
 </body>
 </html>
+

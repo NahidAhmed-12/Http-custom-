@@ -3,26 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Offline Enabled Page</title>
+  <title>Offline-Ready Page</title>
 </head>
 <body>
-  <h1>Hello! I'm an Offline Page</h1>
-  <p>Disconnect internet and reload — I still work!</p>
+  <h1>Hello, Offline World!</h1>
+  <p>This page will work offline after the first visit.</p>
 
   <script>
-    const CACHE_NAME = 'offline-cache-v1';
-    const urlsToCache = [location.href];
-
-    // Register service worker (inline)
     if ('serviceWorker' in navigator) {
+      // Create and register the service worker from code
       const swCode = `
-        const CACHE_NAME = '${CACHE_NAME}';
-        const urlsToCache = ['${location.href}'];
+        const CACHE_NAME = 'my-offline-cache-v1';
+        const urlsToCache = [self.location.href];
 
         self.addEventListener('install', event => {
           event.waitUntil(
-            caches.open(CACHE_NAME)
-              .then(cache => cache.addAll(urlsToCache))
+            caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
           );
         });
 
@@ -35,13 +31,12 @@
         });
       `;
 
-      // Create a blob and register it as a service worker
       const blob = new Blob([swCode], { type: 'application/javascript' });
-      const swUrl = URL.createObjectURL(blob);
+      const swURL = URL.createObjectURL(blob);
 
-      navigator.serviceWorker.register(swUrl)
-        .then(() => console.log('Service Worker registered'))
-        .catch(err => console.log('SW registration failed:', err));
+      navigator.serviceWorker.register(swURL)
+        .then(() => console.log('Service Worker registered successfully'))
+        .catch(err => console.error('Service Worker registration failed:', err));
     }
   </script>
 </body>

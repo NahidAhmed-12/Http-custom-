@@ -1553,7 +1553,7 @@ function setupPlaybackStatusListener() {
     if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
       updatePlaybackStatus(YT.PlayerState.PLAYING);
     }
-  }, 1300);
+  }, 1500);
   
   playbackStatusListener = db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
     if (!snapshot.exists() || !player) return;
@@ -1563,7 +1563,7 @@ function setupPlaybackStatusListener() {
     const statusTime = status.timestamp || 0;
     
     // Ignore if status is from same device or older than 1 second
-    if (status.deviceId === deviceId || now - statusTime > 1000) return;
+    if (status.deviceId === deviceId || now - statusTime > 1500) return;
     
     // Handle playlist/video switching
     if (status.playlistId !== currentPlaylistId || status.videoId !== videoId) {

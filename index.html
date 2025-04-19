@@ -1533,8 +1533,16 @@ function onPlayerStateChange(event) {
     updatePlaybackStatus(event.data);
   }
   
-  if (event.data === YT.PlayerState.ENDED && autoPlayNextEnabled) {
-    playNextVideo();
+  if (event.data === YT.PlayerState.ENDED) {
+    if (autoPlayNextEnabled) {
+      // Reset current video time to 0
+      db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
+        time: 0
+      }).then(() => {
+        // Then play next video
+        playNextVideo();
+      });
+    }
   }
 }
 
@@ -1607,7 +1615,13 @@ function setupPlaybackStatusListener() {
           
         case YT.PlayerState.ENDED:
           if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
-            playNextVideo();
+            // Reset current video time to 0
+            db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
+              time: 0
+            }).then(() => {
+              // Then play next video
+              playNextVideo();
+            });
           }
           break;
       }

@@ -1294,9 +1294,8 @@ margin-top: -48%;
   
   <div class="overlay" id="overlay"></div>
   
-  
-<script>
-  // Firebase config
+  <script>
+    // Firebase config
 const firebaseConfig = {
   databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/"
 };
@@ -1305,8 +1304,6 @@ const firebaseConfig = {
 const LAST_PLAYED_PLAYLIST_KEY = "lastPlayedPlaylist";
 const PLAYBACK_STATUS_KEY = "playbackStatus";
 const DEVICE_ID_KEY = "deviceId";
-const STATUS_UPDATE_INTERVAL = 2000; // Reduced from 1000 to 2000ms
-const SYNC_THRESHOLD = 3; // Seconds difference to trigger sync
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -1318,20 +1315,21 @@ let lastWatchedVideoId = null;
 let isSaving = false;
 let playlistVideos = [];
 let currentVideoIndex = -1;
+let lastUpdateTime = 0;
 let currentPlaylistId = 'default';
 let playlists = {};
 let isInitialLoad = true;
 let autoPlayNextEnabled = true;
 let isRemotePlayback = false;
-let isSyncing = false;
-let lastSyncTime = 0;
+let deviceId = localStorage.getItem(DEVICE_ID_KEY) || Math.random().toString(36).substring(2) + Date.now().toString(36);
+localStorage.setItem(DEVICE_ID_KEY, deviceId);
 
-// Generate a persistent device ID
-let deviceId = localStorage.getItem(DEVICE_ID_KEY);
-if (!deviceId) {
-  deviceId = `${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
-  localStorage.setItem(DEVICE_ID_KEY, deviceId);
-}
+// Time tracking variables
+let lastSavedTime = 0;
+let unsavedChanges = false;
+let saveInterval;
+let playbackStatusListener;
+let statusUpdateInterval;
 
 // DOM Elements
 const adminPanel = document.getElementById('adminPanel');
@@ -1401,8 +1399,8 @@ function saveAndLoadVideo() {
 }
 
 function loadPlayer(videoId, startTime) {
-  if (player && lastWatchedVideoId) {
-    saveCurrentTime(lastWatchedVideoId, player.getCurrentTime());
+  if (player && lastWatchedVideoId && unsavedChanges) {
+    forceSaveCurrentTime();
   }
   
   if (player) {
@@ -1425,30 +1423,22 @@ function loadPlayer(videoId, startTime) {
     });
   }
   
-  // Update last watched timestamp
   db.ref(`playlists/${currentPlaylistId}/videos/${videoId}/lastWatched`).set(firebase.database.ServerValue.TIMESTAMP);
-  
   lastWatchedVideoId = videoId;
   window.location.hash = `${currentPlaylistId}|${videoId}`;
   currentVideoIndex = playlistVideos.findIndex(video => video.id === videoId);
   updateNavButtons();
+  lastSavedTime = startTime;
+  unsavedChanges = false;
   
   // Update playback status
   updatePlaybackStatus(YT.PlayerState.PLAYING);
 }
 
 function updatePlaybackStatus(state) {
-  if (!player || !videoId || isSyncing) return;
+  if (!player || !videoId) return;
   
   const currentTime = player.getCurrentTime() || 0;
-  const now = Date.now();
-  
-  // Throttle status updates
-  if (state === YT.PlayerState.PLAYING && now - lastSyncTime < STATUS_UPDATE_INTERVAL) {
-    return;
-  }
-  
-  lastSyncTime = now;
   
   db.ref(PLAYBACK_STATUS_KEY).set({
     playlistId: currentPlaylistId,
@@ -1456,31 +1446,60 @@ function updatePlaybackStatus(state) {
     state: state,
     currentTime: currentTime,
     deviceId: deviceId,
-    timestamp: now
+    timestamp: firebase.database.ServerValue.TIMESTAMP
   });
 }
 
-function saveCurrentTime(vid, currentTime) {
-  if (!vid || isSaving) return;
+function forceSaveCurrentTime() {
+  if (!player || !videoId) return;
   
-  currentTime = Math.floor(currentTime);
+  const currentTime = Math.floor(player.getCurrentTime());
+  lastSavedTime = currentTime;
+  unsavedChanges = false;
+  
   isSaving = true;
   
-  db.ref(`playlists/${currentPlaylistId}/videos/${vid}`).update({
+  db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
+    time: currentTime,
+    lastWatched: firebase.database.ServerValue.TIMESTAMP
+  }).then(() => {
+    console.log("Time forcefully saved:", currentTime);
+    isSaving = false;
+    updateProgressBarForVideo(videoId, currentTime);
+  }).catch(error => {
+    console.error("Error saving time:", error);
+    isSaving = false;
+  });
+}
+
+function checkAndSaveTime() {
+  if (!player || !videoId || isSaving) return;
+  
+  const currentTime = Math.floor(player.getCurrentTime());
+  
+  if (Math.abs(currentTime - lastSavedTime) < 1) return;
+  
+  isSaving = true;
+  lastSavedTime = currentTime;
+  unsavedChanges = false;
+  
+  db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
     time: currentTime,
     lastWatched: firebase.database.ServerValue.TIMESTAMP
   }).then(() => {
     console.log("Time saved:", currentTime);
-    updateProgressBarForVideo(vid, currentTime);
+    isSaving = false;
+    updateProgressBarForVideo(videoId, currentTime);
   }).catch(error => {
     console.error("Error saving time:", error);
-  }).finally(() => {
     isSaving = false;
   });
 }
 
 function onPlayerReady(event) {
-  // Update duration if available
+  clearInterval(saveInterval);
+  saveInterval = setInterval(checkAndSaveTime, 1000);
+  
   if (player && player.getDuration) {
     const duration = player.getDuration();
     if (duration > 0) {
@@ -1491,7 +1510,7 @@ function onPlayerReady(event) {
     }
   }
   
-  // Setup playback status listener
+  // Setup playback status listener with more frequent updates
   setupPlaybackStatusListener();
 }
 
@@ -1501,6 +1520,8 @@ function onPlayerStateChange(event) {
     isRemotePlayback = false;
     return;
   }
+  
+  checkAndSaveTime();
   
   if (event.data === YT.PlayerState.PLAYING) {
     highlightCurrentVideo();
@@ -1518,141 +1539,132 @@ function onPlayerStateChange(event) {
 
 function setupPlaybackStatusListener() {
   // Remove previous listener if exists
-  db.ref(PLAYBACK_STATUS_KEY).off('value');
+  if (playbackStatusListener) {
+    db.ref(PLAYBACK_STATUS_KEY).off('value', playbackStatusListener);
+  }
   
-  db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
-    if (!snapshot.exists() || !player || isSyncing) return;
+  // Clear previous interval if exists
+  if (statusUpdateInterval) {
+    clearInterval(statusUpdateInterval);
+  }
+  
+  // Update playback status every second when playing
+  statusUpdateInterval = setInterval(() => {
+    if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+      updatePlaybackStatus(YT.PlayerState.PLAYING);
+    }
+  }, 1000);
+  
+  playbackStatusListener = db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
+    if (!snapshot.exists() || !player) return;
     
     const status = snapshot.val();
     const now = Date.now();
     const statusTime = status.timestamp || 0;
     
-    // Ignore if status is from same device or older than 3 seconds
-    if (status.deviceId === deviceId || now - statusTime > 3000) return;
-    
-    isSyncing = true;
+    // Ignore if status is from same device or older than 1 second
+    if (status.deviceId === deviceId || now - statusTime > 1000) return;
     
     // Handle playlist/video switching
     if (status.playlistId !== currentPlaylistId || status.videoId !== videoId) {
-      handleRemotePlaylistChange(status);
+      isRemotePlayback = true;
+      currentPlaylistId = status.playlistId;
+      videoId = status.videoId;
+      
+      // Find the video in current playlist
+      const videoIndex = playlistVideos.findIndex(v => v.id === videoId);
+      if (videoIndex !== -1) {
+        currentVideoIndex = videoIndex;
+        loadPlayer(videoId, status.currentTime || 0);
+      } else {
+        // If video not found, load the playlist first
+        switchToPlaylist(status.playlistId);
+      }
       return;
     }
     
     // Handle playback state changes
-    handleRemotePlaybackChange(status);
+    const currentState = player.getPlayerState();
     
-    isSyncing = false;
+    // Only act if states are different
+    if (status.state !== currentState) {
+      isRemotePlayback = true;
+      
+      switch(status.state) {
+        case YT.PlayerState.PLAYING:
+          if (currentState !== YT.PlayerState.PLAYING) {
+            player.seekTo(status.currentTime || 0, true);
+            player.playVideo();
+          }
+          break;
+          
+        case YT.PlayerState.PAUSED:
+          if (currentState === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+          }
+          break;
+          
+        case YT.PlayerState.ENDED:
+          if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
+            playNextVideo();
+          }
+          break;
+      }
+    } else if (status.state === YT.PlayerState.PLAYING && 
+               Math.abs((status.currentTime || 0) - player.getCurrentTime()) > 1) {
+      // If playing but time difference is more than 1 second, sync
+      isRemotePlayback = true;
+      player.seekTo(status.currentTime, true);
+    }
   });
 }
 
-function handleRemotePlaylistChange(status) {
-  isRemotePlayback = true;
-  currentPlaylistId = status.playlistId;
-  videoId = status.videoId;
-  
-  // Find the video in current playlist
-  const videoIndex = playlistVideos.findIndex(v => v.id === videoId);
-  if (videoIndex !== -1) {
-    currentVideoIndex = videoIndex;
-    loadPlayer(videoId, status.currentTime || 0);
-  } else {
-    // If video not found, load the playlist first
-    switchToPlaylist(status.playlistId);
-  }
-}
-
-function handleRemotePlaybackChange(status) {
-  const currentState = player.getPlayerState();
-  const currentTime = player.getCurrentTime();
-  
-  // Only act if states are different
-  if (status.state !== currentState) {
-    isRemotePlayback = true;
-    
-    switch(status.state) {
-      case YT.PlayerState.PLAYING:
-        if (currentState !== YT.PlayerState.PLAYING) {
-          player.seekTo(status.currentTime || 0, true);
-          player.playVideo();
-        }
-        break;
-        
-      case YT.PlayerState.PAUSED:
-        if (currentState === YT.PlayerState.PLAYING) {
-          player.pauseVideo();
-        }
-        break;
-        
-      case YT.PlayerState.ENDED:
-        if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
-          playNextVideo();
-        }
-        break;
-    }
-  } 
-  // Sync time if difference is significant
-  else if (status.state === YT.PlayerState.PLAYING && 
-           Math.abs((status.currentTime || 0) - currentTime) > SYNC_THRESHOLD) {
-    isRemotePlayback = true;
-    player.seekTo(status.currentTime, true);
-  }
-}
-
 function setupRealtimeListener() {
-  // Load initial playlist data
   db.ref(LAST_PLAYED_PLAYLIST_KEY).once('value').then(snapshot => {
     if (snapshot.exists()) {
       currentPlaylistId = snapshot.val();
     }
     
-    // Check URL hash for playlist/video
     const hashParts = window.location.hash.substring(1).split('|');
     if (hashParts.length === 2) {
       currentPlaylistId = hashParts[0];
     }
     
-    // Setup playlists listener
     db.ref("playlists").on("value", (snapshot) => {
       if (snapshot.exists()) {
         playlists = snapshot.val();
         renderPlaylistSelector();
         
-        // Ensure current playlist exists
         if (!playlists[currentPlaylistId]) {
           currentPlaylistId = 'default';
           if (!playlists[currentPlaylistId]) {
-            createDefaultPlaylist();
+            db.ref("playlists/default").set({
+              name: "Default Playlist",
+              createdAt: firebase.database.ServerValue.TIMESTAMP,
+              autoPlayNext: true
+            });
             return;
           }
         }
         
-        updateCurrentPlaylistInfo();
+        currentPlaylistName.textContent = playlists[currentPlaylistId].name || "Default Playlist";
+        autoPlayNextEnabled = playlists[currentPlaylistId].autoPlayNext !== false;
+        db.ref(LAST_PLAYED_PLAYLIST_KEY).set(currentPlaylistId);
         loadVideosForCurrentPlaylist();
         
-        // Handle initial load with hash
         if (isInitialLoad && hashParts.length === 2 && hashParts[0] === currentPlaylistId) {
           loadSavedVideo(hashParts[1]);
           isInitialLoad = false;
         }
       } else {
-        createDefaultPlaylist();
+        db.ref("playlists/default").set({
+          name: "Default Playlist",
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+          autoPlayNext: true
+        });
       }
     });
   });
-}
-
-function createDefaultPlaylist() {
-  db.ref("playlists/default").set({
-    name: "Default Playlist",
-    createdAt: firebase.database.ServerValue.TIMESTAMP,
-    autoPlayNext: true
-  });
-}
-
-function updateCurrentPlaylistInfo() {
-  currentPlaylistName.textContent = playlists[currentPlaylistId].name || "Default Playlist";
-  autoPlayNextEnabled = playlists[currentPlaylistId].autoPlayNext !== false;
-  db.ref(LAST_PLAYED_PLAYLIST_KEY).set(currentPlaylistId);
 }
 
 function loadVideosForCurrentPlaylist() {
@@ -1704,11 +1716,38 @@ function loadVideosForCurrentPlaylist() {
 
     document.getElementById("playlistCount").textContent = `${newPlaylistVideos.length} ${newPlaylistVideos.length === 1 ? 'video' : 'videos'}`;
 
-    // Only update DOM if playlist changed
     if (JSON.stringify(playlistVideos.map(v => v.id)) !== JSON.stringify(newPlaylistVideos.map(v => v.id))) {
-      renderVideoList(list, newPlaylistVideos);
+      list.innerHTML = "";
+      newPlaylistVideos.forEach((video, index) => {
+        const item = document.createElement("div");
+        item.className = "playlist-item";
+        if (video.id === videoId) {
+          item.classList.add("active");
+          currentPlayingItem = item;
+        }
+        item.setAttribute("data-video-id", video.id);
+        item.onclick = () => loadSavedVideo(video.id);
+        
+        item.innerHTML = `
+          <div class="thumbnail" style="background-image: url(https://img.youtube.com/vi/${video.id}/mqdefault.jpg)" data-duration="${video.duration}"></div>
+          <div class="video-info">
+            <div class="video-title">${video.data.title || "Untitled Video"}</div>
+            <div class="video-channel">${video.data.channel || "Unknown channel"}</div>
+            <div class="progress-container">
+              <div class="progress-info">
+                <span>${formatTime(video.data.time || 0)}</span>
+                <span>${video.duration}</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress" style="width: ${calculateProgress(video.data.time || 0, video.data.durationSec || 1)}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        list.appendChild(item);
+      });
     } else {
-      // Just update progress bars
       newPlaylistVideos.forEach(video => {
         updateProgressBarForVideo(video.id, video.data.time || 0);
       });
@@ -1716,50 +1755,14 @@ function loadVideosForCurrentPlaylist() {
 
     playlistVideos = newPlaylistVideos;
 
-    // Handle initial load
     if (mostRecentVideo && !videoId && !window.location.hash && isInitialLoad) {
       loadSavedVideo(mostRecentVideo);
       isInitialLoad = false;
     }
     
-    // Update current video index if needed
     if (videoId && currentVideoIndex === -1) {
       currentVideoIndex = playlistVideos.findIndex(video => video.id === videoId);
       updateNavButtons();
-    }
-  });
-}
-
-function renderVideoList(list, videos) {
-  list.innerHTML = "";
-  
-  videos.forEach((video, index) => {
-    const item = document.createElement("div");
-    item.className = `playlist-item ${video.id === videoId ? 'active' : ''}`;
-    item.setAttribute("data-video-id", video.id);
-    item.onclick = () => loadSavedVideo(video.id);
-    
-    item.innerHTML = `
-      <div class="thumbnail" style="background-image: url(https://img.youtube.com/vi/${video.id}/mqdefault.jpg)" data-duration="${video.duration}"></div>
-      <div class="video-info">
-        <div class="video-title">${video.data.title || "Untitled Video"}</div>
-        <div class="video-channel">${video.data.channel || "Unknown channel"}</div>
-        <div class="progress-container">
-          <div class="progress-info">
-            <span>${formatTime(video.data.time || 0)}</span>
-            <span>${video.duration}</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress" style="width: ${calculateProgress(video.data.time || 0, video.data.durationSec || 1)}%"></div>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    list.appendChild(item);
-    
-    if (video.id === videoId) {
-      currentPlayingItem = item;
     }
   });
 }
@@ -1780,6 +1783,10 @@ function renderPlaylistSelector() {
         <span class="toggle-knob"></span>
       </span>
     `;
+    
+    if (playlistId === currentPlaylistId) {
+      autoPlayNextEnabled = playlist.autoPlayNext !== false;
+    }
     
     toggleButton.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1804,6 +1811,11 @@ function renderPlaylistSelector() {
     
     playlistItem.appendChild(toggleButton);
     playlistItem.addEventListener('click', () => {
+      const videosContainer = playlistItem.querySelector('.playlist-videos');
+      if (videosContainer) {
+        videosContainer.classList.toggle('active');
+        return;
+      }
       switchToPlaylist(playlistId);
     });
     
@@ -1847,24 +1859,22 @@ function showPlaylistVideos(playlistId, playlistElement) {
 }
 
 function switchToPlaylist(playlistId) {
-  if (playlistId === currentPlaylistId) return;
-  
-  if (player && videoId) {
-    saveCurrentTime(videoId, player.getCurrentTime());
+  if (player && videoId && unsavedChanges) {
+    forceSaveCurrentTime();
   }
   
   currentPlaylistId = playlistId;
-  updateCurrentPlaylistInfo();
+  currentPlaylistName.textContent = playlists[playlistId].name || "Default Playlist";
+  autoPlayNextEnabled = playlists[playlistId].autoPlayNext !== false;
+  db.ref(LAST_PLAYED_PLAYLIST_KEY).set(playlistId);
   
   adminPanel.classList.remove('active');
   overlay.classList.remove('active');
   loadVideosForCurrentPlaylist();
-  
+  videoId = '';
   if (player) {
     player.stopVideo();
   }
-  
-  videoId = '';
   window.location.hash = '';
   findAndPlayLastWatchedVideo(playlistId);
 }
@@ -1949,8 +1959,8 @@ function loadSavedVideo(vid) {
 
 function playNextVideo() {
   if (currentVideoIndex < playlistVideos.length - 1) {
-    if (player && videoId) {
-      saveCurrentTime(videoId, player.getCurrentTime());
+    if (player && videoId && unsavedChanges) {
+      forceSaveCurrentTime();
     }
     
     const nextVideo = playlistVideos[currentVideoIndex + 1];
@@ -1960,8 +1970,8 @@ function playNextVideo() {
 
 function playPreviousVideo() {
   if (currentVideoIndex > 0) {
-    if (player && videoId) {
-      saveCurrentTime(videoId, player.getCurrentTime());
+    if (player && videoId && unsavedChanges) {
+      forceSaveCurrentTime();
     }
     
     const prevVideo = playlistVideos[currentVideoIndex - 1];
@@ -1998,6 +2008,7 @@ function updateProgressBarForVideo(vid, currentTime) {
   
   const progressBar = item.querySelector('.progress');
   const timeDisplay = item.querySelector('.progress-info span:first-child');
+  const durationDisplay = item.querySelector('.progress-info span:last-child');
   
   if (progressBar && timeDisplay) {
     let duration = 1;
@@ -2009,10 +2020,32 @@ function updateProgressBarForVideo(vid, currentTime) {
     const percentage = calculateProgress(currentTime, duration);
     progressBar.style.width = `${percentage}%`;
     timeDisplay.textContent = formatTime(currentTime);
+    
+    if (vid === videoId) {
+      unsavedChanges = Math.abs(currentTime - lastSavedTime) >= 1;
+    }
   }
 }
 
-// Initialize the app
+function handleBeforeUnload(e) {
+  if (player && videoId && unsavedChanges) {
+    forceSaveCurrentTime();
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
+  }
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === 'hidden' && player && videoId && unsavedChanges) {
+    forceSaveCurrentTime();
+  }
+}
+
+window.addEventListener('beforeunload', handleBeforeUnload);
+window.addEventListener('pagehide', handleBeforeUnload);
+document.addEventListener('visibilitychange', handleVisibilityChange);
+
 window.onload = function() {
   setupRealtimeListener();
   
@@ -2022,7 +2055,8 @@ window.onload = function() {
     }
   });
 };
-</script>
+  </script>
+
  </body>
 </html>
  

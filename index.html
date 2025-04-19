@@ -1304,6 +1304,7 @@ const firebaseConfig = {
 // Constants
 const LAST_PLAYED_PLAYLIST_KEY = "lastPlayedPlaylist";
 const PLAYBACK_STATUS_KEY = "playbackStatus";
+const DEVICE_ID_KEY = "deviceId";
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -1321,11 +1322,14 @@ let playlists = {};
 let isInitialLoad = true;
 let autoPlayNextEnabled = true;
 let isRemotePlayback = false;
+let deviceId = localStorage.getItem(DEVICE_ID_KEY) || Math.random().toString(36).substring(2) + Date.now().toString(36);
+localStorage.setItem(DEVICE_ID_KEY, deviceId);
 
 // Time tracking variables
 let lastSavedTime = 0;
 let unsavedChanges = false;
 let saveInterval;
+let playbackStatusListener;
 
 // DOM Elements
 const adminPanel = document.getElementById('adminPanel');
@@ -1353,7 +1357,6 @@ overlay.addEventListener('click', () => {
   overlay.classList.remove('active');
 });
 
-// Function to extract YouTube video ID from different formats
 function getVideoId(link) {
   try {
     let url = new URL(link);
@@ -1410,7 +1413,8 @@ function loadPlayer(videoId, startTime) {
       playerVars: {
         start: startTime,
         rel: 0,
-        modestbranding: 1
+        modestbranding: 1,
+        enablejsapi: 1
       },
       events: {
         'onStateChange': onPlayerStateChange,
@@ -1428,14 +1432,20 @@ function loadPlayer(videoId, startTime) {
   unsavedChanges = false;
   
   // Update playback status
-  updatePlaybackStatus(true);
+  updatePlaybackStatus(YT.PlayerState.PLAYING);
 }
 
-function updatePlaybackStatus(isPlaying) {
+function updatePlaybackStatus(state) {
+  if (!player || !videoId) return;
+  
+  const currentTime = player.getCurrentTime() || 0;
+  
   db.ref(PLAYBACK_STATUS_KEY).set({
     playlistId: currentPlaylistId,
     videoId: videoId,
-    isPlaying: isPlaying,
+    state: state,
+    currentTime: currentTime,
+    deviceId: deviceId,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   });
 }
@@ -1467,7 +1477,6 @@ function checkAndSaveTime() {
   
   const currentTime = Math.floor(player.getCurrentTime());
   
-  // Only save if time has changed by at least 1 second
   if (Math.abs(currentTime - lastSavedTime) < 1) return;
   
   isSaving = true;
@@ -1501,48 +1510,85 @@ function onPlayerReady(event) {
     }
   }
   
-  // Listen for remote playback changes
+  // Setup playback status listener
   setupPlaybackStatusListener();
 }
 
 function onPlayerStateChange(event) {
+  // Don't update status if this is a remote playback change
+  if (isRemotePlayback) {
+    isRemotePlayback = false;
+    return;
+  }
+  
   checkAndSaveTime();
   
   if (event.data === YT.PlayerState.PLAYING) {
     highlightCurrentVideo();
-    updatePlaybackStatus(true);
-  } else if (event.data === YT.PlayerState.PAUSED) {
-    updatePlaybackStatus(false);
-  } else if (event.data === YT.PlayerState.ENDED && autoPlayNextEnabled) {
-    updatePlaybackStatus(false);
+  }
+  
+  // Always update playback status except when buffering
+  if (event.data !== YT.PlayerState.BUFFERING) {
+    updatePlaybackStatus(event.data);
+  }
+  
+  if (event.data === YT.PlayerState.ENDED && autoPlayNextEnabled) {
     playNextVideo();
   }
 }
 
 function setupPlaybackStatusListener() {
-  db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
-    if (!snapshot.exists() || !player) return;
+  // Remove previous listener if exists
+  if (playbackStatusListener) {
+    db.ref(PLAYBACK_STATUS_KEY).off('value', playbackStatusListener);
+  }
+  
+  playbackStatusListener = db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
+    if (!snapshot.exists() || !player || !videoId) return;
     
     const status = snapshot.val();
     const now = Date.now();
     const statusTime = status.timestamp || 0;
     
-    // Ignore if status is older than 10 seconds or from current device
-    if (now - statusTime > 10000) return;
+    // Ignore if status is from same device or older than 5 seconds
+    if (status.deviceId === deviceId || now - statusTime > 5000) return;
     
     // Check if playback status is for current playlist and video
     if (status.playlistId === currentPlaylistId && status.videoId === videoId) {
-      if (status.isPlaying && player.getPlayerState() !== YT.PlayerState.PLAYING) {
+      const currentState = player.getPlayerState();
+      
+      // Only act if states are different
+      if (status.state !== currentState) {
         isRemotePlayback = true;
-        player.playVideo();
-      } else if (!status.isPlaying && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        
+        switch(status.state) {
+          case YT.PlayerState.PLAYING:
+            // If remote is playing and we're not, play the video
+            if (currentState !== YT.PlayerState.PLAYING) {
+              player.seekTo(status.currentTime || 0, true);
+              player.playVideo();
+            }
+            break;
+            
+          case YT.PlayerState.PAUSED:
+            // If remote is paused and we're playing, pause the video
+            if (currentState === YT.PlayerState.PLAYING) {
+              player.pauseVideo();
+            }
+            break;
+            
+          case YT.PlayerState.ENDED:
+            // If remote has ended and autoPlayNext is enabled, play next
+            if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
+              playNextVideo();
+            }
+            break;
+        }
+      } else if (status.state === YT.PlayerState.PLAYING && 
+                 Math.abs((status.currentTime || 0) - player.getCurrentTime()) > 2) {
+        // If playing but time difference is more than 2 seconds, sync
         isRemotePlayback = true;
-        player.pauseVideo();
-      }
-    } else if (status.isPlaying) {
-      // If another video is playing, stop current video
-      if (player.getPlayerState() !== YT.PlayerState.PAUSED) {
-        player.pauseVideo();
+        player.seekTo(status.currentTime, true);
       }
     }
   });

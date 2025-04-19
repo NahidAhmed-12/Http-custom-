@@ -1587,9 +1587,8 @@ function setupPlaybackStatusListener() {
     // Handle playback state changes
     const currentState = player.getPlayerState();
     
-    // Only act if states are different and not transitioning
-    if (status.state !== currentState && 
-        !(currentState === YT.PlayerState.BUFFERING && status.state === YT.PlayerState.PLAYING)) {
+    // Only act if states are different and the status is recent
+    if (status.state !== currentState && (now - statusTime < 2000)) {
       isRemotePlayback = true;
       
       switch(status.state) {
@@ -1601,7 +1600,7 @@ function setupPlaybackStatusListener() {
           break;
           
         case YT.PlayerState.PAUSED:
-          if (currentState === YT.PlayerState.PLAYING || currentState === YT.PlayerState.BUFFERING) {
+          if (currentState === YT.PlayerState.PLAYING) {
             player.pauseVideo();
           }
           break;

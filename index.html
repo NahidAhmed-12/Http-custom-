@@ -1296,7 +1296,7 @@ margin-top: -48%;
   
   
 <script>
-  // Firebase config
+  // Firebase configuration
 const firebaseConfig = {
   databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/"
 };
@@ -1305,18 +1305,18 @@ const firebaseConfig = {
 const LAST_PLAYED_PLAYLIST_KEY = "lastPlayedPlaylist";
 const PLAYBACK_STATUS_KEY = "playbackStatus";
 const DEVICE_ID_KEY = "deviceId";
-const SYNC_THRESHOLD = 1.5; // seconds
-const STATUS_UPDATE_INTERVAL = 1000; // ms
-const TIME_SAVE_INTERVAL = 1000; // ms
+const SYNC_THRESHOLD = 1.5; // Time difference threshold for sync in seconds
+const STATUS_UPDATE_INTERVAL = 1000; // Update interval for playback status
+const SAVE_INTERVAL = 1000; // Interval for saving progress
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// Global variables
 let player;
 let videoId = '';
 let currentPlayingItem = null;
-let lastWatchedVideoId = null;
-let isSaving = false;
 let playlistVideos = [];
 let currentVideoIndex = -1;
 let currentPlaylistId = 'default';
@@ -1324,14 +1324,16 @@ let playlists = {};
 let isInitialLoad = true;
 let autoPlayNextEnabled = true;
 let isRemotePlayback = false;
-let lastLocalState = null;
-let syncDebounceTimer = null;
+let isSaving = false;
+let lastSavedTime = 0;
+let unsavedChanges = false;
+let lastStateChangeTime = 0;
 
-// Generate a persistent device ID
+// Generate or retrieve device ID
 let deviceId = localStorage.getItem(DEVICE_ID_KEY) || generateDeviceId();
 localStorage.setItem(DEVICE_ID_KEY, deviceId);
 
-// DOM Elements
+// DOM elements
 const adminPanel = document.getElementById('adminPanel');
 const overlay = document.getElementById('overlay');
 const menuButton = document.getElementById('menuButton');
@@ -1356,281 +1358,284 @@ function getVideoId(link) {
   }
 }
 
-function formatTime(seconds) {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-}
-
 function calculateProgress(currentTime, duration) {
   if (duration <= 0) return 0;
   const progress = (currentTime / duration) * 100;
   return Math.min(100, Math.max(0, progress));
 }
 
-function debounce(func, delay) {
-  return function() {
-    clearTimeout(syncDebounceTimer);
-    syncDebounceTimer = setTimeout(() => func.apply(this, arguments), delay);
-  };
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-// Player functions
-function initializePlayer(videoId, startTime) {
-  if (player) {
-    player.destroy();
-  }
-
-  player = new YT.Player('player', {
-    height: '390',
-    width: '640',
-    videoId: videoId,
-    playerVars: {
-      start: startTime,
-      rel: 0,
-      modestbranding: 1,
-      enablejsapi: 1
-    },
-    events: {
-      'onStateChange': onPlayerStateChange,
-      'onReady': onPlayerReady
-    }
+function generateId() {
+  return 'xxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
   });
 }
 
-function loadPlayer(videoId, startTime) {
-  // Save current position if needed
-  if (player && lastWatchedVideoId) {
-    saveCurrentTime();
+// Player control functions
+function loadPlayer(vid, startTime) {
+  if (player && videoId && unsavedChanges) {
+    forceSaveCurrentTime();
   }
-
+  
+  videoId = vid;
   if (player) {
-    player.loadVideoById({ videoId: videoId, startSeconds: startTime });
+    player.loadVideoById({ videoId: vid, startSeconds: startTime });
   } else {
-    initializePlayer(videoId, startTime);
-  }
-
-  // Update Firebase with the new video
-  db.ref(`playlists/${currentPlaylistId}/videos/${videoId}/lastWatched`).set(firebase.database.ServerValue.TIMESTAMP);
-  
-  // Update UI state
-  lastWatchedVideoId = videoId;
-  window.location.hash = `${currentPlaylistId}|${videoId}`;
-  currentVideoIndex = playlistVideos.findIndex(video => video.id === videoId);
-  updateNavButtons();
-  
-  // Update playback status
-  updatePlaybackStatus(YT.PlayerState.PLAYING);
-}
-
-function saveCurrentTime() {
-  if (!player || !videoId || isSaving) return;
-  
-  const currentTime = player.getCurrentTime();
-  if (currentTime === undefined) return;
-  
-  isSaving = true;
-  
-  db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
-    time: currentTime,
-    lastWatched: firebase.database.ServerValue.TIMESTAMP
-  }).then(() => {
-    console.log("Time saved:", currentTime);
-    updateProgressBarForVideo(videoId, currentTime);
-  }).catch(error => {
-    console.error("Error saving time:", error);
-  }).finally(() => {
-    isSaving = false;
-  });
-}
-
-// Event handlers
-function onPlayerReady(event) {
-  // Setup periodic time save
-  setInterval(() => {
-    if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
-      saveCurrentTime();
-    }
-  }, TIME_SAVE_INTERVAL);
-
-  // Update duration if available
-  if (player.getDuration()) {
-    const duration = player.getDuration();
-    db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
-      duration: formatTime(duration),
-      durationSec: duration
+    player = new YT.Player('player', {
+      height: '390',
+      width: '640',
+      videoId: vid,
+      playerVars: {
+        start: startTime,
+        rel: 0,
+        modestbranding: 1,
+        enablejsapi: 1
+      },
+      events: {
+        'onStateChange': onPlayerStateChange,
+        'onReady': onPlayerReady
+      }
     });
   }
-
-  // Setup playback status listener
-  setupPlaybackStatusListener();
-}
-
-function onPlayerStateChange(event) {
-  // Ignore remote playback changes
-  if (isRemotePlayback) {
-    isRemotePlayback = false;
-    return;
-  }
-
-  // Save current time on state change
-  saveCurrentTime();
-
-  // Highlight current video when playing
-  if (event.data === YT.PlayerState.PLAYING) {
-    highlightCurrentVideo();
-  }
-
-  // Update playback status (except for buffering)
-  if (event.data !== YT.PlayerState.BUFFERING) {
-    updatePlaybackStatus(event.data);
-    lastLocalState = event.data;
-  }
-
-  // Auto-play next video if enabled
-  if (event.data === YT.PlayerState.ENDED && autoPlayNextEnabled) {
-    playNextVideo();
-  }
-}
-
-// Playback status synchronization
-function setupPlaybackStatusListener() {
-  db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
-    if (!snapshot.exists() || !player) return;
-    
-    const status = snapshot.val();
-    const now = Date.now();
-    
-    // Ignore if status is from same device or older than threshold
-    if (status.deviceId === deviceId || now - (status.timestamp || 0) > STATUS_UPDATE_INTERVAL * 1.5) {
-      return;
-    }
-
-    // Handle playlist/video switching
-    if (status.playlistId !== currentPlaylistId || status.videoId !== videoId) {
-      handleRemotePlaylistChange(status);
-      return;
-    }
-
-    // Handle playback state changes
-    handleRemoteStateChange(status);
-  });
-}
-
-function handleRemotePlaylistChange(status) {
-  isRemotePlayback = true;
-  currentPlaylistId = status.playlistId;
   
-  // Find the video in current playlist
-  const videoIndex = playlistVideos.findIndex(v => v.id === status.videoId);
-  if (videoIndex !== -1) {
-    currentVideoIndex = videoIndex;
-    loadPlayer(status.videoId, status.currentTime || 0);
-  } else {
-    // If video not found, load the playlist first
-    switchToPlaylist(status.playlistId);
-  }
-}
-
-function handleRemoteStateChange(status) {
-  const currentState = player.getPlayerState();
-  const currentTime = player.getCurrentTime() || 0;
+  db.ref(`playlists/${currentPlaylistId}/videos/${vid}/lastWatched`).set(firebase.database.ServerValue.TIMESTAMP);
+  window.location.hash = `${currentPlaylistId}|${vid}`;
+  currentVideoIndex = playlistVideos.findIndex(video => video.id === vid);
+  updateNavButtons();
+  lastSavedTime = startTime;
+  unsavedChanges = false;
   
-  // Only act if states are different or time difference is significant
-  if (status.state !== currentState || 
-      (status.state === YT.PlayerState.PLAYING && Math.abs((status.currentTime || 0) - currentTime) > SYNC_THRESHOLD)) {
-    isRemotePlayback = true;
-    
-    switch(status.state) {
-      case YT.PlayerState.PLAYING:
-        if (currentState !== YT.PlayerState.PLAYING || Math.abs(status.currentTime - currentTime) > SYNC_THRESHOLD) {
-          player.seekTo(status.currentTime, true);
-          player.playVideo();
-        }
-        break;
-        
-      case YT.PlayerState.PAUSED:
-        if (currentState === YT.PlayerState.PLAYING) {
-          player.pauseVideo();
-        }
-        break;
-        
-      case YT.PlayerState.ENDED:
-        if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
-          playNextVideo();
-        }
-        break;
-    }
-  }
+  setTimeout(() => {
+    updatePlaybackStatus(YT.PlayerState.PLAYING);
+  }, 500);
 }
 
 function updatePlaybackStatus(state) {
   if (!player || !videoId) return;
   
   const currentTime = player.getCurrentTime() || 0;
+  const now = Date.now();
   
-  db.ref(PLAYBACK_STATUS_KEY).set({
-    playlistId: currentPlaylistId,
-    videoId: videoId,
-    state: state,
-    currentTime: currentTime,
-    deviceId: deviceId,
-    timestamp: firebase.database.ServerValue.TIMESTAMP
+  if (state !== YT.PlayerState.PLAYING || now - lastStateChangeTime > 300) {
+    db.ref(PLAYBACK_STATUS_KEY).set({
+      playlistId: currentPlaylistId,
+      videoId: videoId,
+      state: state,
+      currentTime: currentTime,
+      deviceId: deviceId,
+      timestamp: now
+    });
+    
+    if (state !== YT.PlayerState.PLAYING) {
+      lastStateChangeTime = now;
+    }
+  }
+}
+
+function forceSaveCurrentTime() {
+  if (!player || !videoId) return;
+  
+  const currentTime = Math.floor(player.getCurrentTime());
+  lastSavedTime = currentTime;
+  unsavedChanges = false;
+  isSaving = true;
+  
+  db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
+    time: currentTime,
+    lastWatched: firebase.database.ServerValue.TIMESTAMP
+  }).then(() => {
+    isSaving = false;
+    updateProgressBarForVideo(videoId, currentTime);
+  }).catch(error => {
+    console.error("Error saving time:", error);
+    isSaving = false;
+  });
+}
+
+function checkAndSaveTime() {
+  if (!player || !videoId || isSaving) return;
+  
+  const currentTime = Math.floor(player.getCurrentTime());
+  if (Math.abs(currentTime - lastSavedTime) < 1) return;
+  
+  isSaving = true;
+  lastSavedTime = currentTime;
+  unsavedChanges = false;
+  
+  db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
+    time: currentTime,
+    lastWatched: firebase.database.ServerValue.TIMESTAMP
+  }).then(() => {
+    isSaving = false;
+    updateProgressBarForVideo(videoId, currentTime);
+  }).catch(error => {
+    console.error("Error saving time:", error);
+    isSaving = false;
+  });
+}
+
+// Player event handlers
+function onPlayerReady(event) {
+  clearInterval(saveInterval);
+  saveInterval = setInterval(checkAndSaveTime, SAVE_INTERVAL);
+  
+  if (player && player.getDuration) {
+    const duration = player.getDuration();
+    if (duration > 0) {
+      db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
+        duration: formatTime(duration),
+        durationSec: duration
+      });
+    }
+  }
+  
+  setupPlaybackStatusListener();
+}
+
+function onPlayerStateChange(event) {
+  if (isRemotePlayback) {
+    isRemotePlayback = false;
+    return;
+  }
+  
+  checkAndSaveTime();
+  
+  if (event.data === YT.PlayerState.PLAYING) {
+    highlightCurrentVideo();
+  }
+  
+  if (event.data !== YT.PlayerState.BUFFERING) {
+    updatePlaybackStatus(event.data);
+  }
+  
+  if (event.data === YT.PlayerState.ENDED && autoPlayNextEnabled) {
+    playNextVideo();
+  }
+}
+
+// Playback synchronization
+function setupPlaybackStatusListener() {
+  if (playbackStatusListener) {
+    db.ref(PLAYBACK_STATUS_KEY).off('value', playbackStatusListener);
+  }
+  
+  if (statusUpdateInterval) {
+    clearInterval(statusUpdateInterval);
+  }
+  
+  statusUpdateInterval = setInterval(() => {
+    if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+      updatePlaybackStatus(YT.PlayerState.PLAYING);
+    }
+  }, STATUS_UPDATE_INTERVAL);
+  
+  playbackStatusListener = db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
+    if (!snapshot.exists() || !player) return;
+    
+    const status = snapshot.val();
+    const now = Date.now();
+    
+    if (status.deviceId === deviceId || now - status.timestamp > 2000) return;
+    
+    if (status.playlistId !== currentPlaylistId || status.videoId !== videoId) {
+      isRemotePlayback = true;
+      currentPlaylistId = status.playlistId;
+      videoId = status.videoId;
+      
+      const videoIndex = playlistVideos.findIndex(v => v.id === videoId);
+      if (videoIndex !== -1) {
+        currentVideoIndex = videoIndex;
+        loadPlayer(videoId, status.currentTime || 0);
+      } else {
+        switchToPlaylist(status.playlistId);
+      }
+      return;
+    }
+    
+    const currentState = player.getPlayerState();
+    const currentTime = player.getCurrentTime() || 0;
+    
+    if (status.state !== currentState || 
+        (status.state === YT.PlayerState.PLAYING && Math.abs(status.currentTime - currentTime) > SYNC_THRESHOLD)) {
+      isRemotePlayback = true;
+      
+      switch(status.state) {
+        case YT.PlayerState.PLAYING:
+          if (currentState !== YT.PlayerState.PLAYING || Math.abs(status.currentTime - currentTime) > SYNC_THRESHOLD) {
+            player.seekTo(status.currentTime, true);
+            player.playVideo();
+          }
+          break;
+          
+        case YT.PlayerState.PAUSED:
+          if (currentState === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+          }
+          break;
+          
+        case YT.PlayerState.ENDED:
+          if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
+            playNextVideo();
+          }
+          break;
+      }
+    }
   });
 }
 
 // Playlist management
 function setupRealtimeListener() {
-  // Get last played playlist
   db.ref(LAST_PLAYED_PLAYLIST_KEY).once('value').then(snapshot => {
     if (snapshot.exists()) {
       currentPlaylistId = snapshot.val();
     }
     
-    // Check URL hash for playlist/video
     const hashParts = window.location.hash.substring(1).split('|');
     if (hashParts.length === 2) {
       currentPlaylistId = hashParts[0];
     }
     
-    // Listen for playlist changes
     db.ref("playlists").on("value", (snapshot) => {
       if (snapshot.exists()) {
         playlists = snapshot.val();
         renderPlaylistSelector();
         
-        // Ensure current playlist exists
         if (!playlists[currentPlaylistId]) {
           currentPlaylistId = 'default';
           if (!playlists[currentPlaylistId]) {
-            createDefaultPlaylist();
+            db.ref("playlists/default").set({
+              name: "Default Playlist",
+              createdAt: firebase.database.ServerValue.TIMESTAMP,
+              autoPlayNext: true
+            });
             return;
           }
         }
         
-        // Update UI with current playlist info
         currentPlaylistName.textContent = playlists[currentPlaylistId].name || "Default Playlist";
         autoPlayNextEnabled = playlists[currentPlaylistId].autoPlayNext !== false;
         db.ref(LAST_PLAYED_PLAYLIST_KEY).set(currentPlaylistId);
         loadVideosForCurrentPlaylist();
         
-        // Load video from hash if this is initial load
         if (isInitialLoad && hashParts.length === 2 && hashParts[0] === currentPlaylistId) {
           loadSavedVideo(hashParts[1]);
           isInitialLoad = false;
         }
       } else {
-        createDefaultPlaylist();
+        db.ref("playlists/default").set({
+          name: "Default Playlist",
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+          autoPlayNext: true
+        });
       }
     });
-  });
-}
-
-function createDefaultPlaylist() {
-  db.ref("playlists/default").set({
-    name: "Default Playlist",
-    createdAt: firebase.database.ServerValue.TIMESTAMP,
-    autoPlayNext: true
   });
 }
 
@@ -1639,12 +1644,14 @@ function loadVideosForCurrentPlaylist() {
     const list = document.getElementById("videoList");
     
     if (!snapshot.exists()) {
-      if (!list.querySelector('.empty-state')) {
+      if (list.querySelector('.empty-state') === null) {
         list.innerHTML = `
           <div class="empty-state">
-            <div class="empty-icon"><i class="fas fa-music"></i></div>
+            <div class="empty-icon">
+              <i class="fas fa-music"></i>
+            </div>
             <div class="empty-title">Your playlist is empty</div>
-            <div class="empty-text">Add YouTube videos to create your personalized playlist</div>
+            <div class="empty-text">Add YouTube videos to create your personalized playlist and start watching</div>
             <button class="empty-button" onclick="document.getElementById('videoLink').focus()">
               <i class="fas fa-plus"></i> Add First Video
             </button>
@@ -1665,11 +1672,12 @@ function loadVideosForCurrentPlaylist() {
     snapshot.forEach(child => {
       const vid = child.key;
       const data = child.val();
+      const duration = data.duration || "0:00";
       
       newPlaylistVideos.push({
         id: vid,
         data: data,
-        duration: data.duration || "0:00"
+        duration: duration
       });
 
       if (data.lastWatched && data.lastWatched > mostRecentTime) {
@@ -1680,11 +1688,38 @@ function loadVideosForCurrentPlaylist() {
 
     document.getElementById("playlistCount").textContent = `${newPlaylistVideos.length} ${newPlaylistVideos.length === 1 ? 'video' : 'videos'}`;
 
-    // Only update DOM if playlist changed
     if (JSON.stringify(playlistVideos.map(v => v.id)) !== JSON.stringify(newPlaylistVideos.map(v => v.id))) {
-      renderPlaylistItems(list, newPlaylistVideos);
+      list.innerHTML = "";
+      newPlaylistVideos.forEach((video, index) => {
+        const item = document.createElement("div");
+        item.className = "playlist-item";
+        if (video.id === videoId) {
+          item.classList.add("active");
+          currentPlayingItem = item;
+        }
+        item.setAttribute("data-video-id", video.id);
+        item.onclick = () => loadSavedVideo(video.id);
+        
+        item.innerHTML = `
+          <div class="thumbnail" style="background-image: url(https://img.youtube.com/vi/${video.id}/mqdefault.jpg)" data-duration="${video.duration}"></div>
+          <div class="video-info">
+            <div class="video-title">${video.data.title || "Untitled Video"}</div>
+            <div class="video-channel">${video.data.channel || "Unknown channel"}</div>
+            <div class="progress-container">
+              <div class="progress-info">
+                <span>${formatTime(video.data.time || 0)}</span>
+                <span>${video.duration}</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress" style="width: ${calculateProgress(video.data.time || 0, video.data.durationSec || 1)}%"></div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        list.appendChild(item);
+      });
     } else {
-      // Just update progress bars for existing items
       newPlaylistVideos.forEach(video => {
         updateProgressBarForVideo(video.id, video.data.time || 0);
       });
@@ -1692,13 +1727,11 @@ function loadVideosForCurrentPlaylist() {
 
     playlistVideos = newPlaylistVideos;
 
-    // Auto-load most recent video on initial load
     if (mostRecentVideo && !videoId && !window.location.hash && isInitialLoad) {
       loadSavedVideo(mostRecentVideo);
       isInitialLoad = false;
     }
     
-    // Update current video index if needed
     if (videoId && currentVideoIndex === -1) {
       currentVideoIndex = playlistVideos.findIndex(video => video.id === videoId);
       updateNavButtons();
@@ -1706,96 +1739,6 @@ function loadVideosForCurrentPlaylist() {
   });
 }
 
-function renderPlaylistItems(list, videos) {
-  list.innerHTML = "";
-  
-  videos.forEach((video, index) => {
-    const item = document.createElement("div");
-    item.className = "playlist-item";
-    if (video.id === videoId) {
-      item.classList.add("active");
-      currentPlayingItem = item;
-    }
-    item.setAttribute("data-video-id", video.id);
-    item.onclick = () => loadSavedVideo(video.id);
-    
-    item.innerHTML = `
-      <div class="thumbnail" style="background-image: url(https://img.youtube.com/vi/${video.id}/mqdefault.jpg)" data-duration="${video.duration}"></div>
-      <div class="video-info">
-        <div class="video-title">${video.data.title || "Untitled Video"}</div>
-        <div class="video-channel">${video.data.channel || "Unknown channel"}</div>
-        <div class="progress-container">
-          <div class="progress-info">
-            <span>${formatTime(video.data.time || 0)}</span>
-            <span>${video.duration}</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress" style="width: ${calculateProgress(video.data.time || 0, video.data.durationSec || 1)}%"></div>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    list.appendChild(item);
-  });
-}
-
-// Playlist navigation
-function playNextVideo() {
-  if (currentVideoIndex < playlistVideos.length - 1) {
-    const nextVideo = playlistVideos[currentVideoIndex + 1];
-    loadSavedVideo(nextVideo.id);
-  }
-}
-
-function playPreviousVideo() {
-  if (currentVideoIndex > 0) {
-    const prevVideo = playlistVideos[currentVideoIndex - 1];
-    loadSavedVideo(prevVideo.id);
-  }
-}
-
-function updateNavButtons() {
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  
-  prevBtn.disabled = currentVideoIndex <= 0;
-  nextBtn.disabled = currentVideoIndex >= playlistVideos.length - 1 || currentVideoIndex === -1;
-}
-
-function highlightCurrentVideo() {
-  if (currentPlayingItem) {
-    currentPlayingItem.classList.remove("active");
-  }
-  
-  const items = document.querySelectorAll(".playlist-item");
-  items.forEach(item => {
-    if (item.getAttribute("data-video-id") === videoId) {
-      item.classList.add("active");
-      currentPlayingItem = item;
-      item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  });
-}
-
-function updateProgressBarForVideo(vid, currentTime) {
-  const item = document.querySelector(`.playlist-item[data-video-id="${vid}"]`);
-  if (!item) return;
-  
-  const progressBar = item.querySelector('.progress');
-  const timeDisplay = item.querySelector('.progress-info span:first-child');
-  
-  if (progressBar && timeDisplay) {
-    const videoData = playlistVideos.find(v => v.id === vid);
-    const duration = videoData?.data.durationSec || 1;
-    
-    const percentage = calculateProgress(currentTime, duration);
-    progressBar.style.width = `${percentage}%`;
-    timeDisplay.textContent = formatTime(currentTime);
-  }
-}
-
-// UI Functions
 function renderPlaylistSelector() {
   playlistSelector.innerHTML = '';
   
@@ -1804,7 +1747,6 @@ function renderPlaylistSelector() {
     const playlistItem = document.createElement('div');
     playlistItem.className = `playlist-option ${playlistId === currentPlaylistId ? 'active' : ''}`;
     
-    // Create auto-play toggle
     const toggleButton = document.createElement('button');
     toggleButton.className = 'auto-play-toggle';
     toggleButton.innerHTML = `
@@ -1814,12 +1756,10 @@ function renderPlaylistSelector() {
       </span>
     `;
     
-    // Set current playlist's auto-play state
     if (playlistId === currentPlaylistId) {
       autoPlayNextEnabled = playlist.autoPlayNext !== false;
     }
     
-    // Toggle handler
     toggleButton.addEventListener('click', (e) => {
       e.stopPropagation();
       const newState = !(playlist.autoPlayNext !== false);
@@ -1836,20 +1776,21 @@ function renderPlaylistSelector() {
       });
     });
     
-    // Playlist item content
     playlistItem.innerHTML = `
       <div class="playlist-option-name">${playlist.name || 'Unnamed Playlist'}</div>
       <div class="playlist-option-count">${playlist.videos ? Object.keys(playlist.videos).length : 0}</div>
     `;
     
     playlistItem.appendChild(toggleButton);
-    
-    // Click handler for playlist selection
     playlistItem.addEventListener('click', () => {
+      const videosContainer = playlistItem.querySelector('.playlist-videos');
+      if (videosContainer) {
+        videosContainer.classList.toggle('active');
+        return;
+      }
       switchToPlaylist(playlistId);
     });
     
-    // Right-click handler for video preview
     playlistItem.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       showPlaylistVideos(playlistId, playlistItem);
@@ -1890,11 +1831,8 @@ function showPlaylistVideos(playlistId, playlistElement) {
 }
 
 function switchToPlaylist(playlistId) {
-  if (playlistId === currentPlaylistId) return;
-  
-  // Save current position before switching
-  if (player && videoId) {
-    saveCurrentTime();
+  if (player && videoId && unsavedChanges) {
+    forceSaveCurrentTime();
   }
   
   currentPlaylistId = playlistId;
@@ -1902,20 +1840,13 @@ function switchToPlaylist(playlistId) {
   autoPlayNextEnabled = playlists[playlistId].autoPlayNext !== false;
   db.ref(LAST_PLAYED_PLAYLIST_KEY).set(playlistId);
   
-  // Close admin panel
   adminPanel.classList.remove('active');
   overlay.classList.remove('active');
-  
-  // Load new playlist
   loadVideosForCurrentPlaylist();
   videoId = '';
-  
-  // Stop current player
   if (player) {
     player.stopVideo();
   }
-  
-  // Clear hash and find last watched video
   window.location.hash = '';
   findAndPlayLastWatchedVideo(playlistId);
 }
@@ -1938,49 +1869,6 @@ function findAndPlayLastWatchedVideo(playlistId) {
     if (lastVideoId) {
       loadSavedVideo(lastVideoId);
     }
-  });
-}
-
-// Video management
-function saveAndLoadVideo() {
-  const link = document.getElementById("videoLink").value.trim();
-  videoId = getVideoId(link);
-
-  if (!videoId) {
-    alert("Please enter a valid YouTube link.");
-    return;
-  }
-
-  const videoExists = playlistVideos.some(video => video.id === videoId);
-  if (videoExists) {
-    alert("This video is already in the current playlist.");
-    return;
-  }
-
-  const videoRef = db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`);
-  videoRef.set({
-    url: link,
-    time: 0,
-    addedAt: firebase.database.ServerValue.TIMESTAMP,
-    lastWatched: firebase.database.ServerValue.TIMESTAMP,
-    duration: "0:00",
-    durationSec: 1
-  }).then(() => {
-    document.getElementById("videoLink").value = "";
-  });
-}
-
-function loadSavedVideo(vid) {
-  if (!playlistVideos.some(video => video.id === vid)) {
-    console.error("Video not found in current playlist");
-    return;
-  }
-  
-  videoId = vid;
-  db.ref(`playlists/${currentPlaylistId}/videos/${vid}`).once("value").then(snapshot => {
-    const video = snapshot.val();
-    loadPlayer(videoId, video.time || 0);
-    highlightCurrentVideo();
   });
 }
 
@@ -2007,6 +1895,119 @@ function createNewPlaylist() {
   });
 }
 
+function saveAndLoadVideo() {
+  const link = document.getElementById("videoLink").value.trim();
+  const vid = getVideoId(link);
+
+  if (!vid) {
+    alert("Please enter a valid YouTube link.");
+    return;
+  }
+
+  const videoExists = playlistVideos.some(video => video.id === vid);
+  if (videoExists) {
+    alert("This video is already in the current playlist.");
+    return;
+  }
+
+  const videoRef = db.ref(`playlists/${currentPlaylistId}/videos/${vid}`);
+  videoRef.set({
+    url: link,
+    time: 0,
+    addedAt: firebase.database.ServerValue.TIMESTAMP,
+    lastWatched: firebase.database.ServerValue.TIMESTAMP,
+    duration: "0:00",
+    durationSec: 1
+  }).then(() => {
+    document.getElementById("videoLink").value = "";
+  });
+}
+
+function loadSavedVideo(vid) {
+  if (!playlistVideos.some(video => video.id === vid)) {
+    console.error("Video not found in current playlist");
+    return;
+  }
+  
+  videoId = vid;
+  db.ref(`playlists/${currentPlaylistId}/videos/${vid}`).once("value").then(snapshot => {
+    const video = snapshot.val();
+    const startTime = video.time || 0;
+    loadPlayer(vid, startTime);
+    highlightCurrentVideo();
+  });
+}
+
+function playNextVideo() {
+  if (currentVideoIndex < playlistVideos.length - 1) {
+    if (player && videoId && unsavedChanges) {
+      forceSaveCurrentTime();
+    }
+    
+    const nextVideo = playlistVideos[currentVideoIndex + 1];
+    loadSavedVideo(nextVideo.id);
+  }
+}
+
+function playPreviousVideo() {
+  if (currentVideoIndex > 0) {
+    if (player && videoId && unsavedChanges) {
+      forceSaveCurrentTime();
+    }
+    
+    const prevVideo = playlistVideos[currentVideoIndex - 1];
+    loadSavedVideo(prevVideo.id);
+  }
+}
+
+function updateNavButtons() {
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  
+  prevBtn.disabled = currentVideoIndex <= 0;
+  nextBtn.disabled = currentVideoIndex >= playlistVideos.length - 1 || currentVideoIndex === -1;
+}
+
+function highlightCurrentVideo() {
+  if (currentPlayingItem) {
+    currentPlayingItem.classList.remove("active");
+  }
+  
+  const items = document.querySelectorAll(".playlist-item");
+  items.forEach(item => {
+    if (item.getAttribute("data-video-id") === videoId) {
+      item.classList.add("active");
+      currentPlayingItem = item;
+      item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
+}
+
+function updateProgressBarForVideo(vid, currentTime) {
+  const item = document.querySelector(`.playlist-item[data-video-id="${vid}"]`);
+  if (!item) return;
+  
+  const progressBar = item.querySelector('.progress');
+  const timeDisplay = item.querySelector('.progress-info span:first-child');
+  const durationDisplay = item.querySelector('.progress-info span:last-child');
+  
+  if (progressBar && timeDisplay) {
+    let duration = 1;
+    const videoData = playlistVideos.find(v => v.id === vid);
+    if (videoData && videoData.data.durationSec) {
+      duration = videoData.data.durationSec;
+    }
+    
+    const percentage = calculateProgress(currentTime, duration);
+    progressBar.style.width = `${percentage}%`;
+    timeDisplay.textContent = formatTime(currentTime);
+    
+    if (vid === videoId) {
+      unsavedChanges = Math.abs(currentTime - lastSavedTime) >= 1;
+    }
+  }
+}
+
 // Event listeners
 menuButton.addEventListener('click', () => {
   adminPanel.classList.add('active');
@@ -2023,31 +2024,39 @@ overlay.addEventListener('click', () => {
   overlay.classList.remove('active');
 });
 
-window.addEventListener('beforeunload', () => {
-  if (player && videoId) {
-    saveCurrentTime();
+function handleBeforeUnload(e) {
+  if (player && videoId && unsavedChanges) {
+    forceSaveCurrentTime();
+    e.preventDefault();
+    e.returnValue = '';
+    return '';
   }
-});
+}
 
-window.addEventListener('pagehide', () => {
-  if (player && videoId) {
-    saveCurrentTime();
+function handleVisibilityChange() {
+  if (document.visibilityState === 'hidden' && player && videoId && unsavedChanges) {
+    forceSaveCurrentTime();
   }
-});
+}
 
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden' && player && videoId) {
-    saveCurrentTime();
-  }
-});
+window.addEventListener('beforeunload', handleBeforeUnload);
+window.addEventListener('pagehide', handleBeforeUnload);
+document.addEventListener('visibilitychange', handleVisibilityChange);
 
-// Initialize
+// Initialize the app
 window.onload = function() {
   setupRealtimeListener();
   
   document.getElementById("videoLink").addEventListener("keypress", function(e) {
     if (e.key === "Enter") {
       saveAndLoadVideo();
+    }
+  });
+  
+  window.addEventListener('hashchange', function() {
+    const hashParts = window.location.hash.substring(1).split('|');
+    if (hashParts.length === 2 && hashParts[0] === currentPlaylistId) {
+      loadSavedVideo(hashParts[1]);
     }
   });
 };

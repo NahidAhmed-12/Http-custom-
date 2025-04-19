@@ -1550,8 +1550,8 @@ function setupPlaybackStatusListener() {
     const now = Date.now();
     const statusTime = status.timestamp || 0;
     
-    // Ignore if status is from same device or older than 5 seconds
-    if (status.deviceId === deviceId || now - statusTime > 5000) return;
+    // Ignore if status is from same device or older than 1 second
+    if (status.deviceId === deviceId || now - statusTime > 1000) return;
     
     // Check if playback status is for current playlist and video
     if (status.playlistId === currentPlaylistId && status.videoId === videoId) {
@@ -1585,8 +1585,8 @@ function setupPlaybackStatusListener() {
             break;
         }
       } else if (status.state === YT.PlayerState.PLAYING && 
-                 Math.abs((status.currentTime || 0) - player.getCurrentTime()) > 2) {
-        // If playing but time difference is more than 2 seconds, sync
+                 Math.abs((status.currentTime || 0) - player.getCurrentTime()) > 1) {
+        // If playing but time difference is more than 1 second, sync
         isRemotePlayback = true;
         player.seekTo(status.currentTime, true);
       }

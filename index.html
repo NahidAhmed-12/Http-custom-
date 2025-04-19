@@ -1296,7 +1296,7 @@ margin-top: -48%;
   
   
 <script>
-// Firebase config
+  // Firebase config
 const firebaseConfig = {
   databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/"
 };
@@ -1330,6 +1330,7 @@ let lastSavedTime = 0;
 let unsavedChanges = false;
 let saveInterval;
 let playbackStatusListener;
+let statusUpdateInterval;
 
 // DOM Elements
 const adminPanel = document.getElementById('adminPanel');
@@ -1510,7 +1511,7 @@ function onPlayerReady(event) {
     }
   }
   
-  // Setup playback status listener
+  // Setup playback status listener with more frequent updates
   setupPlaybackStatusListener();
 }
 
@@ -1543,8 +1544,20 @@ function setupPlaybackStatusListener() {
     db.ref(PLAYBACK_STATUS_KEY).off('value', playbackStatusListener);
   }
   
+  // Clear previous interval if exists
+  if (statusUpdateInterval) {
+    clearInterval(statusUpdateInterval);
+  }
+  
+  // Update playback status every second when playing
+  statusUpdateInterval = setInterval(() => {
+    if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+      updatePlaybackStatus(YT.PlayerState.PLAYING);
+    }
+  }, 1000);
+  
   playbackStatusListener = db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
-    if (!snapshot.exists() || !player || !videoId) return;
+    if (!snapshot.exists() || !player) return;
     
     const status = snapshot.val();
     const now = Date.now();
@@ -1553,43 +1566,56 @@ function setupPlaybackStatusListener() {
     // Ignore if status is from same device or older than 1 second
     if (status.deviceId === deviceId || now - statusTime > 1000) return;
     
-    // Check if playback status is for current playlist and video
-    if (status.playlistId === currentPlaylistId && status.videoId === videoId) {
-      const currentState = player.getPlayerState();
+    // Handle playlist/video switching
+    if (status.playlistId !== currentPlaylistId || status.videoId !== videoId) {
+      isRemotePlayback = true;
+      currentPlaylistId = status.playlistId;
+      videoId = status.videoId;
       
-      // Only act if states are different
-      if (status.state !== currentState) {
-        isRemotePlayback = true;
-        
-        switch(status.state) {
-          case YT.PlayerState.PLAYING:
-            // If remote is playing and we're not, play the video
-            if (currentState !== YT.PlayerState.PLAYING) {
-              player.seekTo(status.currentTime || 0, true);
-              player.playVideo();
-            }
-            break;
-            
-          case YT.PlayerState.PAUSED:
-            // If remote is paused and we're playing, pause the video
-            if (currentState === YT.PlayerState.PLAYING) {
-              player.pauseVideo();
-            }
-            break;
-            
-          case YT.PlayerState.ENDED:
-            // If remote has ended and autoPlayNext is enabled, play next
-            if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
-              playNextVideo();
-            }
-            break;
-        }
-      } else if (status.state === YT.PlayerState.PLAYING && 
-                 Math.abs((status.currentTime || 0) - player.getCurrentTime()) > 1) {
-        // If playing but time difference is more than 1 second, sync
-        isRemotePlayback = true;
-        player.seekTo(status.currentTime, true);
+      // Find the video in current playlist
+      const videoIndex = playlistVideos.findIndex(v => v.id === videoId);
+      if (videoIndex !== -1) {
+        currentVideoIndex = videoIndex;
+        loadPlayer(videoId, status.currentTime || 0);
+      } else {
+        // If video not found, load the playlist first
+        switchToPlaylist(status.playlistId);
       }
+      return;
+    }
+    
+    // Handle playback state changes
+    const currentState = player.getPlayerState();
+    
+    // Only act if states are different
+    if (status.state !== currentState) {
+      isRemotePlayback = true;
+      
+      switch(status.state) {
+        case YT.PlayerState.PLAYING:
+          if (currentState !== YT.PlayerState.PLAYING) {
+            player.seekTo(status.currentTime || 0, true);
+            player.playVideo();
+          }
+          break;
+          
+        case YT.PlayerState.PAUSED:
+          if (currentState === YT.PlayerState.PLAYING) {
+            player.pauseVideo();
+          }
+          break;
+          
+        case YT.PlayerState.ENDED:
+          if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
+            playNextVideo();
+          }
+          break;
+      }
+    } else if (status.state === YT.PlayerState.PLAYING && 
+               Math.abs((status.currentTime || 0) - player.getCurrentTime()) > 1) {
+      // If playing but time difference is more than 1 second, sync
+      isRemotePlayback = true;
+      player.seekTo(status.currentTime, true);
     }
   });
 }

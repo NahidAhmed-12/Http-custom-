@@ -1330,6 +1330,7 @@ let unsavedChanges = false;
 let saveInterval;
 let playbackStatusListener;
 let statusUpdateInterval;
+let lastLocalStateChange = 0;
 
 // DOM Elements
 const adminPanel = document.getElementById('adminPanel');
@@ -1448,6 +1449,8 @@ function updatePlaybackStatus(state) {
     deviceId: deviceId,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   });
+  
+  lastLocalStateChange = Date.now();
 }
 
 function forceSaveCurrentTime() {
@@ -1563,7 +1566,9 @@ function setupPlaybackStatusListener() {
     const statusTime = status.timestamp || 0;
     
     // Ignore if status is from same device or older than 1 second
-    if (status.deviceId === deviceId || now - statusTime > 1000) return;
+    if (status.deviceId === deviceId || now - statusTime > 1000 || now - lastLocalStateChange < 500) {
+      return;
+    }
     
     // Handle playlist/video switching
     if (status.playlistId !== currentPlaylistId || status.videoId !== videoId) {
@@ -1586,8 +1591,8 @@ function setupPlaybackStatusListener() {
     // Handle playback state changes
     const currentState = player.getPlayerState();
     
-    // Only act if states are different
-    if (status.state !== currentState) {
+    // Only act if states are different and it's not a local change
+    if (status.state !== currentState && now - lastLocalStateChange > 500) {
       isRemotePlayback = true;
       
       switch(status.state) {
@@ -1618,6 +1623,9 @@ function setupPlaybackStatusListener() {
     }
   });
 }
+
+// Rest of the code remains exactly the same as your original code...
+// Only the above functions have been modified to fix the sync issue
 
 function setupRealtimeListener() {
   db.ref(LAST_PLAYED_PLAYLIST_KEY).once('value').then(snapshot => {

@@ -1586,8 +1586,8 @@ function setupPlaybackStatusListener() {
     // Handle playback state changes
     const currentState = player.getPlayerState();
     
-    // Only act if states are different and the remote state is not older than 500ms
-    if (status.state !== currentState && (Date.now() - statusTime < 500)) {
+    // Only act if states are different
+    if (status.state !== currentState) {
       isRemotePlayback = true;
       
       switch(status.state) {

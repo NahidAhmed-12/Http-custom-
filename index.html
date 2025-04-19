@@ -1535,11 +1535,10 @@ function onPlayerStateChange(event) {
   
   if (event.data === YT.PlayerState.ENDED) {
     if (autoPlayNextEnabled) {
-      // Reset current video time to 0
+      // Reset current video time to 0 before playing next video
       db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
         time: 0
       }).then(() => {
-        // Then play next video
         playNextVideo();
       });
     }
@@ -1615,11 +1614,10 @@ function setupPlaybackStatusListener() {
           
         case YT.PlayerState.ENDED:
           if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
-            // Reset current video time to 0
+            // Reset current video time to 0 before playing next video
             db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`).update({
               time: 0
             }).then(() => {
-              // Then play next video
               playNextVideo();
             });
           }

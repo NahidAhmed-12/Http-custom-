@@ -1,26 +1,53 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>Title</title>
-    
-  </head>
-  <body>
-    <h1>Hello</h1>
-    
- <script async="async" data-cfasync="false" src="//pl26478418.profitableratecpm.com/ffbe2e841a9f204d60fba9ce7cb02047/invoke.js"></script>
-<div id="container-ffbe2e841a9f204d60fba9ce7cb02047"></div>
-    
-    
-    <div>
-       <script async="async" data-cfasync="false" src="//pl26478418.profitableratecpm.com/ffbe2e841a9f204d60fba9ce7cb02047/invoke.js"></script>
-<div id="container-ffbe2e841a9f204d60fba9ce7cb02047"></div>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Reload Ads</title>
+    <style>
+        /* Basic styling for the ad container */
+        #ad-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
 
+    <!-- Ad container -->
+    <div id="ad-container"></div>
 
-          <iframe src="https://http-custom.vercel.app" width="100%" height="250px" frameborder="5"></iframe>
-          <iframe src="https://http-custom.vercel.app" width="100%" height="250px" frameborder="5"></iframe>
-          <iframe src="https://http-custom.vercel.app" width="100%" height="250px" frameborder="5"></iframe>
-          <iframe src="https://http-custom.vercel.app" width="100%" height="250px" frameborder="5"></iframe>
-    </div>
-  </body>
+    <script>
+        function showAd() {
+            const adContainer = document.getElementById('ad-container');
+
+            // Clear previous ad content before loading new one
+            adContainer.innerHTML = '';
+
+            // Create a new ad script element and append it to the body
+            const adScript = document.createElement('script');
+            adScript.async = true;
+            adScript.src = "//pl26488479.profitableratecpm.com/4bee3fd110b314f4f00621632e5e772a/invoke.js";
+            document.body.appendChild(adScript);
+
+            // Create and append the div for the ad container
+            const adDiv = document.createElement('div');
+            adDiv.id = "container-4bee3fd110b314f4f00621632e5e772a";
+            adContainer.appendChild(adDiv);
+
+            // Auto close the ad after 2 seconds and reload the page
+            setTimeout(function() {
+                adContainer.innerHTML = ''; // Remove the ad container
+                location.reload(); // Reload the page after 2 seconds
+            }, 2000); // 2 seconds delay
+        }
+
+        // Initialize the ad loading
+        showAd();
+    </script>
+
+</body>
 </html>

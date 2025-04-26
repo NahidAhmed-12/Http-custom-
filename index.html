@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auto Reload Ads</title>
+    <title>Auto Reload Ads (with check)</title>
     <style>
-        /* Basic styling for the ad container */
         #ad-container {
             position: fixed;
             top: 20px;
@@ -17,35 +16,36 @@
 </head>
 <body>
 
-    <!-- Ad container -->
     <div id="ad-container"></div>
 
     <script>
         function showAd() {
             const adContainer = document.getElementById('ad-container');
 
-            // Clear previous ad content before loading new one
             adContainer.innerHTML = '';
 
-            // Create a new ad script element and append it to the body
+            const adDiv = document.createElement('div');
+            adDiv.id = "container-4bee3fd110b314f4f00621632e5e772a";
+            adContainer.appendChild(adDiv);
+
             const adScript = document.createElement('script');
             adScript.async = true;
             adScript.src = "//pl26488479.profitableratecpm.com/4bee3fd110b314f4f00621632e5e772a/invoke.js";
             document.body.appendChild(adScript);
 
-            // Create and append the div for the ad container
-            const adDiv = document.createElement('div');
-            adDiv.id = "container-4bee3fd110b314f4f00621632e5e772a";
-            adContainer.appendChild(adDiv);
-
-            // Auto close the ad after 2 seconds and reload the page
+            // Wait and check if ad is loaded
             setTimeout(function() {
-                adContainer.innerHTML = ''; // Remove the ad container
-                location.reload(); // Reload the page after 2 seconds
-            }, 2000); // 2 seconds delay
+                const adLoaded = adDiv.innerHTML.trim() !== "";
+                
+                if (adLoaded) {
+                    console.log("Ad loaded successfully, reloading...");
+                    location.reload();
+                } else {
+                    console.log("Ad not loaded, no reload.");
+                }
+            }, 2000); // 2 seconds wait
         }
 
-        // Initialize the ad loading
         showAd();
     </script>
 

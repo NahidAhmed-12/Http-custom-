@@ -6,24 +6,37 @@
 </head>
 <body>
 
-    
+    <!-- প্রথম এড -->
     <script async="async" data-cfasync="false" src="//pl26488479.profitableratecpm.com/4bee3fd110b314f4f00621632e5e772a/invoke.js"></script>
-<div id="container-4bee3fd110b314f4f00621632e5e772a"></div>
+    <div id="container-4bee3fd110b314f4f00621632e5e772a"></div>
 
+    <br />
+    <hr />
 
-<br />
-<hr />
-
-
-<script async="async" data-cfasync="false" src="//pl26490899.profitableratecpm.com/666812dad3eb100eaed425ac80d8722a/invoke.js"></script>
-<div id="container-666812dad3eb100eaed425ac80d8722a"></div>
-
-
+    <!-- দ্বিতীয় এড -->
+    <script async="async" data-cfasync="false" src="//pl26490899.profitableratecpm.com/666812dad3eb100eaed425ac80d8722a/invoke.js"></script>
+    <div id="container-666812dad3eb100eaed425ac80d8722a"></div>
 
     <script>
-      setInterval(function() {
-        location.reload();
-      }, 5000); // 3000 মিলিসেকেন্ড = ৩ সেকেন্ড
+      function checkAdsLoaded() {
+        const firstAd = document.getElementById('container-4bee3fd110b314f4f00621632e5e772a');
+        const secondAd = document.getElementById('container-666812dad3eb100eaed425ac80d8722a');
+
+        // চেক করবো ads div গুলোর মধ্যে কিছু এসেছে কিনা
+        if (firstAd.innerHTML.trim() !== "" && secondAd.innerHTML.trim() !== "") {
+          console.log('Ads loaded!');
+          // এখন ৩ সেকেন্ড পরে reload করবো
+          setTimeout(function() {
+            location.reload();
+          }, 3000);
+        } else {
+          // এখনো লোড হয়নি, আবার কিছুক্ষণ পরে চেক করবো
+          setTimeout(checkAdsLoaded, 500); // 0.5 সেকেন্ড পর আবার চেক করবো
+        }
+      }
+
+      // প্রথমে ads লোড হয়েছে কিনা চেক শুরু করবো
+      checkAdsLoaded();
     </script>
 
 </body>

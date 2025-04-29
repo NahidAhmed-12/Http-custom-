@@ -1,43 +1,97 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Auto Reload Site</title>
+  <title>PC Audio Sender</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+    button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    button:disabled { background: #cccccc; }
+    #status { margin-top: 20px; padding: 10px; border-radius: 4px; }
+    .connected { background: #e6f4ea; color: #0d652d; }
+    .disconnected { background: #fce8e6; color: #d93025; }
+  </style>
 </head>
 <body>
+  <h1>PC Audio Sender</h1>
+  <p>এই পেজটি আপনার PC-তে ওপেন করুন</p>
+  
+  <button id="start">Start Streaming</button>
+  <div id="status" class="disconnected">Not Connected</div>
+  <div id="connectionCode" style="margin-top: 20px; display: none;">
+    <p>ফোনে নিচের লিঙ্কটি ওপেন করুন:</p>
+    <input type="text" id="phoneLink" readonly style="width: 100%; padding: 8px;">
+  </div>
 
-    <!-- প্রথম এড -->
-    <script async="async" data-cfasync="false" src="//pl26488479.profitableratecpm.com/4bee3fd110b314f4f00621632e5e772a/invoke.js"></script>
-    <div id="container-4bee3fd110b314f4f00621632e5e772a"></div>
+  <script>
+    const startButton = document.getElementById('start');
+    const statusDiv = document.getElementById('status');
+    const connectionCodeDiv = document.getElementById('connectionCode');
+    const phoneLinkInput = document.getElementById('phoneLink');
+    
+    let peerConnection;
+    let localStream;
+    let roomId = generateRoomId();
 
-    <br />
-    <hr />
+    // Generate a simple room ID
+    function generateRoomId() {
+      return Math.random().toString(36).substring(2, 8);
+    }
 
-    <!-- দ্বিতীয় এড -->
-    <script async="async" data-cfasync="false" src="//pl26490899.profitableratecpm.com/666812dad3eb100eaed425ac80d8722a/invoke.js"></script>
-    <div id="container-666812dad3eb100eaed425ac80d8722a"></div>
+    // Generate phone link
+    const currentUrl = window.location.href.split('/').slice(0, 3).join('/');
+    phoneLinkInput.value = `${currentUrl}/phone.html?room=${roomId}`;
 
-    <script>
-      function checkAdsLoaded() {
-        const firstAd = document.getElementById('container-4bee3fd110b314f4f00621632e5e772a');
-        const secondAd = document.getElementById('container-666812dad3eb100eaed425ac80d8722a');
-
-        // চেক করবো ads div গুলোর মধ্যে কিছু এসেছে কিনা
-        if (firstAd.innerHTML.trim() !== "" && secondAd.innerHTML.trim() !== "") {
-          console.log('Ads loaded!');
-          // এখন ৩ সেকেন্ড পরে reload করবো
-          setTimeout(function() {
-            location.reload();
-          }, 2000);
-        } else {
-          // এখনো লোড হয়নি, আবার কিছুক্ষণ পরে চেক করবো
-          setTimeout(checkAdsLoaded, 500); // 0.5 সেকেন্ড পর আবার চেক করবো
-        }
+    startButton.addEventListener('click', async () => {
+      try {
+        startButton.disabled = true;
+        statusDiv.textContent = "Connecting...";
+        
+        // Capture audio from PC
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          } 
+        });
+        
+        // Create peer connection
+        peerConnection = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        });
+        
+        // Add audio track
+        localStream.getAudioTracks().forEach(track => {
+          peerConnection.addTrack(track, localStream);
+        });
+        
+        // Listen for ICE candidates
+        peerConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            // In a real app, you'd send this to the other peer via a signaling server
+            console.log("ICE Candidate:", event.candidate);
+          }
+        };
+        
+        // Create offer
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        
+        // In a real app, you'd send the offer to the other peer here
+        console.log("Offer:", offer);
+        
+        statusDiv.textContent = "Waiting for phone to connect...";
+        connectionCodeDiv.style.display = 'block';
+        
+      } catch (err) {
+        console.error('Error:', err);
+        statusDiv.textContent = "Error: " + err.message;
+        startButton.disabled = false;
       }
+    });
 
-      // প্রথমে ads লোড হয়েছে কিনা চেক শুরু করবো
-      checkAdsLoaded();
-    </script>
-
+    // This is a simplified version. In a real app, you'd need a signaling server
+    // to exchange SDP offers/answers between PC and phone
+  </script>
 </body>
 </html>

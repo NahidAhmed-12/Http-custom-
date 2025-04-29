@@ -3,61 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-Time Audio Receiver</title>
+    <title>Real-Time Audio Sync</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-        #status { padding: 10px; margin: 10px 0; border-radius: 5px; }
-        .connected { background-color: #dfd; }
-        .disconnected { background-color: #fdd; }
-        button { padding: 10px 15px; margin: 5px; background: #4285f4; color: white; border: none; border-radius: 4px; }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        #status {
+            margin: 20px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #session-id-input {
+            padding: 10px;
+            width: 200px;
+            margin-right: 10px;
+        }
+        #share-section {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
-    <h1>Audio Receiver (Phone)</h1>
+    <h1>Real-Time Audio Sync</h1>
     
-    <div>
-        <input type="text" id="sessionId" placeholder="Enter Session ID">
-        <button id="connectBtn">Connect</button>
+    <div id="connection-section">
+        <input type="text" id="session-id-input" placeholder="Enter session ID">
+        <button id="connect-btn">Join Session</button>
+        <button id="create-session-btn">Create New Session</button>
     </div>
     
     <div id="status" class="disconnected">Disconnected</div>
     
-    <audio id="audioPlayer" controls></audio>
+    <div id="share-section" style="display: none;">
+        <h3>Share this Session ID:</h3>
+        <div id="session-id-display" style="font-size: 24px; font-weight: bold; margin: 10px;"></div>
+        <button id="copy-btn">Copy Session ID</button>
+    </div>
+
+    <audio id="audioPlayer" controls style="margin-top: 20px;"></audio>
 
     <script>
-        // 🔥 এখানে আপনার Firebase কনফিগারেশন দিন
+        // Firebase configuration (আপনার নিজের কনফিগারেশন দিন)
         const firebaseConfig = {
-            databaseURL: "https://audio-capture-769d1-default-rtdb.firebaseio.com/" // Replace with your URL
+            apiKey: "AIzaSyABC123...",
+            authDomain: "your-project.firebaseapp.com",
+            databaseURL: "https://audio-capture-769d1-default-rtdb.firebaseio.com/",
+            projectId: "your-project",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abc123def456"
         };
 
-        // Firebase ইনিশিয়ালাইজ করুন
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // DOM এলিমেন্টস
-        const sessionIdInput = document.getElementById('sessionId');
-        const connectBtn = document.getElementById('connectBtn');
+        // DOM elements
+        const sessionIdInput = document.getElementById('session-id-input');
+        const connectBtn = document.getElementById('connect-btn');
+        const createSessionBtn = document.getElementById('create-session-btn');
         const statusDiv = document.getElementById('status');
+        const shareSection = document.getElementById('share-section');
+        const sessionIdDisplay = document.getElementById('session-id-display');
+        const copyBtn = document.getElementById('copy-btn');
         const audioPlayer = document.getElementById('audioPlayer');
 
+        // Global variables
         let sessionId = '';
+        let isHost = false;
         let audioContext;
         let audioQueue = [];
         let isPlaying = false;
 
-        // অডিও প্লে করার ফাংশন
-        function playAudioChunk(chunkData) {
+        // Generate random session ID
+        function generateSessionId() {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
+        }
+
+        // Update status UI
+        function updateStatus(message, isConnected) {
+            statusDiv.textContent = message;
+            statusDiv.className = isConnected ? 'connected' : 'disconnected';
+        }
+
+        // Create a new session
+        function createNewSession() {
+            sessionId = generateSessionId();
+            sessionIdInput.value = sessionId;
+            isHost = true;
+            
+            // Show share section
+            sessionIdDisplay.textContent = sessionId;
+            shareSection.style.display = 'block';
+            
+            // Initialize session in Firebase
+            database.ref('sessions/' + sessionId).set({
+                created: firebase.database.ServerValue.TIMESTAMP,
+                status: 'waiting'
+            });
+            
+            updateStatus('Session created: ' + sessionId, true);
+            
+            // Start listening for audio data
+            listenToAudioStream();
+        }
+
+        // Join existing session
+        function joinSession(id) {
+            sessionId = id;
+            isHost = false;
+            
+            // Check if session exists
+            database.ref('sessions/' + sessionId).once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    updateStatus('Connected to session: ' + sessionId, true);
+                    listenToAudioStream();
+                } else {
+                    updateStatus('Session does not exist', false);
+                    alert('Session not found! Please check the Session ID');
+                }
+            });
+        }
+
+        // Listen for audio data from Firebase
+        function listenToAudioStream() {
+            const audioRef = database.ref('sessions/' + sessionId + '/audio');
+            
+            audioRef.on('value', (snapshot) => {
+                const audioData = snapshot.val();
+                if (audioData && audioData.data) {
+                    playAudioData(audioData.data);
+                }
+            });
+        }
+
+        // Play received audio data
+        function playAudioData(dataArray) {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            audioPlayer.crossOrigin = "anonymous";
-            const source = audioContext.createMediaElementSource(audioPlayer);
-                source.connect(audioContext.destination);
             }
-
-            const audioBuffer = audioContext.createBuffer(1, chunkData.length, audioContext.sampleRate);
-            audioBuffer.getChannelData(0).set(chunkData);
+            
+            const audioBuffer = audioContext.createBuffer(1, dataArray.length, audioContext.sampleRate);
+            audioBuffer.getChannelData(0).set(new Float32Array(dataArray));
             
             const source = audioContext.createBufferSource();
             source.buffer = audioBuffer;
@@ -65,32 +178,25 @@
             source.start();
         }
 
-        // Firebase থেকে ডাটা শোনার ফাংশন
-        function listenToAudioStream() {
-            const audioRef = database.ref('sessions/' + sessionId + '/audio');
-            
-            audioRef.on('value', (snapshot) => {
-                const audioData = snapshot.val();
-                if (audioData && audioData.data) {
-                    const float32Array = new Float32Array(audioData.data);
-                    playAudioChunk(float32Array);
-                }
-            });
-        }
-
-        // কানেক্ট বাটন ইভেন্ট
+        // Event listeners
         connectBtn.addEventListener('click', () => {
-            sessionId = sessionIdInput.value.trim();
-            if (sessionId) {
-                statusDiv.textContent = "Connected to session: " + sessionId;
-                statusDiv.className = "connected";
-                listenToAudioStream();
+            const id = sessionIdInput.value.trim();
+            if (id) {
+                joinSession(id);
             } else {
-                alert("Please enter a session ID");
+                alert('Please enter a session ID');
             }
         });
 
-        // অডিও কনটেক্সট ইনিশিয়ালাইজেশন
+        createSessionBtn.addEventListener('click', createNewSession);
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(sessionId)
+                .then(() => alert('Session ID copied to clipboard!'))
+                .catch(() => alert('Failed to copy Session ID'));
+        });
+
+        // Initialize audio context on first user interaction
         document.body.addEventListener('click', () => {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();

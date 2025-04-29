@@ -1,97 +1,227 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>PC Audio Sender</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
-    button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
-    button:disabled { background: #cccccc; }
-    #status { margin-top: 20px; padding: 10px; border-radius: 4px; }
-    .connected { background: #e6f4ea; color: #0d652d; }
-    .disconnected { background: #fce8e6; color: #d93025; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2P Audio Streaming</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #status {
+            margin-top: 20px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+        #connectionInfo {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-top: 10px;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body>
-  <h1>PC Audio Sender</h1>
-  <p>এই পেজটি আপনার PC-তে ওপেন করুন</p>
-  
-  <button id="start">Start Streaming</button>
-  <div id="status" class="disconnected">Not Connected</div>
-  <div id="connectionCode" style="margin-top: 20px; display: none;">
-    <p>ফোনে নিচের লিঙ্কটি ওপেন করুন:</p>
-    <input type="text" id="phoneLink" readonly style="width: 100%; padding: 8px;">
-  </div>
-
-  <script>
-    const startButton = document.getElementById('start');
-    const statusDiv = document.getElementById('status');
-    const connectionCodeDiv = document.getElementById('connectionCode');
-    const phoneLinkInput = document.getElementById('phoneLink');
+    <h1>Real-Time Audio Streaming</h1>
+    <p>PC থেকে ফোনে অডিও স্ট্রিম করুন (P2P)</p>
     
-    let peerConnection;
-    let localStream;
-    let roomId = generateRoomId();
-
-    // Generate a simple room ID
-    function generateRoomId() {
-      return Math.random().toString(36).substring(2, 8);
-    }
-
-    // Generate phone link
-    const currentUrl = window.location.href.split('/').slice(0, 3).join('/');
-    phoneLinkInput.value = `${currentUrl}/phone.html?room=${roomId}`;
-
-    startButton.addEventListener('click', async () => {
-      try {
-        startButton.disabled = true;
-        statusDiv.textContent = "Connecting...";
+    <div>
+        <button id="startSender">Start as Sender (PC)</button>
+        <button id="startReceiver" disabled>Start as Receiver (Phone)</button>
+    </div>
+    
+    <div id="connectionInfo" style="display: none;">
+        <p>Receiver কে কানেক্ট করতে এই অফার কোডটি দিন:</p>
+        <textarea id="offerSdp" readonly></textarea>
+        <button id="copyOffer">Copy Offer</button>
+    </div>
+    
+    <div id="receiverSection" style="display: none; margin-top: 20px;">
+        <p>Sender এর অফার কোডটি এখানে পেস্ট করুন:</p>
+        <textarea id="answerSdp"></textarea>
+        <button id="connectReceiver">Connect</button>
+    </div>
+    
+    <div id="status">Status: Not connected</div>
+    
+    <script>
+        // DOM elements
+        const startSenderBtn = document.getElementById('startSender');
+        const startReceiverBtn = document.getElementById('startReceiver');
+        const connectionInfoDiv = document.getElementById('connectionInfo');
+        const offerSdpTextarea = document.getElementById('offerSdp');
+        const copyOfferBtn = document.getElementById('copyOffer');
+        const receiverSectionDiv = document.getElementById('receiverSection');
+        const answerSdpTextarea = document.getElementById('answerSdp');
+        const connectReceiverBtn = document.getElementById('connectReceiver');
+        const statusDiv = document.getElementById('status');
         
-        // Capture audio from PC
-        localStream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false
-          } 
+        // WebRTC variables
+        let localStream;
+        let peerConnection;
+        let isSender = false;
+        
+        // Sender functionality
+        startSenderBtn.addEventListener('click', async () => {
+            try {
+                statusDiv.textContent = 'Getting microphone access...';
+                startSenderBtn.disabled = true;
+                
+                // Get microphone access
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Create RTCPeerConnection
+                const configuration = {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                };
+                
+                peerConnection = new RTCPeerConnection(configuration);
+                
+                // Add stream to connection
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+                
+                // ICE candidate handler
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        offerSdpTextarea.value = JSON.stringify(peerConnection.localDescription);
+                    }
+                };
+                
+                // Create offer
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                
+                // Show connection info
+                connectionInfoDiv.style.display = 'block';
+                receiverSectionDiv.style.display = 'none';
+                startReceiverBtn.disabled = false;
+                isSender = true;
+                
+                statusDiv.textContent = 'Sender ready. Share the offer code with receiver.';
+                
+            } catch (error) {
+                statusDiv.textContent = 'Error: ' + error.message;
+                console.error(error);
+                startSenderBtn.disabled = false;
+            }
         });
         
-        // Create peer connection
-        peerConnection = new RTCPeerConnection({
-          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        // Copy offer to clipboard
+        copyOfferBtn.addEventListener('click', () => {
+            offerSdpTextarea.select();
+            document.execCommand('copy');
+            statusDiv.textContent = 'Offer copied to clipboard!';
+            setTimeout(() => {
+                statusDiv.textContent = 'Sender ready. Share the offer code with receiver.';
+            }, 2000);
         });
         
-        // Add audio track
-        localStream.getAudioTracks().forEach(track => {
-          peerConnection.addTrack(track, localStream);
+        // Receiver functionality
+        startReceiverBtn.addEventListener('click', () => {
+            connectionInfoDiv.style.display = 'none';
+            receiverSectionDiv.style.display = 'block';
+            startReceiverBtn.disabled = true;
+            statusDiv.textContent = 'Paste the offer code from sender and click Connect.';
         });
         
-        // Listen for ICE candidates
-        peerConnection.onicecandidate = (event) => {
-          if (event.candidate) {
-            // In a real app, you'd send this to the other peer via a signaling server
-            console.log("ICE Candidate:", event.candidate);
-          }
-        };
-        
-        // Create offer
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        
-        // In a real app, you'd send the offer to the other peer here
-        console.log("Offer:", offer);
-        
-        statusDiv.textContent = "Waiting for phone to connect...";
-        connectionCodeDiv.style.display = 'block';
-        
-      } catch (err) {
-        console.error('Error:', err);
-        statusDiv.textContent = "Error: " + err.message;
-        startButton.disabled = false;
-      }
-    });
-
-    // This is a simplified version. In a real app, you'd need a signaling server
-    // to exchange SDP offers/answers between PC and phone
-  </script>
+        // Connect receiver
+        connectReceiverBtn.addEventListener('click', async () => {
+            try {
+                const offer = JSON.parse(answerSdpTextarea.value);
+                if (!offer || !offer.type || offer.type !== 'offer') {
+                    throw new Error('Invalid offer format');
+                }
+                
+                statusDiv.textContent = 'Connecting to sender...';
+                connectReceiverBtn.disabled = true;
+                
+                // Create RTCPeerConnection
+                const configuration = {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
+                };
+                
+                peerConnection = new RTCPeerConnection(configuration);
+                
+                // Set up audio stream
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                let audioStreamDestination;
+                
+                peerConnection.ontrack = (event) => {
+                    const audio = new Audio();
+                    audio.srcObject = event.streams[0];
+                    audio.autoplay = true;
+                    
+                    // Alternative method for better compatibility
+                    if (!audioStreamDestination) {
+                        audioStreamDestination = audioContext.createMediaStreamDestination();
+                        const mediaStreamSource = audioContext.createMediaStreamSource(event.streams[0]);
+                        mediaStreamSource.connect(audioContext.destination);
+                    }
+                    
+                    statusDiv.textContent = 'Connected! Audio should be playing now.';
+                };
+                
+                // ICE candidate handler
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        // In a real app, you'd send this to the other peer
+                    }
+                };
+                
+                // Set remote description
+                await peerConnection.setRemoteDescription(offer);
+                
+                // Create answer
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                
+                // In a real app, you'd send the answer back to the sender
+                isSender = false;
+                
+            } catch (error) {
+                statusDiv.textContent = 'Error: ' + error.message;
+                console.error(error);
+                connectReceiverBtn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>

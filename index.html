@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hotspot Audio Streaming</title>
+    <title>PC to Phone Audio Streaming</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,119 +60,153 @@
             border-radius: 5px;
             resize: none;
         }
-        .qr-container {
-            margin: 20px auto;
+        .tab {
             display: none;
+        }
+        .tab.active {
+            display: block;
+        }
+        #audioSourceSelect {
+            padding: 8px;
+            margin: 10px 0;
+            width: 100%;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Hotspot Audio Streamer</h1>
-        <p>PC থেকে Phone-এ রিয়েল-টাইম অডিও স্ট্রিমিং</p>
+        <h1>PC থেকে Phone-এ অডিও স্ট্রিমিং</h1>
+        <p>হটস্পট ব্যবহার করে রিয়েল-টাইম অডিও স্ট্রিম করুন</p>
         
         <div id="status">স্ট্যাটাস: প্রস্তুত</div>
         
-        <div>
+        <div class="tab active" id="modeSelectionTab">
             <button id="startSender">PC তে সেন্ডার শুরু করুন</button>
-            <button id="startReceiver" disabled>ফোনে রিসিভার শুরু করুন</button>
+            <button id="startReceiver">ফোনে রিসিভার শুরু করুন</button>
         </div>
         
-        <div id="connectionInfo">
-            <h3>কানেকশন তথ্য</h3>
-            <p>ফোনে নিচের কোডটি পেস্ট করুন:</p>
-            <textarea id="offerSdp" readonly></textarea>
-            <button id="copyOffer">কোড কপি করুন</button>
-            <div class="qr-container" id="qrCode"></div>
+        <div class="tab" id="senderTab">
+            <h3>অডিও সোর্স নির্বাচন করুন</h3>
+            <select id="audioSourceSelect">
+                <option value="microphone">মাইক্রোফোন</option>
+                <option value="tabAudio" disabled>ট্যাব অডিও (Chrome এ এক্সপেরিমেন্টাল)</option>
+            </select>
+            <button id="confirmSource">অডিও সোর্স কনফার্ম করুন</button>
+            <div id="connectionInfo">
+                <h3>কানেকশন তথ্য</h3>
+                <p>ফোনে নিচের কোডটি পেস্ট করুন:</p>
+                <textarea id="offerSdp" readonly></textarea>
+                <button id="copyOffer">কোড কপি করুন</button>
+            </div>
         </div>
         
-        <div id="receiverSection" style="display: none;">
+        <div class="tab" id="receiverTab">
             <h3>সেন্ডার থেকে কোড পেস্ট করুন</h3>
             <textarea id="answerSdp" placeholder="PC থেকে প্রাপ্ত কোড এখানে পেস্ট করুন"></textarea>
             <button id="connectReceiver">কানেক্ট করুন</button>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script>
         // DOM elements
+        const modeSelectionTab = document.getElementById('modeSelectionTab');
+        const senderTab = document.getElementById('senderTab');
+        const receiverTab = document.getElementById('receiverTab');
         const startSenderBtn = document.getElementById('startSender');
         const startReceiverBtn = document.getElementById('startReceiver');
         const statusDiv = document.getElementById('status');
+        const audioSourceSelect = document.getElementById('audioSourceSelect');
+        const confirmSourceBtn = document.getElementById('confirmSource');
         const connectionInfoDiv = document.getElementById('connectionInfo');
         const offerSdpTextarea = document.getElementById('offerSdp');
         const copyOfferBtn = document.getElementById('copyOffer');
-        const receiverSectionDiv = document.getElementById('receiverSection');
         const answerSdpTextarea = document.getElementById('answerSdp');
         const connectReceiverBtn = document.getElementById('connectReceiver');
-        const qrContainer = document.getElementById('qrCode');
         
         // WebRTC variables
         let peerConnection;
         let isSender = false;
         let localStream;
         
-        // Improved ICE servers configuration
+        // ICE servers configuration
         const iceServers = [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { 
-                urls: 'turn:your-turn-server.com:3478',
-                username: 'your-username',
-                credential: 'your-credential'
-            }
+            { urls: 'stun:stun2.l.google.com:19302' }
         ];
         
-        // Note: For a real application, you should use your own TURN server
-        // or use a free one like from Xirsys, Twilio, etc.
+        // Detect Chrome browser
+        const isChrome = !!navigator.userAgent.match(/Chrome\/([0-9]+)/);
+        
+        // Enable tab audio option if Chrome
+        if (isChrome) {
+            const tabAudioOption = audioSourceSelect.querySelector('option[value="tabAudio"]');
+            tabAudioOption.disabled = false;
+            tabAudioOption.textContent += " (Chrome Only)";
+        }
 
-        // Sender functionality
-        startSenderBtn.addEventListener('click', async () => {
+        // Show tab function
+        function showTab(tabId) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // Sender mode selection
+        startSenderBtn.addEventListener('click', () => {
+            showTab('senderTab');
+        });
+
+        // Receiver mode selection
+        startReceiverBtn.addEventListener('click', () => {
+            showTab('receiverTab');
+        });
+
+        // Audio source confirmation
+        confirmSourceBtn.addEventListener('click', async () => {
             try {
-                updateStatus('মাইক্রোফোন এক্সেসের অনুমতি চাওয়া হচ্ছে...');
-                startSenderBtn.disabled = true;
+                const audioSource = audioSourceSelect.value;
+                updateStatus('অডিও সোর্স সেটআপ হচ্ছে...');
+                confirmSourceBtn.disabled = true;
                 
-                // Get system audio using experimental feature (for Chrome)
-                if (!navigator.mediaDevices.getDisplayMedia && !navigator.mediaDevices.getUserMedia) {
-                    throw new Error('Browser does not support audio capture');
+                if (audioSource === 'tabAudio') {
+                    // Try to get tab audio (Chrome only)
+                    try {
+                        localStream = await navigator.mediaDevices.getDisplayMedia({
+                            video: false,
+                            audio: {
+                                echoCancellation: false,
+                                noiseSuppression: false,
+                                autoGainControl: false,
+                                suppressLocalAudioPlayback: false
+                            }
+                        });
+                        
+                        // Workaround to keep stream alive
+                        const audioTracks = localStream.getAudioTracks();
+                        audioTracks.forEach(track => {
+                            track.onended = () => updateStatus('স্ট্রিম বন্ধ হয়ে গেছে। পুনরায় চেষ্টা করুন।');
+                        });
+                    } catch (error) {
+                        throw new Error('ট্যাব অডিও এক্সেস ব্যর্থ: ' + error.message);
+                    }
+                } else {
+                    // Get microphone audio
+                    localStream = await navigator.mediaDevices.getUserMedia({ 
+                        audio: true,
+                        video: false
+                    });
                 }
                 
-                // Try to get system audio (Chrome only)
-                let stream;
-                try {
-                    stream = await navigator.mediaDevices.getDisplayMedia({
-                        video: false,
-                        audio: {
-                            echoCancellation: false,
-                            noiseSuppression: false,
-                            autoGainControl: false
-                        }
-                    });
-                    
-                    // Workaround to keep stream alive when popup is closed
-                    const audioTracks = stream.getAudioTracks();
-                    audioTracks.forEach(track => {
-                        track.onended = () => updateStatus('স্ট্রিম বন্ধ হয়ে গেছে। পুনরায় চেষ্টা করুন।');
-                    });
-                } catch (err) {
-                    updateStatus('সিস্টেম অডিও এক্সেস ব্যর্থ, মাইক্রোফোন ব্যবহার করা হচ্ছে...');
-                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                }
-                
-                localStream = stream;
-                
-                // Create peer connection with better configuration
+                // Create peer connection
                 peerConnection = new RTCPeerConnection({
                     iceServers: iceServers,
-                    iceTransportPolicy: 'all', // Try both relay and non-relay candidates
-                    bundlePolicy: 'max-bundle',
-                    rtcpMuxPolicy: 'require',
-                    iceCandidatePoolSize: 0
+                    iceTransportPolicy: 'all'
                 });
                 
-                // Add stream tracks
-                localStream.getTracks().forEach(track => {
+                // Add audio tracks
+                localStream.getAudioTracks().forEach(track => {
                     peerConnection.addTrack(track, localStream);
                 });
                 
@@ -189,7 +223,7 @@
                 
                 // Create offer
                 const offer = await peerConnection.createOffer({
-                    offerToReceiveAudio: true,
+                    offerToReceiveAudio: false,
                     offerToReceiveVideo: false
                 });
                 
@@ -197,16 +231,14 @@
                 
                 // Show connection info
                 connectionInfoDiv.style.display = 'block';
-                receiverSectionDiv.style.display = 'none';
-                startReceiverBtn.disabled = false;
                 isSender = true;
                 
-                // Generate QR code for easy sharing
-                generateQRCode(window.location.href);
+                updateStatus('সেন্ডার প্রস্তুত! ফোনে কোড শেয়ার করুন');
                 
             } catch (error) {
                 handleError(error);
-                startSenderBtn.disabled = false;
+                confirmSourceBtn.disabled = false;
+                showTab('modeSelectionTab');
             }
         });
         
@@ -224,14 +256,6 @@
             offerSdpTextarea.select();
             document.execCommand('copy');
             showTemporaryStatus('কোড কপি করা হয়েছে! ফোনে পেস্ট করুন');
-        });
-        
-        // Receiver functionality
-        startReceiverBtn.addEventListener('click', () => {
-            connectionInfoDiv.style.display = 'none';
-            receiverSectionDiv.style.display = 'block';
-            startReceiverBtn.disabled = true;
-            updateStatus('PC থেকে প্রাপ্ত কোড পেস্ট করুন এবং কানেক্ট বাটনে ক্লিক করুন');
         });
         
         // Connect receiver
@@ -253,9 +277,7 @@
                 // Create peer connection
                 peerConnection = new RTCPeerConnection({
                     iceServers: iceServers,
-                    iceTransportPolicy: 'all',
-                    bundlePolicy: 'max-bundle',
-                    rtcpMuxPolicy: 'require'
+                    iceTransportPolicy: 'all'
                 });
                 
                 // Set up audio
@@ -303,16 +325,17 @@
         function handleError(error) {
             console.error(error);
             updateStatus(`ত্রুটি: ${error.message}`);
-        }
-        
-        function generateQRCode(url) {
-            qrContainer.style.display = 'block';
-            QRCode.toCanvas(qrContainer, url, { width: 200 }, (error) => {
-                if (error) {
-                    console.error('QR code generation failed:', error);
-                    qrContainer.style.display = 'none';
-                }
-            });
+            
+            // Close existing streams
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
         }
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P Audio Streaming</title>
+    <title>Hotspot Audio Streaming</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,105 +11,167 @@
             margin: 0 auto;
             padding: 20px;
             text-align: center;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-size: 16px;
             margin: 10px;
             cursor: pointer;
-            background-color: #4CAF50;
+            background-color: #4285f4;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #3367d6;
         }
         button:disabled {
-            background-color: #cccccc;
+            background-color: #9e9e9e;
             cursor: not-allowed;
         }
         #status {
-            margin-top: 20px;
-            font-weight: bold;
-            padding: 10px;
-            border-radius: 4px;
-            background-color: #f0f0f0;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background-color: #e8f0fe;
+            color: #1967d2;
         }
         #connectionInfo {
-            margin-top: 20px;
+            margin: 20px 0;
             padding: 15px;
-            background-color: #e9f7ef;
-            border-radius: 4px;
-            word-break: break-all;
+            background-color: #f1f8e9;
+            border-radius: 5px;
+            display: none;
         }
         textarea {
             width: 100%;
             height: 100px;
-            margin-top: 10px;
-            padding: 8px;
-            box-sizing: border-box;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: none;
+        }
+        .qr-container {
+            margin: 20px auto;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <h1>Real-Time Audio Streaming</h1>
-    <p>PC থেকে ফোনে অডিও স্ট্রিম করুন (P2P)</p>
-    
-    <div>
-        <button id="startSender">Start as Sender (PC)</button>
-        <button id="startReceiver" disabled>Start as Receiver (Phone)</button>
+    <div class="container">
+        <h1>Hotspot Audio Streamer</h1>
+        <p>PC থেকে Phone-এ রিয়েল-টাইম অডিও স্ট্রিমিং</p>
+        
+        <div id="status">স্ট্যাটাস: প্রস্তুত</div>
+        
+        <div>
+            <button id="startSender">PC তে সেন্ডার শুরু করুন</button>
+            <button id="startReceiver" disabled>ফোনে রিসিভার শুরু করুন</button>
+        </div>
+        
+        <div id="connectionInfo">
+            <h3>কানেকশন তথ্য</h3>
+            <p>ফোনে নিচের কোডটি পেস্ট করুন:</p>
+            <textarea id="offerSdp" readonly></textarea>
+            <button id="copyOffer">কোড কপি করুন</button>
+            <div class="qr-container" id="qrCode"></div>
+        </div>
+        
+        <div id="receiverSection" style="display: none;">
+            <h3>সেন্ডার থেকে কোড পেস্ট করুন</h3>
+            <textarea id="answerSdp" placeholder="PC থেকে প্রাপ্ত কোড এখানে পেস্ট করুন"></textarea>
+            <button id="connectReceiver">কানেক্ট করুন</button>
+        </div>
     </div>
-    
-    <div id="connectionInfo" style="display: none;">
-        <p>Receiver কে কানেক্ট করতে এই অফার কোডটি দিন:</p>
-        <textarea id="offerSdp" readonly></textarea>
-        <button id="copyOffer">Copy Offer</button>
-    </div>
-    
-    <div id="receiverSection" style="display: none; margin-top: 20px;">
-        <p>Sender এর অফার কোডটি এখানে পেস্ট করুন:</p>
-        <textarea id="answerSdp"></textarea>
-        <button id="connectReceiver">Connect</button>
-    </div>
-    
-    <div id="status">Status: Not connected</div>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script>
         // DOM elements
         const startSenderBtn = document.getElementById('startSender');
         const startReceiverBtn = document.getElementById('startReceiver');
+        const statusDiv = document.getElementById('status');
         const connectionInfoDiv = document.getElementById('connectionInfo');
         const offerSdpTextarea = document.getElementById('offerSdp');
         const copyOfferBtn = document.getElementById('copyOffer');
         const receiverSectionDiv = document.getElementById('receiverSection');
         const answerSdpTextarea = document.getElementById('answerSdp');
         const connectReceiverBtn = document.getElementById('connectReceiver');
-        const statusDiv = document.getElementById('status');
+        const qrContainer = document.getElementById('qrCode');
         
         // WebRTC variables
-        let localStream;
         let peerConnection;
         let isSender = false;
+        let localStream;
         
+        // Improved ICE servers configuration
+        const iceServers = [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { 
+                urls: 'turn:your-turn-server.com:3478',
+                username: 'your-username',
+                credential: 'your-credential'
+            }
+        ];
+        
+        // Note: For a real application, you should use your own TURN server
+        // or use a free one like from Xirsys, Twilio, etc.
+
         // Sender functionality
         startSenderBtn.addEventListener('click', async () => {
             try {
-                statusDiv.textContent = 'Getting microphone access...';
+                updateStatus('মাইক্রোফোন এক্সেসের অনুমতি চাওয়া হচ্ছে...');
                 startSenderBtn.disabled = true;
                 
-                // Get microphone access
-                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Get system audio using experimental feature (for Chrome)
+                if (!navigator.mediaDevices.getDisplayMedia && !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Browser does not support audio capture');
+                }
                 
-                // Create RTCPeerConnection
-                const configuration = {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' }
-                    ]
-                };
+                // Try to get system audio (Chrome only)
+                let stream;
+                try {
+                    stream = await navigator.mediaDevices.getDisplayMedia({
+                        video: false,
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        }
+                    });
+                    
+                    // Workaround to keep stream alive when popup is closed
+                    const audioTracks = stream.getAudioTracks();
+                    audioTracks.forEach(track => {
+                        track.onended = () => updateStatus('স্ট্রিম বন্ধ হয়ে গেছে। পুনরায় চেষ্টা করুন।');
+                    });
+                } catch (err) {
+                    updateStatus('সিস্টেম অডিও এক্সেস ব্যর্থ, মাইক্রোফোন ব্যবহার করা হচ্ছে...');
+                    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                }
                 
-                peerConnection = new RTCPeerConnection(configuration);
+                localStream = stream;
                 
-                // Add stream to connection
+                // Create peer connection with better configuration
+                peerConnection = new RTCPeerConnection({
+                    iceServers: iceServers,
+                    iceTransportPolicy: 'all', // Try both relay and non-relay candidates
+                    bundlePolicy: 'max-bundle',
+                    rtcpMuxPolicy: 'require',
+                    iceCandidatePoolSize: 0
+                });
+                
+                // Add stream tracks
                 localStream.getTracks().forEach(track => {
                     peerConnection.addTrack(track, localStream);
                 });
@@ -117,12 +179,20 @@
                 // ICE candidate handler
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
-                        offerSdpTextarea.value = JSON.stringify(peerConnection.localDescription);
+                        updateOffer();
                     }
                 };
                 
+                peerConnection.oniceconnectionstatechange = () => {
+                    updateStatus(`ICE কানেকশন স্টেট: ${peerConnection.iceConnectionState}`);
+                };
+                
                 // Create offer
-                const offer = await peerConnection.createOffer();
+                const offer = await peerConnection.createOffer({
+                    offerToReceiveAudio: true,
+                    offerToReceiveVideo: false
+                });
+                
                 await peerConnection.setLocalDescription(offer);
                 
                 // Show connection info
@@ -131,23 +201,29 @@
                 startReceiverBtn.disabled = false;
                 isSender = true;
                 
-                statusDiv.textContent = 'Sender ready. Share the offer code with receiver.';
+                // Generate QR code for easy sharing
+                generateQRCode(window.location.href);
                 
             } catch (error) {
-                statusDiv.textContent = 'Error: ' + error.message;
-                console.error(error);
+                handleError(error);
                 startSenderBtn.disabled = false;
             }
         });
+        
+        function updateOffer() {
+            if (peerConnection.localDescription) {
+                offerSdpTextarea.value = JSON.stringify({
+                    sdp: peerConnection.localDescription.sdp,
+                    type: peerConnection.localDescription.type
+                });
+            }
+        }
         
         // Copy offer to clipboard
         copyOfferBtn.addEventListener('click', () => {
             offerSdpTextarea.select();
             document.execCommand('copy');
-            statusDiv.textContent = 'Offer copied to clipboard!';
-            setTimeout(() => {
-                statusDiv.textContent = 'Sender ready. Share the offer code with receiver.';
-            }, 2000);
+            showTemporaryStatus('কোড কপি করা হয়েছে! ফোনে পেস্ট করুন');
         });
         
         // Receiver functionality
@@ -155,73 +231,89 @@
             connectionInfoDiv.style.display = 'none';
             receiverSectionDiv.style.display = 'block';
             startReceiverBtn.disabled = true;
-            statusDiv.textContent = 'Paste the offer code from sender and click Connect.';
+            updateStatus('PC থেকে প্রাপ্ত কোড পেস্ট করুন এবং কানেক্ট বাটনে ক্লিক করুন');
         });
         
         // Connect receiver
         connectReceiverBtn.addEventListener('click', async () => {
             try {
-                const offer = JSON.parse(answerSdpTextarea.value);
-                if (!offer || !offer.type || offer.type !== 'offer') {
-                    throw new Error('Invalid offer format');
+                const offerText = answerSdpTextarea.value.trim();
+                if (!offerText) {
+                    throw new Error('কোড পেস্ট করুন');
                 }
                 
-                statusDiv.textContent = 'Connecting to sender...';
+                const offer = JSON.parse(offerText);
+                if (!offer || !offer.type || offer.type !== 'offer') {
+                    throw new Error('অবৈধ কোড ফরম্যাট');
+                }
+                
+                updateStatus('সেন্ডারের সাথে কানেক্ট হচ্ছে...');
                 connectReceiverBtn.disabled = true;
                 
-                // Create RTCPeerConnection
-                const configuration = {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' }
-                    ]
-                };
+                // Create peer connection
+                peerConnection = new RTCPeerConnection({
+                    iceServers: iceServers,
+                    iceTransportPolicy: 'all',
+                    bundlePolicy: 'max-bundle',
+                    rtcpMuxPolicy: 'require'
+                });
                 
-                peerConnection = new RTCPeerConnection(configuration);
-                
-                // Set up audio stream
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                let audioStreamDestination;
+                // Set up audio
+                const audio = new Audio();
+                audio.autoplay = true;
                 
                 peerConnection.ontrack = (event) => {
-                    const audio = new Audio();
                     audio.srcObject = event.streams[0];
-                    audio.autoplay = true;
-                    
-                    // Alternative method for better compatibility
-                    if (!audioStreamDestination) {
-                        audioStreamDestination = audioContext.createMediaStreamDestination();
-                        const mediaStreamSource = audioContext.createMediaStreamSource(event.streams[0]);
-                        mediaStreamSource.connect(audioContext.destination);
-                    }
-                    
-                    statusDiv.textContent = 'Connected! Audio should be playing now.';
+                    updateStatus('কানেক্টেড! অডিও প্লে হওয়া উচিত...');
                 };
                 
-                // ICE candidate handler
-                peerConnection.onicecandidate = (event) => {
-                    if (event.candidate) {
-                        // In a real app, you'd send this to the other peer
+                peerConnection.oniceconnectionstatechange = () => {
+                    if (peerConnection.iceConnectionState === 'connected') {
+                        updateStatus('সফলভাবে কানেক্টেড!');
                     }
                 };
                 
                 // Set remote description
-                await peerConnection.setRemoteDescription(offer);
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
                 
                 // Create answer
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
                 
-                // In a real app, you'd send the answer back to the sender
                 isSender = false;
                 
             } catch (error) {
-                statusDiv.textContent = 'Error: ' + error.message;
-                console.error(error);
+                handleError(error);
                 connectReceiverBtn.disabled = false;
             }
         });
+        
+        // Helper functions
+        function updateStatus(message) {
+            statusDiv.textContent = `স্ট্যাটাস: ${message}`;
+            console.log(message);
+        }
+        
+        function showTemporaryStatus(message, duration = 2000) {
+            const originalMessage = statusDiv.textContent;
+            updateStatus(message);
+            setTimeout(() => updateStatus(originalMessage.replace('স্ট্যাটাস: ', '')), duration);
+        }
+        
+        function handleError(error) {
+            console.error(error);
+            updateStatus(`ত্রুটি: ${error.message}`);
+        }
+        
+        function generateQRCode(url) {
+            qrContainer.style.display = 'block';
+            QRCode.toCanvas(qrContainer, url, { width: 200 }, (error) => {
+                if (error) {
+                    console.error('QR code generation failed:', error);
+                    qrContainer.style.display = 'none';
+                }
+            });
+        }
     </script>
 </body>
 </html>

@@ -3,340 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PC to Phone Audio Streaming</title>
+    <title>Real-Time Audio Receiver</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            text-align: center;
-            background-color: #f5f5f5;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        button {
-            padding: 12px 24px;
-            font-size: 16px;
-            margin: 10px;
-            cursor: pointer;
-            background-color: #4285f4;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-        button:hover {
-            background-color: #3367d6;
-        }
-        button:disabled {
-            background-color: #9e9e9e;
-            cursor: not-allowed;
-        }
-        #status {
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #e8f0fe;
-            color: #1967d2;
-        }
-        #connectionInfo {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f1f8e9;
-            border-radius: 5px;
-            display: none;
-        }
-        textarea {
-            width: 100%;
-            height: 100px;
-            margin: 10px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            resize: none;
-        }
-        .tab {
-            display: none;
-        }
-        .tab.active {
-            display: block;
-        }
-        #audioSourceSelect {
-            padding: 8px;
-            margin: 10px 0;
-            width: 100%;
-        }
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        #status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background-color: #dfd; }
+        .disconnected { background-color: #fdd; }
+        button { padding: 10px 15px; margin: 5px; background: #4285f4; color: white; border: none; border-radius: 4px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>PC থেকে Phone-এ অডিও স্ট্রিমিং</h1>
-        <p>হটস্পট ব্যবহার করে রিয়েল-টাইম অডিও স্ট্রিম করুন</p>
-        
-        <div id="status">স্ট্যাটাস: প্রস্তুত</div>
-        
-        <div class="tab active" id="modeSelectionTab">
-            <button id="startSender">PC তে সেন্ডার শুরু করুন</button>
-            <button id="startReceiver">ফোনে রিসিভার শুরু করুন</button>
-        </div>
-        
-        <div class="tab" id="senderTab">
-            <h3>অডিও সোর্স নির্বাচন করুন</h3>
-            <select id="audioSourceSelect">
-                <option value="microphone">মাইক্রোফোন</option>
-                <option value="tabAudio" disabled>ট্যাব অডিও (Chrome এ এক্সপেরিমেন্টাল)</option>
-            </select>
-            <button id="confirmSource">অডিও সোর্স কনফার্ম করুন</button>
-            <div id="connectionInfo">
-                <h3>কানেকশন তথ্য</h3>
-                <p>ফোনে নিচের কোডটি পেস্ট করুন:</p>
-                <textarea id="offerSdp" readonly></textarea>
-                <button id="copyOffer">কোড কপি করুন</button>
-            </div>
-        </div>
-        
-        <div class="tab" id="receiverTab">
-            <h3>সেন্ডার থেকে কোড পেস্ট করুন</h3>
-            <textarea id="answerSdp" placeholder="PC থেকে প্রাপ্ত কোড এখানে পেস্ট করুন"></textarea>
-            <button id="connectReceiver">কানেক্ট করুন</button>
-        </div>
+    <h1>Audio Receiver (Phone)</h1>
+    
+    <div>
+        <input type="text" id="sessionId" placeholder="Enter Session ID">
+        <button id="connectBtn">Connect</button>
     </div>
+    
+    <div id="status" class="disconnected">Disconnected</div>
+    
+    <audio id="audioPlayer" controls></audio>
 
     <script>
-        // DOM elements
-        const modeSelectionTab = document.getElementById('modeSelectionTab');
-        const senderTab = document.getElementById('senderTab');
-        const receiverTab = document.getElementById('receiverTab');
-        const startSenderBtn = document.getElementById('startSender');
-        const startReceiverBtn = document.getElementById('startReceiver');
+        // 🔥 এখানে আপনার Firebase কনফিগারেশন দিন
+        const firebaseConfig = {
+            databaseURL: "https://audio-capture-769d1-default-rtdb.firebaseio.com/" // Replace with your URL
+        };
+
+        // Firebase ইনিশিয়ালাইজ করুন
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // DOM এলিমেন্টস
+        const sessionIdInput = document.getElementById('sessionId');
+        const connectBtn = document.getElementById('connectBtn');
         const statusDiv = document.getElementById('status');
-        const audioSourceSelect = document.getElementById('audioSourceSelect');
-        const confirmSourceBtn = document.getElementById('confirmSource');
-        const connectionInfoDiv = document.getElementById('connectionInfo');
-        const offerSdpTextarea = document.getElementById('offerSdp');
-        const copyOfferBtn = document.getElementById('copyOffer');
-        const answerSdpTextarea = document.getElementById('answerSdp');
-        const connectReceiverBtn = document.getElementById('connectReceiver');
-        
-        // WebRTC variables
-        let peerConnection;
-        let isSender = false;
-        let localStream;
-        
-        // ICE servers configuration
-        const iceServers = [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
-        ];
-        
-        // Detect Chrome browser
-        const isChrome = !!navigator.userAgent.match(/Chrome\/([0-9]+)/);
-        
-        // Enable tab audio option if Chrome
-        if (isChrome) {
-            const tabAudioOption = audioSourceSelect.querySelector('option[value="tabAudio"]');
-            tabAudioOption.disabled = false;
-            tabAudioOption.textContent += " (Chrome Only)";
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        let sessionId = '';
+        let audioContext;
+        let audioQueue = [];
+        let isPlaying = false;
+
+        // অডিও প্লে করার ফাংশন
+        function playAudioChunk(chunkData) {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioPlayer.crossOrigin = "anonymous";
+            const source = audioContext.createMediaElementSource(audioPlayer);
+                source.connect(audioContext.destination);
+            }
+
+            const audioBuffer = audioContext.createBuffer(1, chunkData.length, audioContext.sampleRate);
+            audioBuffer.getChannelData(0).set(chunkData);
+            
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination);
+            source.start();
         }
 
-        // Show tab function
-        function showTab(tabId) {
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
+        // Firebase থেকে ডাটা শোনার ফাংশন
+        function listenToAudioStream() {
+            const audioRef = database.ref('sessions/' + sessionId + '/audio');
+            
+            audioRef.on('value', (snapshot) => {
+                const audioData = snapshot.val();
+                if (audioData && audioData.data) {
+                    const float32Array = new Float32Array(audioData.data);
+                    playAudioChunk(float32Array);
+                }
             });
-            document.getElementById(tabId).classList.add('active');
         }
 
-        // Sender mode selection
-        startSenderBtn.addEventListener('click', () => {
-            showTab('senderTab');
+        // কানেক্ট বাটন ইভেন্ট
+        connectBtn.addEventListener('click', () => {
+            sessionId = sessionIdInput.value.trim();
+            if (sessionId) {
+                statusDiv.textContent = "Connected to session: " + sessionId;
+                statusDiv.className = "connected";
+                listenToAudioStream();
+            } else {
+                alert("Please enter a session ID");
+            }
         });
 
-        // Receiver mode selection
-        startReceiverBtn.addEventListener('click', () => {
-            showTab('receiverTab');
-        });
-
-        // Audio source confirmation
-        confirmSourceBtn.addEventListener('click', async () => {
-            try {
-                const audioSource = audioSourceSelect.value;
-                updateStatus('অডিও সোর্স সেটআপ হচ্ছে...');
-                confirmSourceBtn.disabled = true;
-                
-                if (audioSource === 'tabAudio') {
-                    // Try to get tab audio (Chrome only)
-                    try {
-                        localStream = await navigator.mediaDevices.getDisplayMedia({
-                            video: false,
-                            audio: {
-                                echoCancellation: false,
-                                noiseSuppression: false,
-                                autoGainControl: false,
-                                suppressLocalAudioPlayback: false
-                            }
-                        });
-                        
-                        // Workaround to keep stream alive
-                        const audioTracks = localStream.getAudioTracks();
-                        audioTracks.forEach(track => {
-                            track.onended = () => updateStatus('স্ট্রিম বন্ধ হয়ে গেছে। পুনরায় চেষ্টা করুন।');
-                        });
-                    } catch (error) {
-                        throw new Error('ট্যাব অডিও এক্সেস ব্যর্থ: ' + error.message);
-                    }
-                } else {
-                    // Get microphone audio
-                    localStream = await navigator.mediaDevices.getUserMedia({ 
-                        audio: true,
-                        video: false
-                    });
-                }
-                
-                // Create peer connection
-                peerConnection = new RTCPeerConnection({
-                    iceServers: iceServers,
-                    iceTransportPolicy: 'all'
-                });
-                
-                // Add audio tracks
-                localStream.getAudioTracks().forEach(track => {
-                    peerConnection.addTrack(track, localStream);
-                });
-                
-                // ICE candidate handler
-                peerConnection.onicecandidate = (event) => {
-                    if (event.candidate) {
-                        updateOffer();
-                    }
-                };
-                
-                peerConnection.oniceconnectionstatechange = () => {
-                    updateStatus(`ICE কানেকশন স্টেট: ${peerConnection.iceConnectionState}`);
-                };
-                
-                // Create offer
-                const offer = await peerConnection.createOffer({
-                    offerToReceiveAudio: false,
-                    offerToReceiveVideo: false
-                });
-                
-                await peerConnection.setLocalDescription(offer);
-                
-                // Show connection info
-                connectionInfoDiv.style.display = 'block';
-                isSender = true;
-                
-                updateStatus('সেন্ডার প্রস্তুত! ফোনে কোড শেয়ার করুন');
-                
-            } catch (error) {
-                handleError(error);
-                confirmSourceBtn.disabled = false;
-                showTab('modeSelectionTab');
+        // অডিও কনটেক্সট ইনিশিয়ালাইজেশন
+        document.body.addEventListener('click', () => {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
-        });
-        
-        function updateOffer() {
-            if (peerConnection.localDescription) {
-                offerSdpTextarea.value = JSON.stringify({
-                    sdp: peerConnection.localDescription.sdp,
-                    type: peerConnection.localDescription.type
-                });
-            }
-        }
-        
-        // Copy offer to clipboard
-        copyOfferBtn.addEventListener('click', () => {
-            offerSdpTextarea.select();
-            document.execCommand('copy');
-            showTemporaryStatus('কোড কপি করা হয়েছে! ফোনে পেস্ট করুন');
-        });
-        
-        // Connect receiver
-        connectReceiverBtn.addEventListener('click', async () => {
-            try {
-                const offerText = answerSdpTextarea.value.trim();
-                if (!offerText) {
-                    throw new Error('কোড পেস্ট করুন');
-                }
-                
-                const offer = JSON.parse(offerText);
-                if (!offer || !offer.type || offer.type !== 'offer') {
-                    throw new Error('অবৈধ কোড ফরম্যাট');
-                }
-                
-                updateStatus('সেন্ডারের সাথে কানেক্ট হচ্ছে...');
-                connectReceiverBtn.disabled = true;
-                
-                // Create peer connection
-                peerConnection = new RTCPeerConnection({
-                    iceServers: iceServers,
-                    iceTransportPolicy: 'all'
-                });
-                
-                // Set up audio
-                const audio = new Audio();
-                audio.autoplay = true;
-                
-                peerConnection.ontrack = (event) => {
-                    audio.srcObject = event.streams[0];
-                    updateStatus('কানেক্টেড! অডিও প্লে হওয়া উচিত...');
-                };
-                
-                peerConnection.oniceconnectionstatechange = () => {
-                    if (peerConnection.iceConnectionState === 'connected') {
-                        updateStatus('সফলভাবে কানেক্টেড!');
-                    }
-                };
-                
-                // Set remote description
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-                
-                // Create answer
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                
-                isSender = false;
-                
-            } catch (error) {
-                handleError(error);
-                connectReceiverBtn.disabled = false;
-            }
-        });
-        
-        // Helper functions
-        function updateStatus(message) {
-            statusDiv.textContent = `স্ট্যাটাস: ${message}`;
-            console.log(message);
-        }
-        
-        function showTemporaryStatus(message, duration = 2000) {
-            const originalMessage = statusDiv.textContent;
-            updateStatus(message);
-            setTimeout(() => updateStatus(originalMessage.replace('স্ট্যাটাস: ', '')), duration);
-        }
-        
-        function handleError(error) {
-            console.error(error);
-            updateStatus(`ত্রুটি: ${error.message}`);
-            
-            // Close existing streams
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-                localStream = null;
-            }
-            
-            if (peerConnection) {
-                peerConnection.close();
-                peerConnection = null;
-            }
-        }
+        }, { once: true });
     </script>
 </body>
 </html>

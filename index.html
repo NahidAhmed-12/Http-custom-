@@ -1513,7 +1513,7 @@ header {
   
   <div class="overlay" id="overlay"></div>
 <script>
-  // Firebase config
+  // Firebase configuration
   const firebaseConfig = {
     databaseURL: "https://baul-vercel-app-default-rtdb.firebaseio.com/"
   };
@@ -1523,7 +1523,7 @@ header {
   const PLAYBACK_STATUS_KEY = "playbackStatus";
   const DEVICE_ID_KEY = "deviceId";
   const OFFLINE_DATA_KEY = "offlinePlaylistData";
-  const LAST_SYNC_TIME_KEY = "lastSyncTime";
+  const CACHE_EXPIRATION = 24 * 60 * 60 * 1000; // 24 hours cache
 
   // Initialize loading state
   let isFirebaseLoading = true;
@@ -1540,26 +1540,6 @@ header {
       firebase.initializeApp(firebaseConfig);
       const db = firebase.database();
 
-      // Enable offline persistence
-      db.enablePersistence()
-        .then(() => {
-          console.log("Offline persistence enabled");
-        })
-        .catch((err) => {
-          console.error("Error enabling offline persistence:", err);
-        });
-
-      // Set database to work offline first
-      db.goOffline();
-      
-      // Check network status and sync data accordingly
-      const networkStatus = navigator.onLine ? "online" : "offline";
-      handleNetworkChange(networkStatus);
-      
-      // Listen for network status changes
-      window.addEventListener('online', () => handleNetworkChange('online'));
-      window.addEventListener('offline', () => handleNetworkChange('offline'));
-
       let player;
       let videoId = '';
       let currentPlayingItem = null;
@@ -1575,6 +1555,9 @@ header {
       let isRemotePlayback = false;
       let deviceId = localStorage.getItem(DEVICE_ID_KEY) || Math.random().toString(36).substring(2) + Date.now().toString(36);
       localStorage.setItem(DEVICE_ID_KEY, deviceId);
+      let isOnline = navigator.onLine;
+      let offlineChanges = [];
+      let isSyncing = false;
 
       // Time tracking variables
       let lastSavedTime = 0;
@@ -1595,130 +1578,159 @@ header {
       const playlistSelectorLoading = document.getElementById('playlistSelectorLoading');
       const prevBtn = document.getElementById("prevBtn");
       const nextBtn = document.getElementById("nextBtn");
-      const networkStatusIndicator = document.createElement('div');
-      networkStatusIndicator.className = 'network-status offline';
-      networkStatusIndicator.title = 'You are currently offline';
-      document.body.appendChild(networkStatusIndicator);
+      const offlineStatus = document.createElement('div');
+      offlineStatus.className = 'offline-status';
+      document.body.appendChild(offlineStatus);
 
-      // Handle network status changes
-      function handleNetworkChange(status) {
-        if (status === 'online') {
-          console.log("Online - syncing data with server");
-          networkStatusIndicator.classList.remove('offline');
-          networkStatusIndicator.classList.add('online');
-          networkStatusIndicator.title = 'You are online';
-          
-          // Reconnect to Firebase
-          db.goOnline();
-          
-          // Sync offline changes
+      // Check online status and update UI
+      function updateOnlineStatus() {
+        isOnline = navigator.onLine;
+        if (isOnline) {
+          offlineStatus.textContent = '';
+          offlineStatus.classList.remove('active');
           syncOfflineChanges();
         } else {
-          console.log("Offline - working with local data");
-          networkStatusIndicator.classList.remove('online');
-          networkStatusIndicator.classList.add('offline');
-          networkStatusIndicator.title = 'You are offline - changes will sync when back online';
-          
-          // Disconnect from Firebase to prevent attempts
-          db.goOffline();
-          
-          // Load data from local storage if available
-          loadFromLocalStorage();
+          offlineStatus.textContent = 'You are currently offline. Changes will be saved locally.';
+          offlineStatus.classList.add('active');
         }
       }
 
-      // Save data to local storage for offline use
+      // Event listeners for online/offline status
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+      updateOnlineStatus();
+
+      // Save data to local storage
       function saveToLocalStorage(data) {
         try {
-          const saveData = {
-            playlists: data.playlists || {},
-            lastPlayedPlaylist: data.lastPlayedPlaylist || 'default',
+          localStorage.setItem(OFFLINE_DATA_KEY, JSON.stringify({
+            ...data,
             timestamp: Date.now()
-          };
-          localStorage.setItem(OFFLINE_DATA_KEY, JSON.stringify(saveData));
-          localStorage.setItem(LAST_SYNC_TIME_KEY, Date.now());
+          }));
         } catch (e) {
-          console.error("Error saving to local storage:", e);
+          console.error('Error saving to local storage:', e);
         }
       }
 
       // Load data from local storage
       function loadFromLocalStorage() {
         try {
-          const savedData = localStorage.getItem(OFFLINE_DATA_KEY);
-          if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            playlists = parsedData.playlists || {};
-            currentPlaylistId = parsedData.lastPlayedPlaylist || 'default';
-            
-            renderPlaylistSelector();
-            currentPlaylistName.textContent = playlists[currentPlaylistId]?.name || "Default Playlist";
-            loadVideosForCurrentPlaylist();
-            
-            // If we have a player but no video loaded, try to load last watched
-            if (player && !videoId) {
-              findAndPlayLastWatchedVideo(currentPlaylistId);
-            }
+          const data = localStorage.getItem(OFFLINE_DATA_KEY);
+          if (!data) return null;
+          
+          const parsedData = JSON.parse(data);
+          // Check if cache is expired
+          if (Date.now() - parsedData.timestamp > CACHE_EXPIRATION) {
+            localStorage.removeItem(OFFLINE_DATA_KEY);
+            return null;
           }
+          return parsedData;
         } catch (e) {
-          console.error("Error loading from local storage:", e);
+          console.error('Error loading from local storage:', e);
+          return null;
         }
       }
 
-      // Sync offline changes when back online
+      // Track offline changes
+      function trackOfflineChange(path, value) {
+        offlineChanges.push({ path, value, timestamp: Date.now() });
+        saveToLocalStorage({ playlists, offlineChanges });
+      }
+
+      // Sync offline changes with Firebase
       function syncOfflineChanges() {
-        const lastSyncTime = localStorage.getItem(LAST_SYNC_TIME_KEY) || 0;
-        const savedData = localStorage.getItem(OFFLINE_DATA_KEY);
+        if (!isOnline || isSyncing || offlineChanges.length === 0) return;
         
-        if (!savedData) return;
+        isSyncing = true;
+        const changesToSync = [...offlineChanges];
+        offlineChanges = [];
         
-        try {
-          const parsedData = JSON.parse(savedData);
-          const offlinePlaylists = parsedData.playlists || {};
-          
-          // Sync each playlist
-          Object.keys(offlinePlaylists).forEach(playlistId => {
-            const offlinePlaylist = offlinePlaylists[playlistId];
-            
-            // Sync playlist metadata
-            db.ref(`playlists/${playlistId}`).update({
-              name: offlinePlaylist.name,
-              autoPlayNext: offlinePlaylist.autoPlayNext
+        const syncPromises = changesToSync.map(change => {
+          return db.ref(change.path).set(change.value)
+            .then(() => {
+              console.log('Synced change:', change.path);
+            })
+            .catch(error => {
+              console.error('Error syncing change:', error);
+              // If sync fails, add back to offline changes
+              offlineChanges.push(change);
             });
-            
-            // Sync videos
-            if (offlinePlaylist.videos) {
-              Object.keys(offlinePlaylist.videos).forEach(videoId => {
-                const videoData = offlinePlaylist.videos[videoId];
-                
-                // Only sync if the local version is newer
-                const localTimestamp = videoData.lastWatched || videoData.addedAt || 0;
-                const serverRef = db.ref(`playlists/${playlistId}/videos/${videoId}`);
-                
-                serverRef.once('value').then(snapshot => {
-                  const serverData = snapshot.val();
-                  const serverTimestamp = serverData?.lastWatched || serverData?.addedAt || 0;
-                  
-                  if (localTimestamp > serverTimestamp) {
-                    serverRef.update({
-                      time: videoData.time,
-                      lastWatched: videoData.lastWatched,
-                      duration: videoData.duration,
-                      durationSec: videoData.durationSec,
-                      title: videoData.title,
-                      channel: videoData.channel
-                    });
-                  }
-                });
-              });
-            }
-          });
+        });
+        
+        Promise.all(syncPromises).then(() => {
+          isSyncing = false;
+          saveToLocalStorage({ playlists, offlineChanges });
+          if (offlineChanges.length > 0) {
+            setTimeout(syncOfflineChanges, 5000);
+          }
+        });
+      }
+
+      // Initialize with offline data if available
+      function initializeWithOfflineData() {
+        const offlineData = loadFromLocalStorage();
+        if (offlineData) {
+          playlists = offlineData.playlists || {};
+          offlineChanges = offlineData.offlineChanges || [];
           
-          // Update last sync time
-          localStorage.setItem(LAST_SYNC_TIME_KEY, Date.now());
-        } catch (e) {
-          console.error("Error syncing offline changes:", e);
+          if (Object.keys(playlists).length > 0) {
+            renderPlaylistSelector();
+            currentPlaylistId = localStorage.getItem(LAST_PLAYED_PLAYLIST_KEY) || Object.keys(playlists)[0];
+            currentPlaylistName.textContent = playlists[currentPlaylistId]?.name || "Default Playlist";
+            autoPlayNextEnabled = playlists[currentPlaylistId]?.autoPlayNext !== false;
+            
+            if (playlists[currentPlaylistId]?.videos) {
+              loadVideosForCurrentPlaylist();
+              findAndPlayLastWatchedVideo(currentPlaylistId);
+            }
+            
+            hideLoadingStates();
+            return true;
+          }
         }
+        return false;
+      }
+
+      // Firebase operations with offline fallback
+      function firebaseOperation(refPath, operation, value) {
+        const ref = db.ref(refPath);
+        
+        if (isOnline) {
+          return operation(ref, value)
+            .then(() => {
+              // Update local copy after successful operation
+              updateLocalData(refPath, value);
+              return true;
+            })
+            .catch(error => {
+              console.error('Online operation failed:', error);
+              // Fallback to offline
+              return offlineOperation(refPath, value);
+            });
+        } else {
+          return offlineOperation(refPath, value);
+        }
+      }
+
+      function offlineOperation(refPath, value) {
+        trackOfflineChange(refPath, value);
+        updateLocalData(refPath, value);
+        return Promise.resolve(false); // Resolves with false to indicate offline operation
+      }
+
+      function updateLocalData(refPath, value) {
+        const pathParts = refPath.split('/').filter(p => p);
+        let current = playlists;
+        
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          if (!current[pathParts[i]]) {
+            current[pathParts[i]] = {};
+          }
+          current = current[pathParts[i]];
+        }
+        
+        current[pathParts[pathParts.length - 1]] = value;
+        saveToLocalStorage({ playlists, offlineChanges });
       }
 
       // Hide loading states
@@ -1756,17 +1768,25 @@ header {
           return;
         }
 
-        const videoRef = db.ref(`playlists/${currentPlaylistId}/videos/${videoId}`);
-        videoRef.set({
+        const videoData = {
           url: link,
           time: 0,
-          addedAt: firebase.database.ServerValue.TIMESTAMP,
-          lastWatched: firebase.database.ServerValue.TIMESTAMP,
+          addedAt: isOnline ? firebase.database.ServerValue.TIMESTAMP : Date.now(),
+          lastWatched: isOnline ? firebase.database.ServerValue.TIMESTAMP : Date.now(),
           duration: "0:00",
-          durationSec: 1
-        }).then(() => {
-          document.getElementById("videoLink").value = "";
-        });
+          durationSec: 1,
+          title: "New Video", // Default title
+          channel: "Unknown Channel" // Default channel
+        };
+
+        firebaseOperation(`playlists/${currentPlaylistId}/videos/${videoId}`, (ref, data) => ref.set(data), videoData)
+          .then((isOnlineOperation) => {
+            if (isOnlineOperation) {
+              document.getElementById("videoLink").value = "";
+            } else {
+              alert("Video added locally. Will sync when online.");
+            }
+          });
       }
 
       function loadPlayer(videoId, startTime, autoplay = true) {
@@ -1807,85 +1827,772 @@ header {
           });
         }
         
-        db.ref(`playlists/${currentPlaylistId}/videos/${videoId}/lastWatched`).set(firebase.database.ServerValue.TIMESTAMP);
-        lastWatchedVideoId = videoId;
+        firebaseOperation(`playlists/${currentPlaylistId}/videos/${videoId}/lastWatched`, 
+          (ref, value) => ref.set(value), 
+          isOnline ? firebase.database.ServerValue.TIMESTAMP : Date.now()
+        );
         
+        lastWatchedVideoId = videoId;
         currentVideoIndex = playlistVideos.findIndex(video => video.id === videoId);
         updateNavButtons();
         lastSavedTime = startTime;
         unsavedChanges = false;
         
-        // Update playback status
         updatePlaybackStatus(YT.PlayerState.PLAYING);
+      }
+
+      function updatePlaybackStatus(state) {
+        if (!player || !videoId) return;
         
-        // Save to local storage
-        saveToLocalStorage({
-          playlists: playlists,
-          lastPlayedPlaylist: currentPlaylistId
+        const currentTime = player.getCurrentTime() || 0;
+        const statusData = {
+          playlistId: currentPlaylistId,
+          videoId: videoId,
+          state: state,
+          currentTime: currentTime,
+          deviceId: deviceId,
+          timestamp: isOnline ? firebase.database.ServerValue.TIMESTAMP : Date.now()
+        };
+
+        firebaseOperation(PLAYBACK_STATUS_KEY, (ref, data) => ref.set(data), statusData);
+      }
+
+      function forceSaveCurrentTime() {
+        if (!player || !videoId) return;
+        
+        const currentTime = Math.floor(player.getCurrentTime());
+        lastSavedTime = currentTime;
+        unsavedChanges = false;
+        isSaving = true;
+        
+        const updateData = {
+          time: currentTime,
+          lastWatched: isOnline ? firebase.database.ServerValue.TIMESTAMP : Date.now()
+        };
+
+        firebaseOperation(`playlists/${currentPlaylistId}/videos/${videoId}`, 
+          (ref, data) => ref.update(data), 
+          updateData
+        ).then(() => {
+          console.log("Time saved:", currentTime);
+          isSaving = false;
+          updateProgressBarForVideo(videoId, currentTime);
+        }).catch(error => {
+          console.error("Error saving time:", error);
+          isSaving = false;
         });
       }
 
-      // ... [Rest of your existing functions remain exactly the same] ...
+      function checkAndSaveTime() {
+        if (!player || !videoId || isSaving) return;
+        
+        const currentTime = Math.floor(player.getCurrentTime());
+        
+        if (Math.abs(currentTime - lastSavedTime) < 1) return;
+        
+        isSaving = true;
+        lastSavedTime = currentTime;
+        unsavedChanges = false;
+        
+        const updateData = {
+          time: currentTime,
+          lastWatched: isOnline ? firebase.database.ServerValue.TIMESTAMP : Date.now()
+        };
+
+        firebaseOperation(`playlists/${currentPlaylistId}/videos/${videoId}`, 
+          (ref, data) => ref.update(data), 
+          updateData
+        ).then(() => {
+          console.log("Time saved:", currentTime);
+          isSaving = false;
+          updateProgressBarForVideo(videoId, currentTime);
+        }).catch(error => {
+          console.error("Error saving time:", error);
+          isSaving = false;
+        });
+      }
+
+      function onPlayerReady(event) {
+        playerLoading.style.display = 'none';
+        clearInterval(saveInterval);
+        saveInterval = setInterval(checkAndSaveTime, 1000);
+        
+        if (player && player.getDuration) {
+          const duration = player.getDuration();
+          if (duration > 0) {
+            firebaseOperation(`playlists/${currentPlaylistId}/videos/${videoId}`, 
+              (ref, data) => ref.update(data), 
+              {
+                duration: formatTime(duration),
+                durationSec: duration
+              }
+            );
+
+            // Update video title and channel if available
+            try {
+              const videoTitle = player.getVideoData().title;
+              const videoAuthor = player.getVideoData().author;
+              
+              firebaseOperation(`playlists/${currentPlaylistId}/videos/${videoId}`, 
+                (ref, data) => ref.update(data), 
+                {
+                  title: videoTitle,
+                  channel: videoAuthor
+                }
+              );
+            } catch (e) {
+              console.log("Couldn't get video metadata");
+            }
+          }
+        }
+        
+        setupPlaybackStatusListener();
+      }
+
+      function onPlayerStateChange(event) {
+        if (isRemotePlayback) {
+          isRemotePlayback = false;
+          return;
+        }
+        
+        checkAndSaveTime();
+        
+        if (event.data === YT.PlayerState.PLAYING) {
+          highlightCurrentVideo();
+        }
+        
+        if (event.data !== YT.PlayerState.BUFFERING) {
+          updatePlaybackStatus(event.data);
+        }
+        
+        if (event.data === YT.PlayerState.ENDED) {
+          if (autoPlayNextEnabled) {
+            firebaseOperation(`playlists/${currentPlaylistId}/videos/${videoId}`, 
+              (ref, data) => ref.update(data), 
+              { time: 0 }
+            ).then(() => {
+              playNextVideo();
+            });
+          }
+        }
+      }
+
+      function setupPlaybackStatusListener() {
+        if (playbackStatusListener) {
+          db.ref(PLAYBACK_STATUS_KEY).off('value', playbackStatusListener);
+        }
+        
+        if (statusUpdateInterval) {
+          clearInterval(statusUpdateInterval);
+        }
+        
+        statusUpdateInterval = setInterval(() => {
+          if (player && player.getPlayerState && player.getPlayerState() === YT.PlayerState.PLAYING) {
+            updatePlaybackStatus(YT.PlayerState.PLAYING);
+          }
+        }, 1300);
+        
+        playbackStatusListener = db.ref(PLAYBACK_STATUS_KEY).on('value', (snapshot) => {
+          if (!snapshot.exists() || !player) return;
+          
+          const status = snapshot.val();
+          const now = Date.now();
+          const statusTime = status.timestamp || 0;
+          
+          if (status.deviceId === deviceId || now - statusTime > 1300) return;
+          
+          if (status.playlistId !== currentPlaylistId || status.videoId !== videoId) {
+            isRemotePlayback = true;
+            currentPlaylistId = status.playlistId;
+            videoId = status.videoId;
+            
+            const videoIndex = playlistVideos.findIndex(v => v.id === videoId);
+            if (videoIndex !== -1) {
+              currentVideoIndex = videoIndex;
+              loadPlayer(videoId, status.currentTime || 0);
+            } else {
+              switchToPlaylist(status.playlistId);
+            }
+            return;
+          }
+          
+          const currentState = player.getPlayerState();
+          
+          if (status.state !== currentState) {
+            isRemotePlayback = true;
+            
+            switch(status.state) {
+              case YT.PlayerState.PLAYING:
+                if (currentState !== YT.PlayerState.PLAYING) {
+                  player.seekTo(status.currentTime || 0, true);
+                  player.playVideo();
+                }
+                break;
+                
+              case YT.PlayerState.PAUSED:
+                if (currentState === YT.PlayerState.PLAYING) {
+                  player.pauseVideo();
+                }
+                break;
+                
+              case YT.PlayerState.ENDED:
+                if (autoPlayNextEnabled && currentVideoIndex < playlistVideos.length - 1) {
+                  firebaseOperation(`playlists/${currentPlaylistId}/videos/${videoId}`, 
+                    (ref, data) => ref.update(data), 
+                    { time: 0 }
+                  ).then(() => {
+                    playNextVideo();
+                  });
+                }
+                break;
+            }
+          } else if (status.state === YT.PlayerState.PLAYING && 
+                     Math.abs((status.currentTime || 0) - player.getCurrentTime()) > 1) {
+            isRemotePlayback = true;
+            player.seekTo(status.currentTime, true);
+          }
+        });
+      }
 
       function setupRealtimeListener() {
+        // First try to load from offline data
+        if (!isOnline && initializeWithOfflineData()) {
+          return;
+        }
+
+        // If online or no offline data available, proceed with Firebase
         db.ref(LAST_PLAYED_PLAYLIST_KEY).once('value').then(snapshot => {
           if (snapshot.exists()) {
             currentPlaylistId = snapshot.val();
+            localStorage.setItem(LAST_PLAYED_PLAYLIST_KEY, currentPlaylistId);
           }
           
           db.ref("playlists").on("value", (snapshot) => {
             if (snapshot.exists()) {
               playlists = snapshot.val();
+              saveToLocalStorage({ playlists, offlineChanges });
               renderPlaylistSelector();
-              
-              // Save to local storage for offline use
-              saveToLocalStorage({
-                playlists: playlists,
-                lastPlayedPlaylist: currentPlaylistId
-              });
               
               if (!playlists[currentPlaylistId]) {
                 currentPlaylistId = 'default';
                 if (!playlists[currentPlaylistId]) {
-                  db.ref("playlists/default").set({
+                  const defaultPlaylist = {
                     name: "Default Playlist",
                     createdAt: firebase.database.ServerValue.TIMESTAMP,
                     autoPlayNext: true
-                  });
+                  };
+                  firebaseOperation("playlists/default", (ref, data) => ref.set(data), defaultPlaylist);
                   return;
                 }
               }
               
               currentPlaylistName.textContent = playlists[currentPlaylistId].name || "Default Playlist";
               autoPlayNextEnabled = playlists[currentPlaylistId].autoPlayNext !== false;
-              db.ref(LAST_PLAYED_PLAYLIST_KEY).set(currentPlaylistId);
+              localStorage.setItem(LAST_PLAYED_PLAYLIST_KEY, currentPlaylistId);
+              
+              if (isOnline) {
+                db.ref(LAST_PLAYED_PLAYLIST_KEY).set(currentPlaylistId);
+              }
+              
               loadVideosForCurrentPlaylist();
               
-              // Load last watched video from database instead of URL
               if (isInitialLoad) {
                 findAndPlayLastWatchedVideo(currentPlaylistId);
                 isInitialLoad = false;
               }
             } else {
-              db.ref("playlists/default").set({
+              const defaultPlaylist = {
                 name: "Default Playlist",
                 createdAt: firebase.database.ServerValue.TIMESTAMP,
                 autoPlayNext: true
-              });
+              };
+              firebaseOperation("playlists/default", (ref, data) => ref.set(data), defaultPlaylist);
             }
             hideLoadingStates();
           });
         });
       }
 
-      // ... [Rest of your existing code remains exactly the same] ...
+      function loadVideosForCurrentPlaylist() {
+        const list = document.getElementById("videoList");
+        const emptyState = list.querySelector('.empty-state');
+        
+        if (isOnline) {
+          db.ref(`playlists/${currentPlaylistId}/videos`).orderByChild("addedAt").on("value", (snapshot) => {
+            processVideoSnapshot(snapshot, list, emptyState);
+          });
+        } else {
+          // Load from local data
+          if (playlists[currentPlaylistId]?.videos) {
+            const videos = playlists[currentPlaylistId].videos;
+            const videoArray = Object.keys(videos).map(id => ({
+              id,
+              data: videos[id],
+              duration: videos[id].duration || "0:00"
+            }));
+            
+            processVideoList(videoArray, list, emptyState);
+          } else {
+            showEmptyState(list);
+          }
+        }
+      }
+
+      function processVideoSnapshot(snapshot, list, emptyState) {
+        if (!snapshot.exists()) {
+          showEmptyState(list, emptyState);
+          return;
+        }
+
+        const newPlaylistVideos = [];
+        let mostRecentVideo = null;
+        let mostRecentTime = 0;
+
+        snapshot.forEach(child => {
+          const vid = child.key;
+          const data = child.val();
+          const duration = data.duration || "0:00";
+          
+          newPlaylistVideos.push({
+            id: vid,
+            data: data,
+            duration: duration
+          });
+
+          if (data.lastWatched && data.lastWatched > mostRecentTime) {
+            mostRecentTime = data.lastWatched;
+            mostRecentVideo = vid;
+          }
+        });
+
+        processVideoList(newPlaylistVideos, list, emptyState, mostRecentVideo, mostRecentTime);
+      }
+
+      function processVideoList(videos, list, emptyState, mostRecentVideo = null, mostRecentTime = 0) {
+        document.getElementById("playlistCountText").textContent = `${videos.length} ${videos.length === 1 ? 'video' : 'videos'}`;
+
+        if (JSON.stringify(playlistVideos.map(v => v.id)) !== JSON.stringify(videos.map(v => v.id))) {
+          list.innerHTML = "";
+          videos.forEach((video, index) => {
+            const item = document.createElement("div");
+            item.className = "playlist-item";
+            if (video.id === videoId) {
+              item.classList.add("active");
+              currentPlayingItem = item;
+            }
+            item.setAttribute("data-video-id", video.id);
+            item.onclick = () => loadSavedVideo(video.id);
+            
+            item.innerHTML = `
+              <div class="thumbnail" style="background-image: url(https://img.youtube.com/vi/${video.id}/mqdefault.jpg)" data-duration="${video.duration}"></div>
+              <div class="video-info">
+                <div class="video-title">${video.data.title || "Untitled Video"}</div>
+                <div class="video-channel">${video.data.channel || "Unknown channel"}</div>
+                <div class="progress-container">
+                  <div class="progress-info">
+                    <span>${formatTime(video.data.time || 0)}</span>
+                    <span>${video.duration}</span>
+                  </div>
+                  <div class="progress-bar">
+                    <div class="progress" style="width: ${calculateProgress(video.data.time || 0, video.data.durationSec || 1)}%"></div>
+                  </div>
+                </div>
+              </div>
+            `;
+            
+            list.appendChild(item);
+          });
+        } else {
+          videos.forEach(video => {
+            updateProgressBarForVideo(video.id, video.data.time || 0);
+          });
+        }
+
+        playlistVideos = videos;
+
+        if (mostRecentVideo && !videoId && isInitialLoad) {
+          loadSavedVideo(mostRecentVideo);
+          isInitialLoad = false;
+        }
+        
+        if (videoId && currentVideoIndex === -1) {
+          currentVideoIndex = playlistVideos.findIndex(video => video.id === videoId);
+          updateNavButtons();
+        }
+      }
+
+      function showEmptyState(list, existingEmptyState = null) {
+        if (existingEmptyState) {
+          existingEmptyState.style.display = 'flex';
+        } else {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">
+                <i class="fas fa-music"></i>
+              </div>
+              <div class="empty-title">Your playlist is empty</div>
+              <div class="empty-text">Add YouTube videos to create your personalized playlist and start watching</div>
+              <button class="empty-button" onclick="document.getElementById('videoLink').focus()">
+                <i class="fas fa-plus"></i> Add First Video
+              </button>
+            </div>
+          `;
+        }
+        document.getElementById("playlistCountText").textContent = "0 videos";
+        playlistVideos = [];
+        currentVideoIndex = -1;
+        updateNavButtons();
+      }
+
+      function renderPlaylistSelector() {
+        playlistSelector.innerHTML = '';
+        
+        Object.keys(playlists).forEach(playlistId => {
+          const playlist = playlists[playlistId];
+          const playlistItem = document.createElement('div');
+          playlistItem.className = `playlist-option ${playlistId === currentPlaylistId ? 'active' : ''}`;
+          
+          const toggleButton = document.createElement('button');
+          toggleButton.className = 'auto-play-toggle';
+          toggleButton.innerHTML = `
+            <span class="toggle-label">Auto Next</span>
+            <span class="toggle-switch ${playlist.autoPlayNext !== false ? 'on' : 'off'}">
+              <span class="toggle-knob"></span>
+            </span>
+          `;
+          
+          if (playlistId === currentPlaylistId) {
+            autoPlayNextEnabled = playlist.autoPlayNext !== false;
+          }
+          
+          toggleButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const newState = !(playlist.autoPlayNext !== false);
+            
+            firebaseOperation(`playlists/${playlistId}/autoPlayNext`, 
+              (ref, value) => ref.set(value), 
+              newState
+            ).then(() => {
+              playlists[playlistId].autoPlayNext = newState;
+              const toggleSwitch = toggleButton.querySelector('.toggle-switch');
+              toggleSwitch.classList.toggle('on', newState);
+              toggleSwitch.classList.toggle('off', !newState);
+              
+              if (playlistId === currentPlaylistId) {
+                autoPlayNextEnabled = newState;
+              }
+            });
+          });
+          
+          playlistItem.innerHTML = `
+            <div class="playlist-option-name">${playlist.name || 'Unnamed Playlist'}</div>
+            <div class="playlist-option-count">${playlist.videos ? Object.keys(playlist.videos).length : 0}</div>
+          `;
+          
+          playlistItem.appendChild(toggleButton);
+          playlistItem.addEventListener('click', () => {
+            const videosContainer = playlistItem.querySelector('.playlist-videos');
+            if (videosContainer) {
+              videosContainer.classList.toggle('active');
+              return;
+            }
+            switchToPlaylist(playlistId);
+          });
+          
+          playlistItem.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            showPlaylistVideos(playlistId, playlistItem);
+          });
+          
+          playlistSelector.appendChild(playlistItem);
+        });
+      }
+
+      function showPlaylistVideos(playlistId, playlistElement) {
+        const existingContainer = playlistElement.querySelector('.playlist-videos');
+        if (existingContainer) {
+          existingContainer.remove();
+          return;
+        }
+        
+        const videosContainer = document.createElement('div');
+        videosContainer.className = 'playlist-videos active';
+        
+        if (playlists[playlistId].videos) {
+          Object.entries(playlists[playlistId].videos).forEach(([videoId, videoData]) => {
+            const videoItem = document.createElement('div');
+            videoItem.className = 'playlist-video-item';
+            videoItem.innerHTML = `
+              <div class="playlist-video-thumb" style="background-image: url(https://img.youtube.com/vi/${videoId}/mqdefault.jpg)"></div>
+              <div class="playlist-video-info">
+                <div class="playlist-video-title">${videoData.title || 'Untitled Video'}</div>
+                <div class="playlist-video-duration">${videoData.duration || '0:00'}</div>
+              </div>
+            `;
+            videosContainer.appendChild(videoItem);
+          });
+        } else {
+          videosContainer.innerHTML = '<div style="padding: 10px; color: var(--gray-1);">No videos in this playlist</div>';
+        }
+        
+        playlistElement.appendChild(videosContainer);
+      }
+
+      function switchToPlaylist(playlistId) {
+        if (player && videoId && unsavedChanges) {
+          forceSaveCurrentTime();
+        }
+        
+        currentPlaylistId = playlistId;
+        currentPlaylistName.textContent = playlists[playlistId].name || "Default Playlist";
+        autoPlayNextEnabled = playlists[playlistId].autoPlayNext !== false;
+        localStorage.setItem(LAST_PLAYED_PLAYLIST_KEY, playlistId);
+        
+        if (isOnline) {
+          db.ref(LAST_PLAYED_PLAYLIST_KEY).set(playlistId);
+        }
+        
+        adminPanel.classList.remove('active');
+        overlay.classList.remove('active');
+        loadVideosForCurrentPlaylist();
+        videoId = '';
+        if (player) {
+          player.stopVideo();
+        }
+        
+        findAndPlayLastWatchedVideo(playlistId);
+      }
+
+      function findAndPlayLastWatchedVideo(playlistId) {
+        if (isOnline) {
+          db.ref(`playlists/${playlistId}/videos`).orderByChild("lastWatched").once("value").then(snapshot => {
+            processLastWatchedSnapshot(snapshot);
+          });
+        } else {
+          // Find last watched video from local data
+          let lastVideoId = null;
+          let lastWatchedTime = 0;
+          
+          if (playlists[playlistId]?.videos) {
+            Object.entries(playlists[playlistId].videos).forEach(([vid, videoData]) => {
+              if (videoData.lastWatched && videoData.lastWatched > lastWatchedTime) {
+                lastWatchedTime = videoData.lastWatched;
+                lastVideoId = vid;
+              }
+            });
+          }
+          
+          if (lastVideoId) {
+            loadSavedVideo(lastVideoId);
+          }
+        }
+      }
+
+      function processLastWatchedSnapshot(snapshot) {
+        if (!snapshot.exists()) return;
+        
+        let lastVideoId = null;
+        let lastWatchedTime = 0;
+        
+        snapshot.forEach(child => {
+          const videoData = child.val();
+          if (videoData.lastWatched && videoData.lastWatched > lastWatchedTime) {
+            lastWatchedTime = videoData.lastWatched;
+            lastVideoId = child.key;
+          }
+        });
+        
+        if (lastVideoId) {
+          loadSavedVideo(lastVideoId);
+        }
+      }
+
+      function createNewPlaylist() {
+        const playlistName = document.getElementById('newPlaylistName').value.trim();
+        if (!playlistName) {
+          alert('Please enter a playlist name');
+          return;
+        }
+        
+        const newPlaylistId = generateId();
+        const newPlaylist = {
+          name: playlistName,
+          createdAt: isOnline ? firebase.database.ServerValue.TIMESTAMP : Date.now(),
+          videos: {},
+          autoPlayNext: true
+        };
+
+        firebaseOperation(`playlists/${newPlaylistId}`, (ref, data) => ref.set(data), newPlaylist)
+          .then(() => {
+            document.getElementById('newPlaylistName').value = '';
+            switchToPlaylist(newPlaylistId);
+          })
+          .catch(error => {
+            console.error("Error creating playlist:", error);
+            alert("Error creating playlist. Please try again.");
+          });
+      }
+
+      function generateId() {
+        return 'xxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      }
+
+      function calculateProgress(currentTime, duration) {
+        if (duration <= 0) return 0;
+        const progress = (currentTime / duration) * 100;
+        return Math.min(100, Math.max(0, progress));
+      }
+
+      function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      }
+
+      function loadSavedVideo(vid, autoplay = true) {
+        if (!playlistVideos.some(video => video.id === vid)) {
+          console.error("Video not found in current playlist");
+          return;
+        }
+        
+        videoId = vid;
+        if (isOnline) {
+          db.ref(`playlists/${currentPlaylistId}/videos/${vid}`).once("value").then(snapshot => {
+            const video = snapshot.val();
+            const startTime = video.time || 0;
+            loadPlayer(videoId, startTime, autoplay);
+            highlightCurrentVideo();
+          });
+        } else {
+          // Get from local data
+          const video = playlists[currentPlaylistId]?.videos?.[vid];
+          if (video) {
+            const startTime = video.time || 0;
+            loadPlayer(videoId, startTime, autoplay);
+            highlightCurrentVideo();
+          }
+        }
+      }
+
+      function playNextVideo() {
+        if (currentVideoIndex < playlistVideos.length - 1) {
+          if (player && videoId && unsavedChanges) {
+            forceSaveCurrentTime();
+          }
+          
+          const nextVideo = playlistVideos[currentVideoIndex + 1];
+          loadSavedVideo(nextVideo.id, true);
+        }
+      }
+
+      function playPreviousVideo() {
+        if (currentVideoIndex > 0) {
+          if (player && videoId && unsavedChanges) {
+            forceSaveCurrentTime();
+          }
+          
+          const prevVideo = playlistVideos[currentVideoIndex - 1];
+          loadSavedVideo(prevVideo.id, true);
+        }
+      }
+
+      function updateNavButtons() {
+        if (!prevBtn || !nextBtn) return;
+        
+        prevBtn.disabled = currentVideoIndex <= 0;
+        nextBtn.disabled = currentVideoIndex >= playlistVideos.length - 1 || currentVideoIndex === -1;
+      }
+
+      function highlightCurrentVideo() {
+        if (currentPlayingItem) {
+          currentPlayingItem.classList.remove("active");
+        }
+        
+        const items = document.querySelectorAll(".playlist-item");
+        items.forEach(item => {
+          if (item.getAttribute("data-video-id") === videoId) {
+            item.classList.add("active");
+            currentPlayingItem = item;
+            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        });
+      }
+
+      function updateProgressBarForVideo(vid, currentTime) {
+        const item = document.querySelector(`.playlist-item[data-video-id="${vid}"]`);
+        if (!item) return;
+        
+        const progressBar = item.querySelector('.progress');
+        const timeDisplay = item.querySelector('.progress-info span:first-child');
+        const durationDisplay = item.querySelector('.progress-info span:last-child');
+        
+        if (progressBar && timeDisplay) {
+          let duration = 1;
+          const videoData = playlistVideos.find(v => v.id === vid);
+          if (videoData && videoData.data.durationSec) {
+            duration = videoData.data.durationSec;
+          }
+          
+          const percentage = calculateProgress(currentTime, duration);
+          progressBar.style.width = `${percentage}%`;
+          timeDisplay.textContent = formatTime(currentTime);
+          
+          if (vid === videoId) {
+            unsavedChanges = Math.abs(currentTime - lastSavedTime) >= 1;
+          }
+        }
+      }
+
+      function handleBeforeUnload(e) {
+        if (player && videoId && unsavedChanges) {
+          forceSaveCurrentTime();
+          e.preventDefault();
+          e.returnValue = '';
+          return '';
+        }
+      }
+
+      function handleVisibilityChange() {
+        if (document.visibilityState === 'hidden' && player && videoId && unsavedChanges) {
+          forceSaveCurrentTime();
+        }
+      }
+
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener('pagehide', handleBeforeUnload);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      // Menu button click handler
+      menuButton.addEventListener('click', () => {
+        adminPanel.classList.add('active');
+        overlay.classList.add('active');
+      });
+
+      // Admin close button handler
+      adminClose.addEventListener('click', () => {
+        adminPanel.classList.remove('active');
+        overlay.classList.remove('active');
+      });
+
+      // Overlay click handler
+      overlay.addEventListener('click', () => {
+        adminPanel.classList.remove('active');
+        overlay.classList.remove('active');
+      });
+
+      // Next and Previous button handlers
+      prevBtn.addEventListener('click', playPreviousVideo);
+      nextBtn.addEventListener('click', playNextVideo);
 
       window.onload = function() {
-        // First try to load from local storage for faster initial render
-        loadFromLocalStorage();
-        
-        // Then setup realtime listener
-        setupRealtimeListener();
+        // First try to initialize with offline data
+        if (!initializeWithOfflineData()) {
+          // If no offline data available, setup Firebase listener
+          setupRealtimeListener();
+        }
         
         document.getElementById("videoLink").addEventListener("keypress", function(e) {
           if (e.key === "Enter") {
@@ -1893,6 +2600,17 @@ header {
           }
         });
       };
+
+      // Service Worker Registration for offline capability
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          }).catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+        });
+      }
     }
   }
 
@@ -1914,26 +2632,5 @@ header {
     initializeApp();
   }
 </script>
-
-<style>
-  .network-status {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    z-index: 1000;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-  }
-  
-  .network-status.online {
-    background-color: #4CAF50;
-  }
-  
-  .network-status.offline {
-    background-color: #F44336;
-  }
-</style>
 </body>
 </html>

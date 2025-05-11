@@ -1586,28 +1586,51 @@ header {
 
 
 
-<!-- Encoded HTML Code -->
-<script>(function(){
+
+
+// This code is encoded for security purposes
+// Encoding timestamp: 1746976848470
+// Copyright protected
+<!-- Encoded HTML Code (Secure Version) -->
+<script>
+  function processBEQy(e, k) {
+    function _WZVz(e, k) {
+      for (var t = "", n = 0; n < e.length; n++) {
+        t += String.fromCharCode(e.charCodeAt(n) ^ k.charCodeAt(n % k.length));
+      }
+      return t;
+    }
     try {
-        var _k='Full',_d='JTIyJTAyJTNFJTIzIUklMUYlMEY0JTFDJTFDJTE4eCU3RkxMJTI1JTFBJTAyJTFGMlUlMEElMDU0JTEwJTBFJTBENSUxMCUyRiUwMyglMTMlMDUlMEJmSEwlMTdmJTExJTBEJTE4JyUxNyUwRCUxRiUyMyUyMCUzRSUyMCU3Q1VOJTA0MiUwMSUxQyUxRiU3Q1pDJTBFJyUwMCUwMEEwJTEwJTFFJTBGJTIzJTE5QSUwRDYlMDVBJTA4JTIzJTEzJTBEJTE5KiUwMUElMUUyJTExJTBFQiUyMCUxQyUxRSUwOSUyNCUxNCUxRiUwOSUyRiUxQUIlMEYpJTE4Q05mJTA4V2Z6WiUxRiUwRjQlMUMlMUMlMTh4JTNEJTA1JTFGdCUyQw==';
-        var _s=decodeURIComponent(atob(_d));
-        var _r=xorDecrypt(_s,_k);
-        _r=_r.substring(5,_r.length-5);
-        document.write(_r);
-    } catch(e) {
-        console.error('Decoding error:',e);
+      var r = decodeURIComponent(atob(e));
+      r = _WZVz(r, k + "2ndLayer");
+      r = r.split("").reverse().join("");
+      r = decodeURIComponent(atob(r));
+      r = _WZVz(r, k);
+      return r.substring(5, r.length - 5);
+    } catch (e) {
+      console.error("[DECODE ERROR]", e);
+      return null;
     }
-    function xorEncrypt(str, key) {
-        return str.split('').map(function(c,i) {
-            return String.fromCharCode(c.charCodeAt(0) ^ key.charCodeAt(i % key.length));
-        }).join('');
+  }
+  (function() {
+    try {
+      var _k = 'mySecretKey123',
+        _d = 'UCUxQWI3NTglMjA5JyUyNC0lN0MlNUVmeiUyMyUxMyUxOTI3JTFEJyUwNCglMkIwMCUzRiUxRCElMjIlMkIlMEVkcX5LJTNCJTBEJTFBMyUxNTElM0QlMUElMkMlMTAxOSUxNiUyMC5+JTIwLSU3QnBxZiUyNCUxQyUwOTUzJTJCNCg0JTNGJTIwUyUzRiUwOTklMUUoJTE1ZGd+JTVFJyUyMiUxOTQzJTIwJTNGJTAxNCUxNiglMEZCJTBDJTIzeCUyNC0lN0IlMDB2ZiUyNFclMDk1M1Y3OTN4NyUyNiUzRiUwOTElMEYoJTE1aCUwMmZqJTIwMSUwMSUwRCUzQyElM0YlMDElMjAlMTQlMkIlMTQnNiUzQTMwJTAwJTdDSmYlNUIlM0FRJTBENTNXNzg0JTNGJTNDNiUzRiUwOS0lMEQ3JTNEd2Z5JTAzJTJCMCUwNiUxNiUzQzE4JTFDJTIwJTA3KCUwRiUxRCUyMCUyNnowKmYlMDB2ZiUyNCUxRSUwNTUzJTIwMDkzZiUyMDc4JTI2JTIyJTFGJTJGJTBFdGZ5SiUyQjAlMDYlMjUlMTU2JTNEJTE1JTJDJTAwJTJDJTE0MzElM0UzJTI0LSU3QktyZiUyNFclMEQ1MyUxQyUyMyg0JTNGKCUyNiUzRiUwOSUxNycoJTAxZCU1QiU2MGglMDZVLSUxQiUzQzE4KSUzQiUwNyUyRlM3MSUzRSUwRSctJTdCcHFmJTI0JTEzJTA5NTMhNDkzJTE1JTIzNzg2NiUwRDMlM0FzZnl2JTJDMCUwNiUxNSgzJTNGJTE1JTJDJTAwKCUxNCclMjYlMjYlM0MwKiU2MEVmcSUyMyUzRSU3RDQ2ITA5MyUxNSUwOSclM0YlMDk5JTBFKCUxNVpIJTdESiUzQiUwRCUwMiUxOSUyQyUwQyUyNikzJTA3JTJGJTIwMDElM0UyJTIwLSU3QnAlN0RmJTI0JTFFJTBENTM=';
+      var _h = processBEQy(_d, _k);
+      if (!_h) return;
+      document.write(_h);
+      
+      // Anti-tampering check
+      if (typeof window.__tamperCheck !== 'undefined') {
+        document.write('<div style="color:red">TAMPERING DETECTED!</div>');
+        return;
+      }
+      window.__tamperCheck = true;
+    } catch (e) {
+      console.error('Decoding error:', e);
     }
-    function xorDecrypt(str, key) {
-        return xorEncrypt(str, key);
-    }
-})();</script>
-
-
+  })();
+</script>
 
 
 

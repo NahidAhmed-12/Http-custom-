@@ -1,13 +1,434 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-        <title>Title</title>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to my Files</title>
+    <script src="https://encode-pro.vercel.app/decoder.js" defer></script>
+    <meta name="keyword" content="password-is-12345">
+    <meta name="secret-code" content="alpha-beta-gamma">
 
-        <script src="https://encode-pro.vercel.app/decoder.js" defer></script>
+    <style>
+        :root {
+            --bg-color: #f4f4f4;
+            --text-color: #333;
+            --hacker-bg: #0d0d0d;
+            --hacker-text: #00ff41;
+            --hacker-secondary: #ff003b;
+            --hacker-glow: rgba(0, 255, 65, 0.75);
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.5s;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Normal Site Styles */
+        #normal-site {
+            padding: 2rem;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        #h_trigger {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Modal Styles */
+        .modal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #1a1a1a;
+            color: var(--hacker-text);
+            padding: 30px;
+            border: 1px solid var(--hacker-text);
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 0 15px var(--hacker-glow);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .modal-content h2 {
+            color: var(--hacker-secondary);
+            margin-top: 0;
+        }
+
+        .modal-content input, .modal-content button {
+            width: 90%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #111;
+            border: 1px solid var(--hacker-text);
+            color: var(--hacker-text);
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .modal-content button {
+            cursor: pointer;
+            background-color: var(--hacker-text);
+            color: var(--hacker-bg);
+            font-weight: bold;
+        }
+
+        .modal-content .error {
+            color: var(--hacker-secondary);
+            margin-top: 10px;
+            height: 20px;
+        }
+
+        /* Secret Site Styles */
+        .hacker-mode {
+            background-color: var(--hacker-bg);
+            color: var(--hacker-text);
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #secret-site {
+            padding: 2rem;
+            max-width: 900px;
+            margin: auto;
+            text-align: center;
+            border: 1px solid var(--hacker-text);
+            margin-top: 50px;
+            box-shadow: 0 0 20px var(--hacker-glow);
+            animation: textFlicker 3s infinite;
+        }
+
+        .secret-header h3 {
+            color: var(--hacker-secondary);
+            text-shadow: 0 0 5px var(--hacker-secondary);
+            letter-spacing: 3px;
+        }
+
+        .blurred-text {
+            filter: blur(8px);
+            transition: filter 0.3s ease-out;
+            padding: 20px;
+            background: #1a1a1a;
+            border: 1px dashed var(--hacker-text);
+            user-select: none;
+            cursor: not-allowed;
+        }
+
+        #copy_btn {
+            padding: 12px 25px;
+            margin-top: 25px;
+            background-color: transparent;
+            border: 2px solid var(--hacker-text);
+            color: var(--hacker-text);
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+            text-shadow: 0 0 5px var(--hacker-glow);
+        }
+
+        #copy_btn:hover {
+            background-color: var(--hacker-text);
+            color: var(--hacker-bg);
+        }
+
+        .popup {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--hacker-text);
+            color: var(--hacker-bg);
+            padding: 10px 20px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 2000;
+        }
+
+        /* Ban Screen */
+        #ban_overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            color: #ff0000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 9999;
+            font-family: 'Courier New', Courier, monospace;
+        }
         
-    </head>
-    <body>
-        <h1> ENC[eyJkb21haW4iOiJiYXVsLnZlcmNlbC5hcHAiLCJjb250ZW50IjoiTm8gd29yayJ9]</h1>
-    </body>
+        #ban_overlay h1 {
+            font-size: 4rem;
+            text-shadow: 0 0 10px #ff0000;
+            margin: 0;
+        }
+        
+        #ban_overlay p {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes textFlicker {
+            0% { opacity: 1; }
+            2% { opacity: 0.8; }
+            4% { opacity: 1; }
+            6% { opacity: 0.3; }
+            8% { opacity: 1; }
+            70% { opacity: 1; }
+            72% { opacity: 0.5; }
+            74% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    
+    
+    
+    
+    
+
+<div id="data_container" style="display:none;">
+    <div data-value="ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6InBsbSJ9]"></div>
+    <div data-value="ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6InFheiJ9]"></div>
+    <div data-value="ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6IllvdXR1YmUgcGxheSBsaXN0In0=]"></div>
+</div>
+
+
+
+
+
+    <div class="j-data" data-auth="Zيكريت"></div>
+    <div class="j-data" data-key="cGFzc3dvcmQ6IHNlY3JldA=="></div>
+    <div class="j-data" data-alt-pass="ZmFrZV9wYXNz"></div>
+
+    <main id="normal-site">
+        <header>
+            <h1 id="h_trigger">My Personal Blog</h1>
+            <p>Welcome to the public page. Nothing special here.</p>
+        </header>
+        <article>
+            <h2>About this Page</h2>
+            <p>This is a simple placeholder page for a project. The main content is still under development. Please check back later for more updates. We are working hard to bring you the best experience.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.</p>
+        </article>
+    </main>
+
+    <div id="p_modal" class="modal-container hidden">
+        <div class="modal-content">
+            <h2>Authentication Required</h2>
+            <p>Provide credentials to access the secure vault.</p>
+            <input type="password" id="pass_1" placeholder="Credential Alpha" autocomplete="new-password">
+            <input type="password" id="pass_2" placeholder="Credential Gamma" autocomplete="new-password">
+            <button id="submit_btn">ACCESS</button>
+            <p id="error_msg" class="error"></p>
+        </div>
+    </div>
+
+    <main id="secret-site" class="hidden">
+        <div class="secret-header">
+            <h3>SECURE VAULT ACCESSED</h3>
+        </div>
+        <div class="content-area">
+            <p>De-obfuscation required to view the data string.</p>
+            <div id="secret_text" class="blurred-text">
+                This is the secret text that will be replaced.
+            </div>
+            <button id="copy_btn">Initiate Decryption & Copy</button>
+            <div id="copy_popup" class="popup"></div>
+        </div>
+    </main>
+
+    <div id="ban_template" class="hidden">
+        <h1>ACCESS DENIED</h1>
+        <p>YOUR IP HAS BEEN FLAGGED. FURTHER ATTEMPTS ARE LOGGED.</p>
+        <p>CONNECTION TERMINATED.</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for ban status on page load
+            if (localStorage.getItem('userBanned_v1')) {
+                showBanScreen();
+                return;
+            }
+
+            // DOM Elements
+            const h_trigger = document.getElementById('h_trigger');
+            const p_modal = document.getElementById('p_modal');
+            const s_site = document.getElementById('secret-site');
+            const n_site = document.getElementById('normal-site');
+            const pass1_in = document.getElementById('pass_1');
+            const pass2_in = document.getElementById('pass_2');
+            const submit_btn = document.getElementById('submit_btn');
+            const error_msg = document.getElementById('error_msg');
+            const copy_btn = document.getElementById('copy_btn');
+            const secret_text_el = document.getElementById('secret_text');
+            const copy_popup = document.getElementById('copy_popup');
+            const ban_template = document.getElementById('ban_template');
+            const body = document.body;
+
+            // Data from HTML (Corrected Logic)
+            const data_divs = document.getElementById('data_container').children;
+            const encoded_p1 = data_divs[0].dataset.value;
+            const encoded_p2 = data_divs[1].dataset.value;
+            const encoded_secret = data_divs[2].dataset.value;
+
+            // --- Core Logic Variables ---
+            let h_clicks = 0;
+            let h_first_click_time = 0;
+            const h_click_threshold = 700; // ms for 3 clicks
+
+            let wrong_pass_count = 0;
+
+            let copy_clicks = 0;
+            let last_copy_click_time = 0;
+            const copy_speed_threshold = 400; // ms between clicks
+
+            // --- Useless functions for obfuscation ---
+            function uselessCalc(a, b) {
+                let result = 0;
+                for (let i = 0; i < a; i++) {
+                    result += Math.pow(b, i);
+                }
+                return result > 1000 ? true : false;
+            }
+            uselessCalc(5, 10);
+            // --- End of useless functions ---
+
+            // Ban Logic
+            function initiateBan() {
+                localStorage.setItem('userBanned_v1', 'true');
+                showBanScreen();
+            }
+
+            function showBanScreen() {
+                document.body.innerHTML = ''; // Clear everything
+                const banDiv = document.createElement('div');
+                banDiv.innerHTML = ban_template.innerHTML;
+                banDiv.id = 'ban_overlay';
+                document.body.appendChild(banDiv);
+                document.body.style.background = '#000';
+            }
+
+
+            // Header click trigger
+            h_trigger.addEventListener('click', () => {
+                const now = new Date().getTime();
+
+                if (now - h_first_click_time > h_click_threshold) {
+                    h_clicks = 1;
+                    h_first_click_time = now;
+                } else {
+                    h_clicks++;
+                }
+
+                if (h_clicks === 3) {
+                    n_site.classList.add('hidden');
+                    p_modal.classList.remove('hidden');
+                    body.classList.add('hacker-mode');
+                    h_clicks = 0;
+                }
+            });
+
+            // Password submission
+            submit_btn.addEventListener('click', () => {
+                const p1_val = pass1_in.value;
+                const p2_val = pass2_in.value;
+
+                try {
+                    const decoded_p1 = atob(encoded_p1);
+                    const decoded_p2 = atob(encoded_p2);
+
+                    if (p1_val === decoded_p1 && p2_val === decoded_p2) {
+                        p_modal.classList.add('hidden');
+                        s_site.classList.remove('hidden');
+                        const decoded_secret = atob(encoded_secret);
+                        secret_text_el.textContent = decoded_secret;
+                    } else {
+                        wrong_pass_count++;
+                        error_msg.textContent = `ACCESS DENIED. ATTEMPT ${wrong_pass_count} of 2.`;
+                        if (wrong_pass_count >= 2) {
+                            initiateBan();
+                        }
+                    }
+                } catch (e) {
+                    // This will catch decoding errors if HTML is tampered with
+                    initiateBan();
+                }
+            });
+
+            // A fake key listener for more confusion
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'u') {
+                    console.log("System log: User action detected. Code: CU-87. Harmless decoy.");
+                }
+            });
+
+            // Copy button logic
+            copy_btn.addEventListener('click', () => {
+                const now = new Date().getTime();
+
+                if (copy_clicks > 0 && (now - last_copy_click_time > copy_speed_threshold)) {
+                    // User was too slow, ban them
+                    initiateBan();
+                    return;
+                }
+
+                copy_clicks++;
+                last_copy_click_time = now;
+
+                if (copy_clicks < 10) {
+                    showPopup(`...${10 - copy_clicks} more clicks required...`);
+                } else {
+                    // Success
+                    const textToCopy = atob(encoded_secret);
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        showPopup("DECRYPTION COMPLETE. DATA COPIED TO CLIPBOARD.");
+                        secret_text_el.style.filter = 'none'; // Unblur on success
+                    }).catch(() => {
+                        showPopup("CRITICAL ERROR: Clipboard access denied.");
+                    });
+                    copy_clicks = 0; // Reset after success
+                }
+            });
+
+            function showPopup(message) {
+                copy_popup.textContent = message;
+                copy_popup.style.opacity = '1';
+                setTimeout(() => {
+                    copy_popup.style.opacity = '0';
+                }, 1500);
+            }
+        });
+    </script>
+</body>
 </html>

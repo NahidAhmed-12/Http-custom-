@@ -173,14 +173,11 @@
         <div data-value="secret"></div>
         <div data-value="12345678"></div>
         <div data-value="p_l_m"></div>
-        <div data-value="ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6InBsbSJ9]"></div>
         <div data-value="q_a_z"></div>
-        <div data-value="ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6InFheiJ9]"></div>
         <div data-value="another-fake"></div>
         <div data-value="guessme"></div>
-        <div data-value="hacker"></div>
-        <div data-value="root"></div>
-        <div data-value="ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6IllvdXR1YmUgcGxheSBsaXN0In0=]"></div> 
+        <div id="real_pass_1_container">ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6InBsbSJ9]</div>
+        <div id="real_pass_2_container">ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6InFheiJ9]</div>
     </div>
     
     <div id="normal_site">
@@ -208,7 +205,7 @@
 
     <div id="secret_site">
         <div class="secret-box">
-            <p id="secret_message">   </p>
+             <p id="secret_message">ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6IlRoaXMgaXMgdGhlIGZpbmFsIHNlY3JldCBtZXNzYWdlLiBDb25ncmF0dWxhdGlvbnMhIn0=]</p>
             <button id="copy_button">Copy Secret Data</button>
         </div>
     </div>
@@ -240,11 +237,13 @@
         const submitPasswordBtn = document.getElementById('submit_password');
         const normalSite = document.getElementById('normal_site');
         const secretSite = document.getElementById('secret_site');
-        const dataContainer = document.getElementById('data_container');
         const copyButton = document.getElementById('copy_button');
         const secretMessage = document.getElementById('secret_message');
         const customAlert = document.getElementById('custom_alert');
         const banOverlay = document.getElementById('ban_overlay');
+        // KEY CHANGE: Get password containers by ID
+        const realPass1Container = document.getElementById('real_pass_1_container');
+        const realPass2Container = document.getElementById('real_pass_2_container');
 
         // Core Variables
         let headerClickCount = 0;
@@ -253,7 +252,7 @@
         let copyClickCount = 0;
         let copyClickTimer; 
         let messageRevealed = false;
-        const BAN_KEY = 'isUserBanned_secretSite_v12'; 
+        const BAN_KEY = 'isUserBanned_secretSite_v13'; 
 
         // Ban System
         function isBanned() {
@@ -264,7 +263,6 @@
             localStorage.setItem(BAN_KEY, 'true');
             showAlert(reason);
             setTimeout(() => {
-                // --- KEY FIX: Hide the main containers instead of clearing the whole body ---
                 normalSite.style.display = 'none';
                 secretSite.style.display = 'none';
                 passwordPopup.style.display = 'none';
@@ -314,8 +312,10 @@
             if(isBanned()) return;
             const pass1 = document.getElementById('pass1').value;
             const pass2 = document.getElementById('pass2').value;
-            const realPass1 = dataContainer.children[5].getAttribute('data-value');
-            const realPass2 = dataContainer.children[7].getAttribute('data-value');
+
+            // KEY CHANGE: Get the DECODED password from the innerText of the containers
+            const realPass1 = realPass1Container.innerText;
+            const realPass2 = realPass2Container.innerText;
 
             if (pass1 === realPass1 && pass2 === realPass2) {
                 passwordPopup.style.display = 'none';

@@ -104,10 +104,15 @@
 
         .secret-box {
             border: 2px solid #00ff41;
-            padding: 40px 50px;
+            padding: 20px 30px; /* Adjusted padding for better fit */
             text-align: center;
             background-color: #000;
             max-width: 80%;
+            /* KEY FIX: Constrain box height and enable internal scrolling for long text */
+            max-height: 80vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         
         #secret_message {
@@ -117,6 +122,8 @@
             user-select: none;
             cursor: default;
             transition: text-shadow 0.5s, color 0.5s;
+            text-align: left; /* Better for reading long text */
+            margin-bottom: 20px; /* Space between text and button */
         }
 
         #copy_button {
@@ -126,11 +133,12 @@
             padding: 10px 20px;
             font-size: 1em;
             cursor: pointer;
-            margin-top: 25px;
+            margin-top: auto; /* Pushes button to the bottom if text is short */
             font-family: 'Courier New', Courier, monospace;
             font-weight: bold;
             border-radius: 5px;
             box-shadow: 0 0 10px #00ff41;
+            flex-shrink: 0; /* Prevents button from shrinking */
         }
         
         #copy_button:active { transform: scale(0.95); }
@@ -205,7 +213,7 @@
 
     <div id="secret_site">
         <div class="secret-box">
-             <p id="secret_message"> ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6IlRoZSBzdW5saWdodCBzaGltbWVycyBvbiBoZXIgYmFyZSBjaGVzdCwgaGlnaGxpZ2h0aW5nIGV2ZXJ5IHNlbnN1YWwgY3VydmUgYW5kIHNoYXBlLiBIZXIgYnJlYXN0cyBhcmUgYSB3b3JrIG9mIGFydCwgZnVsbCBhbmQgcm91bmQsIHBpbmsgcGVha3MgcGVla2luZyBvdXQgZnJvbSBiZWhpbmQgYSBsb29zZSByYXZlbiBoYWlyLiBUaGUgY3JlYW15IHNraW4gc2VlbXMgdG8gZ2xvdyBmcm9tIHdpdGhpbiwgaW52aXRpbmcgbXkgZ2F6ZSB0byBleHBsb3JlIGFuZCBleHBsb3JlIGV2ZXJ5IGluY2ggb2YgaGVyIGNhcHRpdmF0aW5nIGZpZ3VyZS4gQSBsaWdodCBzaGVlbiBvZiBzd2VhdCBzaGluZXMgb24gaGVyIGNvbGxhcmJvbmUsIG1ha2luZyBoZXIgbG9vayBhcyBkZXd5IGFuZCBmcmVzaCBhcyBhIHNwcmluZyBtb3JuaW5nLiBTaGUgaXMgdHJ1bHkgYSB2aXNpb24gb2YgbG92ZSAtIGEgZ29kZGVzcyBvZiBmZW1pbmluaXR5IGFuZCBzZW5zdWFsIGdyYWNlLiBXYXRjaGluZyBoZXIgY2hlc3QgcmlzZSBhbmQgZmFsbCB3aXRoIGVhY2ggYnJlYXRoIGlzIGNvbXBsZXRlbHkgbWVzbWVyaXppbmcuIEkgYW0gY2FwdGl2YXRlZCBieSB0aGlzIGludGltYXRlIHZpZXcgb2YgaGVyIHBlcmZlY3QgYnJlYXN0cywgYW5kIGZlZWwgYSBkZWVwIHN0aXJyaW5nIG9mIGRlc2lyZS4gU2hlIGlzIGEgZmVhc3QgZm9yIHRoZSBzZW5zZXMsIGEgbGl2aW5nIGVtYm9kaW1lbnQgb2YgdGhlIGRpdmluZSBmZW1hbGUgZm9ybS4gTHlpbmcgdGhlcmUgbmFrZWQgYW5kIHNlbGZsZXNzbHksIHNoZSBzZWVtcyB0byBiZSBjb21wbGV0ZWx5IGF0IHBlYWNlIGluIGhlciBvd24gc2tpbi4gSGVyIG5hdHVyYWwgYmVhdXR5IHJhZGlhdGVzIGZyb20gZXZlcnkgcG9yZSwgYW5kIEkgYW0gaW4gYXdlIGFzIEkgc2VlIHRoZSBzY2VuZSBiZWZvcmUgbWUuIFRoZSBpbWFnZSB3aWxsIGJlIGZyb20gaGVyIGhlYWQgdG8gaGVyIHdhaXN0LiJ9]</p>
+             <p id="secret_message">ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6IkxvcmVtIGlwc3VtIGRvbG9yIHNpdCBhbWV0LCBjb25zZWN0ZXR1ciBhZGlwaXNjaW5nIGVsaXQuIFByYWVzZW50IGVnZXN0YXMgZW5pbSBub24gcHVydXMgcG9ydHRpdG9yLiBBbGlxdWFtIGVyYXQgdm9sdXRwYXQuIE51bGxhIGV0IGVsaXQgbWFzc2EgZWdldCBsYWNpbmlhLiBWaXZhbXVzIGxhb3JlZXQgZXN0IG5vbiBjb25zZXF1YXQgbWV0dXMgdmVoaWN1bGEuIEV0aWFtIGV1aXNtb2QgbGVjdHVzIGV1IGxpYmVyby4gU3VzcGVuZGlzc2UgcG90ZW50aS4gSW50ZWdlciBwbGFjZXJhdCBmZWxpcyBhYyB1cm5hLCB2ZWwgYWxpcXVldCBtaS4gTWFlY2VuYXMgc29kYWxlcyBmZWxpcyBldCBzYXBpZW4uIERvbmVjIHNpdCBhbWV0IG51bmMgYXVjdG9yIGxvYm9ydGlzLiBWaXZhbXVzIGluIGZlbGlzIHNlbSwgYmxhbmRpdCBldCBmZXVnaWF0LCBjb25zZXF1YXQgcXVpcy4gU2VkIGV1aXNtb2QgdmFyaXVzIGlkIHNlbS4gTW9yYmkgaWQgbmlzaSBzZWQgc2FnaXR0aXMgbmVjIGRpZ25pc3NpbS4gUGhhc2VsbHVzIHF1aXMgcHVsdmluYXIgbWF1cmlzIGF0IGNvbnNlcXVhdCBwb3J0dGl0b3IuIE51bGxhbSBmYWNpbGlzaXMuIE5hbSBpZCBtYWxlc3VhZGEgbWF1cmlzIG5lYyBjb25zZWN0ZXR1ci4ifQ==]</p>
             <button id="copy_button">Copy Secret Data</button>
         </div>
     </div>
@@ -241,7 +249,6 @@
         const secretMessage = document.getElementById('secret_message');
         const customAlert = document.getElementById('custom_alert');
         const banOverlay = document.getElementById('ban_overlay');
-        // KEY CHANGE: Get password containers by ID
         const realPass1Container = document.getElementById('real_pass_1_container');
         const realPass2Container = document.getElementById('real_pass_2_container');
 
@@ -252,7 +259,7 @@
         let copyClickCount = 0;
         let copyClickTimer; 
         let messageRevealed = false;
-        const BAN_KEY = 'isUserBanned_secretSite_v13'; 
+        const BAN_KEY = 'isUserBanned_secretSite_v14'; 
 
         // Ban System
         function isBanned() {
@@ -266,7 +273,6 @@
                 normalSite.style.display = 'none';
                 secretSite.style.display = 'none';
                 passwordPopup.style.display = 'none';
-                
                 document.body.classList.add('secret-mode');
                 banOverlay.style.display = 'flex';
             }, 1500);
@@ -313,7 +319,6 @@
             const pass1 = document.getElementById('pass1').value;
             const pass2 = document.getElementById('pass2').value;
 
-            // KEY CHANGE: Get the DECODED password from the innerText of the containers
             const realPass1 = realPass1Container.innerText;
             const realPass2 = realPass2Container.innerText;
 

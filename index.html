@@ -4,51 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://encode-pro.vercel.app/decoder.js" defer></script>
-    <title>My Secret Site</title>
+    <title>My Personal Blog</title>
     <style>
         /* General Styles */
         body {
-            font-family: 'Courier New', Courier, monospace;
             margin: 0;
-            padding: 0;
-            transition: background-color 0.5s, color 0.5s;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            transition: background-color 0.5s;
+        }
+
+        body.secret-mode {
+            background-color: #0d0208;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         /* Normal Site Styles */
         #normal_site {
+            display: block;
+            text-align: left;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 15px 0;
             text-align: center;
-            padding: 50px;
-            background-color: #f0f0f0;
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+        }
+        .navbar a {
+            color: white;
+            margin: 0 15px;
+            text-decoration: none;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            background-color: white;
+            padding: 30px;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .main-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-bottom: 20px;
         }
 
         #header_text {
             font-size: 2.5em;
-            cursor: pointer;
-            user-select: none;
             font-weight: bold;
-            color: #555;
+            color: #444;
+            user-select: none;
+            margin-top: 0;
+            text-align: center;
         }
         
-        #normal_site p {
-            font-size: 1.2em;
+        .main-content p {
+            font-size: 1.1em;
+            line-height: 1.6;
             color: #666;
+            text-align: justify;
+        }
+        
+        .main-content h2 {
+            font-size: 1.8em;
+            color: #333;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #777;
         }
 
         /* Secret Site Styles */
         #secret_site {
-            display: none;
-            background-color: #0d0208;
+            display: none; 
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             color: #00ff41;
-            min-height: 100vh;
-            padding: 20px;
             box-sizing: border-box;
-            display: flex;
             justify-content: center;
             align-items: center;
         }
@@ -63,10 +112,10 @@
         
         #secret_message {
             color: transparent;
-            text-shadow: 0 0 15px #00ff41; /* Blur effect */
-            font-size: 1.2em;  /* Font size reduced */
-            user-select: none; /* Prevents text selection and manual copy */
-            cursor: default;   /* Changes cursor to normal */
+            text-shadow: 0 0 15px #00ff41;
+            font-size: 1.2em;
+            user-select: none;
+            cursor: default;
             transition: text-shadow 0.5s, color 0.5s;
         }
 
@@ -84,96 +133,36 @@
             box-shadow: 0 0 10px #00ff41;
         }
         
-        #copy_button:active {
-            transform: scale(0.95);
-        }
+        #copy_button:active { transform: scale(0.95); }
 
-        /* Password Popup Styles */
-        #password_popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            justify-content: center;
-            align-items: center;
+        /* Password Popup, Alert, Ban Overlay Styles */
+        #password_popup, .custom-alert, #ban_overlay { 
+            position: fixed; 
             z-index: 9999;
         }
-
-        #password_box {
-            background-color: #1a1a1a;
-            padding: 30px;
-            border: 2px solid #00ff41;
-            border-radius: 10px;
-            text-align: center;
-            box-shadow: 0 0 20px #00ff41;
-        }
+        #password_popup { display: none; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); justify-content: center; align-items: center; }
+        #password_box { background-color: #1a1a1a; padding: 30px; border: 2px solid #00ff41; border-radius: 10px; text-align: center; box-shadow: 0 0 20px #00ff41; font-family: 'Courier New', Courier, monospace;}
+        #password_box h3 { color: #00ff41; margin-top: 0; }
+        #password_box input { background-color: #333; border: 1px solid #00ff41; color: #00ff41; padding: 10px; margin: 10px 0; width: 80%; font-family: 'Courier New', Courier, monospace; }
+        #password_box button { background-color: #00ff41; color: #0d0208; border: none; padding: 10px 20px; cursor: pointer; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+        .custom-alert { display: none; top: 20px; left: 50%; transform: translateX(-50%); background-color: #ff0000; color: white; padding: 15px 30px; border-radius: 5px; font-size: 1.1em; box-shadow: 0 0 15px #ff0000; }
+        .custom-alert.success { background-color: #00ff41; color: #0d0208; box-shadow: 0 0 15px #00ff41; }
         
-        #password_box h3 {
-            color: #00ff41;
-            margin-top: 0;
-        }
-
-        #password_box input {
-            background-color: #333;
-            border: 1px solid #00ff41;
-            color: #00ff41;
-            padding: 10px;
-            margin: 10px 0;
-            width: 80%;
+        #ban_overlay { 
+            display: none; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background-color: black; 
+            color: red; 
+            justify-content: center; 
+            align-items: center; 
+            text-align: center; 
             font-family: 'Courier New', Courier, monospace;
         }
-
-        #password_box button {
-            background-color: #00ff41;
-            color: #0d0208;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            font-family: 'Courier New', Courier, monospace;
-            font-weight: bold;
-        }
-        
-        /* Custom Alert/Notification Styles */
-        .custom-alert {
-            display: none;
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #ff0000;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 5px;
-            z-index: 10000;
-            font-size: 1.1em;
-            box-shadow: 0 0 15px #ff0000;
-        }
-        
-        .custom-alert.success {
-            background-color: #00ff41;
-            color: #0d0208;
-            box-shadow: 0 0 15px #00ff41;
-        }
-        
-        /* Banned Overlay */
-        #ban_overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: black;
-            color: red;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            z-index: 99999;
-            font-size: 2em;
-        }
+        #ban_overlay h1 { font-size: 3em; margin: 0; text-shadow: 0 0 10px red; }
+        #ban_overlay p { font-size: 1.2em; }
     </style>
 </head>
 <body>
@@ -184,8 +173,10 @@
         <div data-value="secret"></div>
         <div data-value="12345678"></div>
         <div data-value="p_l_m"></div>
-        <div data-value="plm"></div> <div data-value="q_a_z"></div>
-        <div data-value="qaz"></div> <div data-value="another-fake"></div>
+        <div data-value="ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6InBsbSJ9]"></div>
+        <div data-value="q_a_z"></div>
+        <div data-value="ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6InFheiJ9]"></div>
+        <div data-value="another-fake"></div>
         <div data-value="guessme"></div>
         <div data-value="hacker"></div>
         <div data-value="root"></div>
@@ -193,14 +184,31 @@
     </div>
     
     <div id="normal_site">
-        <h1 id="header_text">Welcome to My Normal Site</h1>
-        <p>This is just a simple page with some placeholder text.</p>
-        <p>There is nothing special to see here. Or is there? Explore if you can.</p>
+        <nav class="navbar">
+            <div class="container">
+                <a href="#">Home</a>
+                <a href="#">About</a>
+                <a href="#">Blog</a>
+                <a href="#">Contact</a>
+            </div>
+        </nav>
+        <div class="container">
+            <div class="main-content">
+                <h1 id="header_text">A Journey Through the Alps</h1>
+                <img src="https://picsum.photos/900/400" alt="Random landscape image">
+                <h2>The Start of an Adventure</h2>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat.</p>
+                <p>Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh.</p>
+            </div>
+        </div>
+        <footer class="footer">
+            <p>&copy; 2025 My Personal Blog. All Rights Reserved.</p>
+        </footer>
     </div>
 
     <div id="secret_site">
         <div class="secret-box">
-            <p id="secret_message">ENC[eyJkb21haW4iOiJodHRwLWN1c3RvbS52ZXJjZWwuYXBwIiwiY29udGVudCI6IllvdXR1YmUgcGxheSBsaXN0In0=]</p>
+            <p id="secret_message">   </p>
             <button id="copy_button">Copy Secret Data</button>
         </div>
     </div>
@@ -221,10 +229,9 @@
     <div id="ban_overlay">
         <div>
             <h1>ACCESS DENIED</h1>
-            <p>Your connection has been terminated due to suspicious activity.</p>
+            <p>Your connection has been terminated.</p>
         </div>
     </div>
-
 
     <script>
         // DOM Elements
@@ -239,19 +246,16 @@
         const customAlert = document.getElementById('custom_alert');
         const banOverlay = document.getElementById('ban_overlay');
 
-        // --- Core Variables ---
+        // Core Variables
         let headerClickCount = 0;
         let headerClickTimer;
-
         let wrongPasswordCount = 0;
-        
         let copyClickCount = 0;
-        let copyClickTimer; // Timer to detect slow clicks
+        let copyClickTimer; 
         let messageRevealed = false;
+        const BAN_KEY = 'isUserBanned_secretSite_v12'; 
 
-        const BAN_KEY = 'isUserBanned_secretSite_v6'; // Use a new key to avoid old bans
-
-        // --- Ban System ---
+        // Ban System
         function isBanned() {
             return localStorage.getItem(BAN_KEY) === 'true';
         }
@@ -260,20 +264,26 @@
             localStorage.setItem(BAN_KEY, 'true');
             showAlert(reason);
             setTimeout(() => {
-                document.body.innerHTML = ''; // Clear the page
+                // --- KEY FIX: Hide the main containers instead of clearing the whole body ---
+                normalSite.style.display = 'none';
+                secretSite.style.display = 'none';
+                passwordPopup.style.display = 'none';
+                
+                document.body.classList.add('secret-mode');
                 banOverlay.style.display = 'flex';
             }, 1500);
         }
         
-        // Check for ban on page load
         if (isBanned()) {
+            normalSite.style.display = 'none';
+            document.body.classList.add('secret-mode');
             banOverlay.style.display = 'flex';
         }
 
-        // --- Custom Alert Function ---
+        // Custom Alert Function
         function showAlert(message, isSuccess = false) {
             customAlert.textContent = message;
-            customAlert.className = 'custom-alert'; // reset class
+            customAlert.className = 'custom-alert'; 
             if(isSuccess) {
                 customAlert.classList.add('success');
             }
@@ -283,18 +293,15 @@
             }, 1500);
         }
 
-        // --- Header Click Logic ---
+        // Header Click Logic
         headerText.addEventListener('click', () => {
             if(isBanned()) return;
-
             headerClickCount++;
-
             if (headerClickCount === 1) {
                 headerClickTimer = setTimeout(() => {
                     headerClickCount = 0;
-                }, 1000); // Reset after 1 second
+                }, 1000); 
             }
-
             if (headerClickCount === 3) {
                 clearTimeout(headerClickTimer);
                 headerClickCount = 0;
@@ -302,21 +309,19 @@
             }
         });
 
-        // --- Password Verification Logic ---
+        // Password Verification Logic
         submitPasswordBtn.addEventListener('click', () => {
             if(isBanned()) return;
-
             const pass1 = document.getElementById('pass1').value;
             const pass2 = document.getElementById('pass2').value;
-            
             const realPass1 = dataContainer.children[5].getAttribute('data-value');
             const realPass2 = dataContainer.children[7].getAttribute('data-value');
 
             if (pass1 === realPass1 && pass2 === realPass2) {
                 passwordPopup.style.display = 'none';
                 normalSite.style.display = 'none';
-                secretSite.style.display = 'flex'; // Use flex to center the content
-                document.body.style.backgroundColor = '#0d0208';
+                secretSite.style.display = 'flex';
+                document.body.classList.add('secret-mode'); 
             } else {
                 wrongPasswordCount++;
                 showAlert(`Incorrect Credentials. Attempt: ${wrongPasswordCount}/2`);
@@ -326,47 +331,33 @@
             }
         });
 
-        // --- Rapid Copy Button Logic ---
+        // Rapid Copy Button Logic
         copyButton.addEventListener('click', () => {
             if (isBanned() || messageRevealed) return;
-
-            // Clear any existing timer, as a new click has occurred
             clearTimeout(copyClickTimer);
-            
             copyClickCount++;
 
             if (copyClickCount < 10) {
-                // Show a fake "Copied!" alert
                 showAlert("Copied to clipboard!", true);
-                
-                // Set a new timer. If no click happens within 1 second, it's a failure.
                 copyClickTimer = setTimeout(() => {
                     banUser('Action failed: Response time too slow.');
-                }, 1000); // 1-second window for the next click
-
+                }, 1000); 
             } else {
-                // Successfully completed 10 rapid clicks
                 messageRevealed = true;
-                
-                // Reveal the message
                 secretMessage.style.textShadow = 'none';
                 secretMessage.style.color = '#00ff41';
                 copyButton.textContent = 'DATA EXTRACTED';
-                copyButton.disabled = true; // Disable button after success
-
-                // --- KEY CHANGE HERE ---
-                // Copy the DECODED text from the visible paragraph, not the raw encoded data.
+                copyButton.disabled = true; 
+                
                 const textToCopy = secretMessage.innerText; 
                 
                 navigator.clipboard.writeText(textToCopy).then(() => {
-                    // Show the real success message
                     showAlert('SECRET DATA SUCCESSFULLY COPIED!', true);
                 }).catch(err => {
                     showAlert('Error: Could not copy text.');
                 });
             }
         });
-
     </script>
 
 </body>

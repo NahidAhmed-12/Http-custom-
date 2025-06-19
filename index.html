@@ -249,7 +249,7 @@
         let copyClickTimer; // Timer to detect slow clicks
         let messageRevealed = false;
 
-        const BAN_KEY = 'isUserBanned_secretSite_v5'; // Use a new key to avoid old bans
+        const BAN_KEY = 'isUserBanned_secretSite_v6'; // Use a new key to avoid old bans
 
         // --- Ban System ---
         function isBanned() {
@@ -354,8 +354,10 @@
                 copyButton.textContent = 'DATA EXTRACTED';
                 copyButton.disabled = true; // Disable button after success
 
-                // Copy the real text to clipboard
-                const textToCopy = dataContainer.children[12].getAttribute('data-value');
+                // --- KEY CHANGE HERE ---
+                // Copy the DECODED text from the visible paragraph, not the raw encoded data.
+                const textToCopy = secretMessage.innerText; 
+                
                 navigator.clipboard.writeText(textToCopy).then(() => {
                     // Show the real success message
                     showAlert('SECRET DATA SUCCESSFULLY COPIED!', true);

@@ -97,6 +97,11 @@
       border-radius: 4px;
     }
 
+    .subscriber-count {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
     .success {
       color: #27ae60;
     }
@@ -107,6 +112,10 @@
 
     .info {
       color: #3498db;
+    }
+
+    .warning {
+      color: #f39c12;
     }
   </style>
 </head>
@@ -128,10 +137,12 @@
       
       <button id="send-button" class="send-button">Send Notification</button>
       <p id="status-message"></p>
+      <p id="subscriber-count" class="subscriber-count info"></p>
     </div>
     
     <div class="permission-status">
       <p id="permission-text">Notification permission status: Unknown</p>
+      <p id="player-id">Player ID: Not available yet</p>
     </div>
   </div>
 
@@ -146,12 +157,19 @@
           enable: true,
         },
       });
+
+      // Get the current user's ID
+      const playerId = await OneSignal.User.pushSubscription.getId();
+      document.getElementById('player-id').textContent = `Player ID: ${playerId || 'Not subscribed'}`;
       
       // Update permission status display
       updatePermissionStatus();
       
       // Check permission when the page loads
       checkNotificationPermission();
+
+      // Check subscriber count
+      checkSubscriberCount();
     });
 
     // DOM elements
@@ -160,6 +178,8 @@
     const messageInput = document.getElementById('notification-message');
     const statusMessage = document.getElementById('status-message');
     const permissionText = document.getElementById('permission-text');
+    const subscriberCount = document.getElementById('subscriber-count');
+    const playerIdElement = document.getElementById('player-id');
 
     // Update permission status text
     function updatePermissionStatus() {
@@ -184,13 +204,61 @@
       }
     }
 
+    // Check how many subscribers we have
+    async function checkSubscriberCount() {
+      try {
+        const response = await fetch('https://onesignal.com/api/v1/players?app_id=975d4661-9acf-4714-a57b-8627478647d3', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic os_v2_app_s5oumym2z5drjjl3qytupbsh2orozdxm5gduht4izoeh5re5ewzyxt2ge6jabnel5cip7pzwyl4zzou6pksqmu333h43viqscixjsoa'
+          }
+        });
+        
+        const data = await response.json();
+        const totalSubscribers = data.total_count;
+        const activeSubscribers = data.players.filter(p => p.notification_types === 1).length;
+        
+        subscriberCount.textContent = `Active subscribers: ${activeSubscribers} (Total users: ${totalSubscribers})`;
+        subscriberCount.className = activeSubscribers > 0 ? "subscriber-count success" : "subscriber-count warning";
+        
+        if (activeSubscribers === 0) {
+          statusMessage.textContent = "Warning: You currently have no active subscribers to receive notifications.";
+          statusMessage.className = "warning";
+        }
+      } catch (error) {
+        console.error("Error checking subscriber count:", error);
+        subscriberCount.textContent = "Could not load subscriber count";
+        subscriberCount.className = "subscriber-count error";
+      }
+    }
+
     // Send notification
     async function sendNotification(title, message) {
       try {
         statusMessage.textContent = "Sending notification...";
         statusMessage.className = "info";
         
-        const response = await fetch('https://onesignal.com/api/v1/notifications', {
+        // First check if we have subscribers
+        const response = await fetch('https://onesignal.com/api/v1/players?app_id=975d4661-9acf-4714-a57b-8627478647d3&limit=1', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic os_v2_app_s5oumym2z5drjjl3qytupbsh2orozdxm5gduht4izoeh5re5ewzyxt2ge6jabnel5cip7pzwyl4zzou6pksqmu333h43viqscixjsoa'
+          }
+        });
+        
+        const data = await response.json();
+        const hasSubscribers = data.players.some(p => p.notification_types === 1);
+        
+        if (!hasSubscribers) {
+          statusMessage.textContent = "Cannot send: No active subscribers available to receive notifications.";
+          statusMessage.className = "error";
+          return;
+        }
+
+        // If we have subscribers, send the notification
+        const notificationResponse = await fetch('https://onesignal.com/api/v1/notifications', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -200,21 +268,43 @@
             app_id: "975d4661-9acf-4714-a57b-8627478647d3",
             included_segments: ["Subscribed Users"],
             headings: { en: title },
-            contents: { en: message }
+            contents: { en: message },
+            // Additional parameters for better tracking
+            chrome_web_icon: "https://cdn.onesignal.com/sdks/OneSignal-Logo_600x300.png",
+            url: window.location.href,
+            web_push_topic: "general-notifications"
           })
         });
         
-        const data = await response.json();
+        const notificationData = await notificationResponse.json();
         
-        if (data.id) {
+        if (notificationData.id) {
           statusMessage.textContent = "Notification sent successfully!";
           statusMessage.className = "success";
+          
+          // Log the successful notification details
+          console.log("Notification sent successfully:", {
+            notificationId: notificationData.id,
+            recipients: notificationData.recipients,
+            timestamp: new Date().toISOString()
+          });
         } else {
-          statusMessage.textContent = "Failed to send notification: " + (data.errors ? data.errors.join(', ') : 'Unknown error');
+          const errorMsg = notificationData.errors ? notificationData.errors.join(', ') : 'Unknown error';
+          statusMessage.textContent = `Failed to send notification: ${errorMsg}`;
           statusMessage.className = "error";
+          
+          // Log the error details
+          console.error("Notification failed:", {
+            error: errorMsg,
+            response: notificationData,
+            timestamp: new Date().toISOString()
+          });
         }
       } catch (error) {
-        console.error("Error sending notification:", error);
+        console.error("Error sending notification:", {
+          error: error.message,
+          timestamp: new Date().toISOString()
+        });
         statusMessage.textContent = "Error sending notification: " + error.message;
         statusMessage.className = "error";
       }

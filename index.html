@@ -1,126 +1,315 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OneSignal Notification Tester</title>
+    <title>ওয়েব নোটিফিকেশন পাঠান</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
+        :root {
+            --primary-color: #198754;
+            --primary-hover-color: #157347;
+            --success-bg: #d1e7dd;
+            --success-text: #0f5132;
+            --error-bg: #f8d7da;
+            --error-text: #842029;
+            --bg-color: #f0fdf4;
+            --form-bg-color: #ffffff;
+            --text-color: #212529;
+            --border-color: #ced4da;
         }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
         }
         .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--form-bg-color);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: filter 0.3s;
+        }
+        body.popup-open .container {
+            filter: blur(5px);
+        }
+        #notification-form .header {
+            margin-bottom: 30px;
+        }
+        #notification-form .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+        }
+        #notification-form .header p {
+            color: #6c757d;
+            font-size: 15px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            text-align: left;
         }
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 15px;
         }
-        input, textarea, select {
+        .input-wrapper {
+            position: relative;
+        }
+        input, textarea {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 45px 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             box-sizing: border-box;
+            font-size: 16px;
+            font-family: 'Hind Siliguri', sans-serif;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.15);
+            outline: none;
         }
         textarea {
-            height: 100px;
+            height: 120px;
             resize: vertical;
         }
+        .mic-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #6c757d;
+            transition: color 0.2s;
+            z-index: 2;
+        }
+        .textarea-wrapper .mic-icon {
+            top: 20px;
+            transform: none;
+        }
+        .mic-icon:hover {
+            color: var(--primary-color);
+        }
         button {
-            background-color: #4CAF50;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
+            padding: 14px 20px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 17px;
+            font-weight: 500;
             width: 100%;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-        #result {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-        }
-        .success {
-            background-color: #dff0d8;
-            color: #3c763d;
-            border: 1px solid #d6e9c6;
-        }
-        .error {
-            background-color: #f2dede;
-            color: #a94442;
-            border: 1px solid #ebccd1;
-        }
-        .radio-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .radio-option {
-            display: flex;
+            transition: background-color 0.2s, transform 0.2s;
+            font-family: 'Hind Siliguri', sans-serif;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        .radio-option input {
-            width: auto;
-            margin-right: 5px;
+        button:hover:not(:disabled) {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #999;
+            cursor: not-allowed;
+        }
+        #error-message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            text-align: center;
+            font-size: 15px;
+            background-color: var(--error-bg);
+            color: var(--error-text);
+        }
+        #success-state {
+            display: none;
+            padding: 20px 0;
+        }
+        #success-state h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 25px 0;
+        }
+        .success-icon svg {
+            width: 72px;
+            height: 72px;
+        }
+        .loader {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #FFF;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* আধুনিক ভয়েস পপ-আপ CSS */
+        .voice-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .voice-popup-overlay.visible {
+            opacity: 1;
+        }
+        .voice-popup-content {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease-in-out;
+        }
+        .voice-popup-overlay.visible .voice-popup-content {
+            transform: scale(1);
+        }
+        .voice-popup-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 25px 0 10px 0;
+        }
+        .voice-popup-instructions {
+            color: #6c757d;
+            margin: 0;
+            font-size: 15px;
+        }
+        .voice-visualizer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+            gap: 8px;
+            margin-top: 30px;
+        }
+        .visualizer-bar {
+            width: 8px;
+            height: 10px;
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            animation: soundWave 1.2s infinite ease-in-out;
+        }
+        .visualizer-bar:nth-child(2) { animation-delay: 0.2s; }
+        .visualizer-bar:nth-child(3) { animation-delay: 0.4s; }
+        .visualizer-bar:nth-child(4) { animation-delay: 0.6s; }
+        .visualizer-bar:nth-child(5) { animation-delay: 0.8s; }
+
+        @keyframes soundWave {
+            0%, 100% { height: 10px; }
+            50% { height: 60px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>OneSignal Notification Tester</h1>
-        <p><strong>Note:</strong> This is for testing only. Do not use in production as it exposes your API key.</p>
-        
-        <div class="form-group">
-            <label for="title">Notification Title:</label>
-            <input type="text" id="title" placeholder="Enter notification title">
-        </div>
-        
-        <div class="form-group">
-            <label for="message">Notification Message:</label>
-            <textarea id="message" placeholder="Enter notification message"></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label>Recipients:</label>
-            <div class="radio-group">
-                <div class="radio-option">
-                    <input type="radio" id="subscribedUsers" name="recipients" value="Subscribed Users" checked>
-                    <label for="subscribedUsers">Subscribed Users</label>
-                </div>
-                <div class="radio-option">
-                    <input type="radio" id="totalSubscriptions" name="recipients" value="Total Subscriptions">
-                    <label for="totalSubscriptions">Total Subscriptions</label>
+        <div id="notification-form">
+            <div class="header">
+                <h1>মেসেজ পাঠান</h1>
+                <p>সবার কাছে মেসেজ পাঠান।</p>
+            </div>
+            
+            <div class="form-group">
+                <label for="title">শিরোনাম:</label>
+                <div class="input-wrapper">
+                    <input type="text" id="title" placeholder="নোটিফিকেশনের শিরোনাম">
+                    <i class="fas fa-microphone mic-icon" id="mic-title"></i>
                 </div>
             </div>
+            
+            <div class="form-group">
+                <label for="message">বার্তা:</label>
+                <div class="input-wrapper textarea-wrapper">
+                    <textarea id="message" placeholder="আপনার বার্তাটি এখানে লিখুন"></textarea>
+                    <i class="fas fa-microphone mic-icon" id="mic-message"></i>
+                </div>
+            </div>
+            
+            <button id="sendButton" onclick="sendNotification()">
+                <span id="button-text">নোটিফিকেশন পাঠান</span>
+                <span id="loader" class="loader" style="display: none;"></span>
+            </button>
+            <div id="error-message"></div>
         </div>
-        
-        <button onclick="sendNotification()">Send Test Notification</button>
-        
-        <div id="result"></div>
+
+        <div id="success-state">
+            <div class="success-icon">
+                <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="26" cy="26" r="25" fill="#198754" stroke="#E0F2E9" stroke-width="2"/>
+                  <path d="M16 26L23.5 33.5L36.5 20.5" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h2>সম্পন্ন হয়েছে</h2>
+            <button id="reset-button" onclick="resetForm()">ঠিক আছে</button>
+        </div>
+    </div>
+
+    <div class="voice-popup-overlay" id="voice-popup">
+        <div class="voice-popup-content">
+            <div class="voice-visualizer">
+                <span class="visualizer-bar"></span>
+                <span class="visualizer-bar"></span>
+                <span class="visualizer-bar"></span>
+                <span class="visualizer-bar"></span>
+                <span class="visualizer-bar"></span>
+            </div>
+            <h3 class="voice-popup-title">শোনা হচ্ছে...</h3>
+            <p class="voice-popup-instructions">বাইরে ক্লিক করলে এটি বন্ধ হয়ে যাবে।</p>
+        </div>
     </div>
 
     <script>
-        // OneSignal initialization (for receiving notifications)
+        // UI Elements
+        const notificationForm = document.getElementById('notification-form');
+        const successState = document.getElementById('success-state');
+        const sendButton = document.getElementById('sendButton');
+        const buttonText = document.getElementById('button-text');
+        const loader = document.getElementById('loader');
+        const errorMessageDiv = document.getElementById('error-message');
+        const titleInput = document.getElementById('title');
+        const messageInput = document.getElementById('message');
+        const voicePopup = document.getElementById('voice-popup');
+
+        // OneSignal SDK Initialization
         window.OneSignalDeferred = window.OneSignalDeferred || [];
         OneSignalDeferred.push(async function(OneSignal) {
             await OneSignal.init({
@@ -132,52 +321,134 @@
             });
         });
 
-        // Function to send notification
-        async function sendNotification() {
-            const title = document.getElementById('title').value;
-            const message = document.getElementById('message').value;
-            const recipientType = document.querySelector('input[name="recipients"]:checked').value;
-            const resultDiv = document.getElementById('result');
+        // Popup Functions
+        function showVoicePopup() {
+            voicePopup.style.display = 'flex';
+            document.body.classList.add('popup-open');
+            setTimeout(() => voicePopup.classList.add('visible'), 10);
+        }
+
+        function hideVoicePopup() {
+            voicePopup.classList.remove('visible');
+            document.body.classList.remove('popup-open');
+            setTimeout(() => voicePopup.style.display = 'none', 300);
+        }
+
+        // Voice Recognition Logic
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'bn-BD';
+            recognition.interimResults = false;
+
+            document.getElementById('mic-title').addEventListener('click', () => handleMicClick(titleInput));
+            document.getElementById('mic-message').addEventListener('click', () => handleMicClick(messageInput));
+
+            function handleMicClick(inputElement) {
+                showVoicePopup();
+
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    const existingText = inputElement.value;
+                    inputElement.value = existingText ? existingText + ' ' + speechResult : speechResult;
+                };
+
+                recognition.onerror = (event) => {
+                    if (event.error !== 'no-speech' && event.error !== 'aborted') {
+                        showError('ভয়েস শনাক্তকরণে ত্রুটি: ' + event.error);
+                    }
+                };
+                
+                recognition.onend = () => {
+                    hideVoicePopup();
+                };
+
+                recognition.start();
+            }
             
-            if (!title || !message) {
-                showResult('Please enter both title and message', false);
+            voicePopup.addEventListener('click', (event) => {
+                if (event.target === voicePopup) {
+                    if (recognition) {
+                       recognition.abort();
+                    }
+                    hideVoicePopup();
+                }
+            });
+
+        } else {
+            showError('আপনার ব্রাউজার ভয়েস শনাক্তকরণ সমর্থন করে না।');
+            document.getElementById('mic-title').style.display = 'none';
+            document.getElementById('mic-message').style.display = 'none';
+        }
+        
+        // Form Submission and Helper Functions
+        async function sendNotification() {
+            if (!titleInput.value || !messageInput.value) {
+                showError('অনুগ্রহ করে শিরোনাম এবং বার্তা উভয়ই পূরণ করুন।');
                 return;
             }
-
-            const notificationData = {
-                app_id: "975d4661-9acf-4714-a57b-8627478647d3",
-                included_segments: [recipientType],
-                headings: { en: title },
-                contents: { en: message }
-            };
-
+            setLoading(true);
             try {
+                // WARNING: Embedding REST API keys in client-side code is insecure.
+                const ONESIGNAL_REST_API_KEY = "os_v2_app_s5oumym2z5drjjl3qytupbsh2orozdxm5gduht4izoeh5re5ewzyxt2ge6jabnel5cip7pzwyl4zzou6pksqmu333h43viqscixjsoa";
+                const ONESIGNAL_APP_ID = "975d4661-9acf-4714-a57b-8627478647d3";
+                
+                const notificationData = {
+                    app_id: ONESIGNAL_APP_ID,
+                    included_segments: ["Total Subscriptions"],
+                    headings: { en: titleInput.value },
+                    contents: { en: messageInput.value },
+                    big_picture: "https://http-custom.vercel.app/360_F_293372811_2gpgNsJ3TQSPsfAbmBPIYfuKfAw70bpt.jpg",
+                    chrome_web_image: "https://http-custom.vercel.app/360_F_293372811_2gpgNsJ3TQSPsfAbmBPIYfuKfAw70bpt.jpg"
+                };
+                
                 const response = await fetch('https://onesignal.com/api/v1/notifications', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic os_v2_app_s5oumym2z5drjjl3qytupbsh2orozdxm5gduht4izoeh5re5ewzyxt2ge6jabnel5cip7pzwyl4zzou6pksqmu333h43viqscixjsoa'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}` },
                     body: JSON.stringify(notificationData)
                 });
-
                 const data = await response.json();
-                
-                if (data.id) {
-                    showResult('Notification sent successfully to ' + recipientType + '! ID: ' + data.id, true);
-                } else {
-                    showResult('Failed to send notification: ' + (data.errors ? data.errors.join(', ') : 'Unknown error'), false);
-                }
-            } catch (error) {
-                showResult('Error: ' + error.message, false);
+                if (data.errors) throw new Error(data.errors.join(', '));
+                showSuccess();
+            } catch(error) {
+                showError(`ব্যর্থ হয়েছে: ${error.message}`);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        function setLoading(isLoading) {
+            errorMessageDiv.style.display = 'none';
+            if (isLoading) {
+                sendButton.disabled = true;
+                buttonText.textContent = 'পাঠানো হচ্ছে...';
+                loader.style.display = 'inline-block';
+            } else {
+                sendButton.disabled = false;
+                buttonText.textContent = 'নোটিফিকেশন পাঠান';
+                loader.style.display = 'none';
             }
         }
 
-        function showResult(message, isSuccess) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.textContent = message;
-            resultDiv.className = isSuccess ? 'success' : 'error';
-            resultDiv.style.display = 'block';
+        function showError(message) {
+            errorMessageDiv.style.display = 'block';
+        }
+
+        function showSuccess() {
+            notificationForm.style.display = 'none';
+            successState.style.display = 'block';
+        }
+
+        function resetForm() {
+            titleInput.value = '';
+            messageInput.value = '';
+            successState.style.display = 'none';
+            notificationForm.style.display = 'block';
+            errorMessageDiv.style.display = 'none';
+            document.getElementById('reset-button').addEventListener('click', resetForm);
         }
     </script>
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>

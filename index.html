@@ -30,7 +30,7 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
@@ -70,6 +70,19 @@
             color: #a94442;
             border: 1px solid #ebccd1;
         }
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+        }
+        .radio-option input {
+            width: auto;
+            margin-right: 5px;
+        }
     </style>
 </head>
 <body>
@@ -85,6 +98,20 @@
         <div class="form-group">
             <label for="message">Notification Message:</label>
             <textarea id="message" placeholder="Enter notification message"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Recipients:</label>
+            <div class="radio-group">
+                <div class="radio-option">
+                    <input type="radio" id="subscribedUsers" name="recipients" value="Subscribed Users" checked>
+                    <label for="subscribedUsers">Subscribed Users</label>
+                </div>
+                <div class="radio-option">
+                    <input type="radio" id="totalSubscriptions" name="recipients" value="Total Subscriptions">
+                    <label for="totalSubscriptions">Total Subscriptions</label>
+                </div>
+            </div>
         </div>
         
         <button onclick="sendNotification()">Send Test Notification</button>
@@ -109,6 +136,7 @@
         async function sendNotification() {
             const title = document.getElementById('title').value;
             const message = document.getElementById('message').value;
+            const recipientType = document.querySelector('input[name="recipients"]:checked').value;
             const resultDiv = document.getElementById('result');
             
             if (!title || !message) {
@@ -118,7 +146,7 @@
 
             const notificationData = {
                 app_id: "975d4661-9acf-4714-a57b-8627478647d3",
-                included_segments: ["Subscribed Users"],
+                included_segments: [recipientType],
                 headings: { en: title },
                 contents: { en: message }
             };
@@ -136,7 +164,7 @@
                 const data = await response.json();
                 
                 if (data.id) {
-                    showResult('Notification sent successfully! ID: ' + data.id, true);
+                    showResult('Notification sent successfully to ' + recipientType + '! ID: ' + data.id, true);
                 } else {
                     showResult('Failed to send notification: ' + (data.errors ? data.errors.join(', ') : 'Unknown error'), false);
                 }

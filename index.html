@@ -3,454 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ওয়েব নোটিফিকেশন পাঠান</title>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Modern Data to JSON Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary-color: #198754;
-            --primary-hover-color: #157347;
-            --success-bg: #d1e7dd;
-            --success-text: #0f5132;
-            --error-bg: #f8d7da;
-            --error-text: #842029;
-            --bg-color: #f0fdf4;
-            --form-bg-color: #ffffff;
-            --text-color: #212529;
-            --border-color: #ced4da;
-        }
-        body {
-            font-family: 'Hind Siliguri', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            width: 100%;
-            max-width: 420px;
-            background-color: var(--form-bg-color);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            transition: filter 0.3s;
-        }
-        body.popup-open .container {
-            filter: blur(5px);
-        }
-        #notification-form .header {
-            margin-bottom: 30px;
-        }
-        #notification-form .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            margin: 0 0 10px 0;
-            color: var(--text-color);
-        }
-        #notification-form .header p {
-            color: #6c757d;
-            font-size: 15px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            font-size: 15px;
-        }
-        .input-wrapper {
-            position: relative;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 12px 45px 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 16px;
-            font-family: 'Hind Siliguri', sans-serif;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        input:focus, textarea:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.15);
-            outline: none;
-        }
-        textarea {
-            height: 120px;
-            resize: vertical;
-        }
-        .mic-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            cursor: pointer;
-            font-size: 18px;
-            color: #6c757d;
-            transition: color 0.2s;
-            z-index: 2;
-        }
-        .textarea-wrapper .mic-icon {
-            top: 20px;
-            transform: none;
-        }
-        .mic-icon:hover {
-            color: var(--primary-color);
-        }
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 14px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 17px;
-            font-weight: 500;
-            width: 100%;
-            transition: background-color 0.2s, transform 0.2s;
-            font-family: 'Hind Siliguri', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        button:hover:not(:disabled) {
-            background-color: var(--primary-hover-color);
-            transform: translateY(-2px);
-        }
-        button:disabled {
-            background-color: #999;
-            cursor: not-allowed;
-        }
-        #error-message {
-            margin-top: 20px;
-            padding: 12px;
-            border-radius: 8px;
-            display: none;
-            text-align: center;
-            font-size: 15px;
-            background-color: var(--error-bg);
-            color: var(--error-text);
-        }
-        #success-state {
-            display: none;
-            padding: 20px 0;
-        }
-        #success-state h2 {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--text-color);
-            margin: 25px 0;
-        }
-        .success-icon svg {
-            width: 72px;
-            height: 72px;
-        }
-        .loader {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #FFF;
-            border-bottom-color: transparent;
-            border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
-        }
-        @keyframes rotation {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* আধুনিক ভয়েস পপ-আপ CSS */
-        .voice-popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out;
-        }
-        .voice-popup-overlay.visible {
-            opacity: 1;
-        }
-        .voice-popup-content {
-            background-color: rgba(255, 255, 255, 0.9);
-            padding: 40px;
-            border-radius: 24px;
-            text-align: center;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transform: scale(0.9);
-            transition: transform 0.3s ease-in-out;
-        }
-        .voice-popup-overlay.visible .voice-popup-content {
-            transform: scale(1);
-        }
-        .voice-popup-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--text-color);
-            margin: 25px 0 10px 0;
-        }
-        .voice-popup-instructions {
-            color: #6c757d;
-            margin: 0;
-            font-size: 15px;
-        }
-        .voice-visualizer {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 60px;
-            gap: 8px;
-            margin-top: 30px;
-        }
-        .visualizer-bar {
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
             width: 8px;
-            height: 10px;
-            background-color: var(--primary-color);
-            border-radius: 4px;
-            animation: soundWave 1.2s infinite ease-in-out;
         }
-        .visualizer-bar:nth-child(2) { animation-delay: 0.2s; }
-        .visualizer-bar:nth-child(3) { animation-delay: 0.4s; }
-        .visualizer-bar:nth-child(4) { animation-delay: 0.6s; }
-        .visualizer-bar:nth-child(5) { animation-delay: 0.8s; }
-
-        @keyframes soundWave {
-            0%, 100% { height: 10px; }
-            50% { height: 60px; }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div id="notification-form">
-            <div class="header">
-                <h1>মেসেজ পাঠান</h1>
-                <p>সবার কাছে মেসেজ পাঠান।</p>
-            </div>
+<body class="bg-slate-100 text-slate-800 font-sans flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-7xl">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Data to JSON Converter</h1>
+            <p class="text-slate-500 mt-2">Paste your raw text data below and convert it to a clean JSON format instantly.</p>
+        </header>
+
+        <main class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             
-            <div class="form-group">
-                <label for="title">শিরোনাম:</label>
-                <div class="input-wrapper">
-                    <input type="text" id="title" placeholder="নোটিফিকেশনের শিরোনাম">
-                    <i class="fas fa-microphone mic-icon" id="mic-title"></i>
+            <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col h-[60vh]">
+                <label for="inputData" class="text-lg font-semibold text-slate-700 mb-3">Raw Data Input</label>
+                <textarea 
+                    id="inputData" 
+                    class="w-full flex-grow p-4 border border-slate-300 rounded-lg shadow-inner bg-slate-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
+                    placeholder="--- ফলাফল #1 ---
+Survey ID       : 7076595
+Jumper Link     : https://s.cint.com/...
+Posted By       : USERNAME
+..."></textarea>
+            </div>
+
+            <div class="bg-slate-900 rounded-xl shadow-lg p-6 flex flex-col h-[60vh]">
+                <div class="flex justify-between items-center mb-3">
+                    <label for="outputJson" class="text-lg font-semibold text-slate-300">JSON Output</label>
+                    <button id="copyBtn" class="flex items-center gap-2 bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 shadow-md transition-all duration-300 transform active:scale-95">
+                        <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <svg id="check-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span id="copy-text">Copy</span>
+                    </button>
                 </div>
+                <pre class="flex-grow bg-slate-800 text-slate-200 p-4 rounded-lg overflow-auto text-sm"><code id="outputJson">{
+    "message": "Click 'Convert Data' to see the result here."
+}</code></pre>
             </div>
-            
-            <div class="form-group">
-                <label for="message">বার্তা:</label>
-                <div class="input-wrapper textarea-wrapper">
-                    <textarea id="message" placeholder="আপনার বার্তাটি এখানে লিখুন"></textarea>
-                    <i class="fas fa-microphone mic-icon" id="mic-message"></i>
-                </div>
-            </div>
-            
-            <button id="sendButton" onclick="sendNotification()">
-                <span id="button-text">নোটিফিকেশন পাঠান</span>
-                <span id="loader" class="loader" style="display: none;"></span>
+        </main>
+
+        <div class="w-full text-center mt-6">
+            <button id="convertBtn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2 mx-auto">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" />
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l6-6m-6 6l6 6" />
+                 </svg>
+                <span>Convert Data</span>
             </button>
-            <div id="error-message"></div>
         </div>
-
-        <div id="success-state">
-            <div class="success-icon">
-                <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="26" cy="26" r="25" fill="#198754" stroke="#E0F2E9" stroke-width="2"/>
-                  <path d="M16 26L23.5 33.5L36.5 20.5" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <h2>সম্পন্ন হয়েছে</h2>
-            <button id="reset-button" onclick="resetForm()">ঠিক আছে</button>
-        </div>
-    </div>
-
-    <div class="voice-popup-overlay" id="voice-popup">
-        <div class="voice-popup-content">
-            <div class="voice-visualizer">
-                <span class="visualizer-bar"></span>
-                <span class="visualizer-bar"></span>
-                <span class="visualizer-bar"></span>
-                <span class="visualizer-bar"></span>
-                <span class="visualizer-bar"></span>
-            </div>
-            <h3 class="voice-popup-title">শোনা হচ্ছে...</h3>
-            <p class="voice-popup-instructions">বাইরে ক্লিক করলে এটি বন্ধ হয়ে যাবে।</p>
-        </div>
+        
     </div>
 
     <script>
-        // UI Elements
-        const notificationForm = document.getElementById('notification-form');
-        const successState = document.getElementById('success-state');
-        const sendButton = document.getElementById('sendButton');
-        const buttonText = document.getElementById('button-text');
-        const loader = document.getElementById('loader');
-        const errorMessageDiv = document.getElementById('error-message');
-        const titleInput = document.getElementById('title');
-        const messageInput = document.getElementById('message');
-        const voicePopup = document.getElementById('voice-popup');
+        const convertBtn = document.getElementById('convertBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const inputDataEl = document.getElementById('inputData');
+        const outputJsonEl = document.getElementById('outputJson');
+        const copyTextEl = document.getElementById('copy-text');
+        const copyIcon = document.getElementById('copy-icon');
+        const checkIcon = document.getElementById('check-icon');
 
-        // OneSignal SDK Initialization
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function(OneSignal) {
-            await OneSignal.init({
-                appId: "975d4661-9acf-4714-a57b-8627478647d3",
-                safari_web_id: "web.onesignal.auto.552dcc8d-cced-4aac-823c-93a119513fed",
-                notifyButton: {
-                    enable: true,
-                },
-            });
-        });
+        const parseTimeAgoAndGetTimestamp = (timeAgoString) => {
+            const now = new Date();
+            // Updated regex to include 'Days'
+            const match = timeAgoString.match(/(\d+)\s*(minute|hour|day|year)s?/i);
 
-        // Popup Functions
-        function showVoicePopup() {
-            voicePopup.style.display = 'flex';
-            document.body.classList.add('popup-open');
-            setTimeout(() => voicePopup.classList.add('visible'), 10);
-        }
+            if (!match) {
+                return timeAgoString;
+            }
 
-        function hideVoicePopup() {
-            voicePopup.classList.remove('visible');
-            document.body.classList.remove('popup-open');
-            setTimeout(() => voicePopup.style.display = 'none', 300);
-        }
+            const value = parseInt(match[1], 10);
+            const unit = match[2].toLowerCase();
 
-        // Voice Recognition Logic
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        let recognition;
-
-        if (SpeechRecognition) {
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.lang = 'bn-BD';
-            recognition.interimResults = false;
-
-            document.getElementById('mic-title').addEventListener('click', () => handleMicClick(titleInput));
-            document.getElementById('mic-message').addEventListener('click', () => handleMicClick(messageInput));
-
-            function handleMicClick(inputElement) {
-                showVoicePopup();
-
-                recognition.onresult = (event) => {
-                    const speechResult = event.results[0][0].transcript;
-                    const existingText = inputElement.value;
-                    inputElement.value = existingText ? existingText + ' ' + speechResult : speechResult;
-                };
-
-                recognition.onerror = (event) => {
-                    if (event.error !== 'no-speech' && event.error !== 'aborted') {
-                        showError('ভয়েস শনাক্তকরণে ত্রুটি: ' + event.error);
-                    }
-                };
-                
-                recognition.onend = () => {
-                    hideVoicePopup();
-                };
-
-                recognition.start();
+            switch (unit) {
+                case 'minute':
+                    now.setMinutes(now.getMinutes() - value);
+                    break;
+                case 'hour':
+                    now.setHours(now.getHours() - value);
+                    break;
+                case 'day':
+                    now.setDate(now.getDate() - value);
+                    break;
+                case 'year':
+                    now.setFullYear(now.getFullYear() - value);
+                    break;
+                default:
+                    return timeAgoString; 
             }
             
-            voicePopup.addEventListener('click', (event) => {
-                if (event.target === voicePopup) {
-                    if (recognition) {
-                       recognition.abort();
+            return now.getTime();
+        };
+
+        convertBtn.addEventListener('click', () => {
+            const rawData = inputDataEl.value.trim();
+            if (!rawData) {
+                outputJsonEl.textContent = JSON.stringify({ error: "Input data is empty. Please paste your data." }, null, 4);
+                return;
+            }
+
+            const records = rawData.split(/---.*?---/).filter(record => record.trim() !== '');
+            const finalJson = {};
+
+            records.forEach(record => {
+                const lines = record.trim().split('\n');
+                const surveyObject = {};
+                let surveyId = ''; // Changed from hostname to surveyId
+
+                lines.forEach(line => {
+                    const parts = line.split(/:(.*)/s);
+                    if (parts.length < 2) return;
+
+                    const key = parts[0].trim();
+                    const value = parts[1].trim();
+                    
+                    switch (key) {
+                        case 'Survey ID': // Changed from 'Hostname'
+                            surveyObject.Survey_ID = value; // Storing it inside the object
+                            surveyId = value;               // Using it for grouping
+                            break;
+                        case 'Jumper Link': surveyObject.Jumper_Link = value; break;
+                        case 'Posted By': surveyObject.Posted_By = value; break;
+                        case 'Posted Time': 
+                            surveyObject.Posted_Time = parseTimeAgoAndGetTimestamp(value); 
+                            break;
+                        case 'Likes': surveyObject.Likes = parseInt(value, 10) || 0; break;
+                        case 'Dislikes': surveyObject.Dislikes = parseInt(value, 10) || 0; break;
+                        case 'Probability': surveyObject.Probability = value; break;
                     }
-                    hideVoicePopup();
+                });
+
+                // Updated grouping logic to use surveyId
+                if (surveyId) {
+                    const groupKey = surveyId; // The key is the Survey ID itself
+                    if (!finalJson[groupKey]) {
+                        finalJson[groupKey] = [];
+                    }
+                    finalJson[groupKey].push(surveyObject);
                 }
             });
 
-        } else {
-            showError('আপনার ব্রাউজার ভয়েস শনাক্তকরণ সমর্থন করে না।');
-            document.getElementById('mic-title').style.display = 'none';
-            document.getElementById('mic-message').style.display = 'none';
-        }
-        
-        // Form Submission and Helper Functions
-        async function sendNotification() {
-            if (!titleInput.value || !messageInput.value) {
-                showError('অনুগ্রহ করে শিরোনাম এবং বার্তা উভয়ই পূরণ করুন।');
-                return;
-            }
-            setLoading(true);
-            try {
-                // WARNING: Embedding REST API keys in client-side code is insecure.
-                const ONESIGNAL_REST_API_KEY = "os_v2_app_s5oumym2z5drjjl3qytupbsh2orozdxm5gduht4izoeh5re5ewzyxt2ge6jabnel5cip7pzwyl4zzou6pksqmu333h43viqscixjsoa";
-                const ONESIGNAL_APP_ID = "975d4661-9acf-4714-a57b-8627478647d3";
-                
-                const notificationData = {
-                    app_id: ONESIGNAL_APP_ID,
-                    included_segments: ["Total Subscriptions"],
-                    headings: { en: titleInput.value },
-                    contents: { en: messageInput.value },
-                    big_picture: "https://http-custom.vercel.app/360_F_293372811_2gpgNsJ3TQSPsfAbmBPIYfuKfAw70bpt.jpg",
-                    chrome_web_image: "https://http-custom.vercel.app/360_F_293372811_2gpgNsJ3TQSPsfAbmBPIYfuKfAw70bpt.jpg"
-                };
-                
-                const response = await fetch('https://onesignal.com/api/v1/notifications', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}` },
-                    body: JSON.stringify(notificationData)
-                });
-                const data = await response.json();
-                if (data.errors) throw new Error(data.errors.join(', '));
-                showSuccess();
-            } catch(error) {
-                showError(`ব্যর্থ হয়েছে: ${error.message}`);
-            } finally {
-                setLoading(false);
-            }
-        }
-        
-        function setLoading(isLoading) {
-            errorMessageDiv.style.display = 'none';
-            if (isLoading) {
-                sendButton.disabled = true;
-                buttonText.textContent = 'পাঠানো হচ্ছে...';
-                loader.style.display = 'inline-block';
+            if (Object.keys(finalJson).length > 0) {
+                outputJsonEl.textContent = JSON.stringify(finalJson, null, 4);
             } else {
-                sendButton.disabled = false;
-                buttonText.textContent = 'নোটিফিকেশন পাঠান';
-                loader.style.display = 'none';
+                outputJsonEl.textContent = JSON.stringify({ error: "Could not parse any valid data. Please check the input format." }, null, 4);
             }
-        }
+        });
 
-        function showError(message) {
-            errorMessageDiv.style.display = 'block';
-        }
+        copyBtn.addEventListener('click', () => {
+            const jsonText = outputJsonEl.textContent;
+            navigator.clipboard.writeText(jsonText).then(() => {
+                copyTextEl.textContent = 'Copied!';
+                copyIcon.classList.add('hidden');
+                checkIcon.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    copyTextEl.textContent = 'Copy';
+                    copyIcon.classList.remove('hidden');
+                    checkIcon.classList.add('hidden');
+                }, 2000);
 
-        function showSuccess() {
-            notificationForm.style.display = 'none';
-            successState.style.display = 'block';
-        }
-
-        function resetForm() {
-            titleInput.value = '';
-            messageInput.value = '';
-            successState.style.display = 'none';
-            notificationForm.style.display = 'block';
-            errorMessageDiv.style.display = 'none';
-            document.getElementById('reset-button').addEventListener('click', resetForm);
-        }
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                copyTextEl.textContent = 'Failed';
+                setTimeout(() => {
+                    copyTextEl.textContent = 'Copy';
+                }, 2000);
+            });
+        });
     </script>
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </body>
 </html>

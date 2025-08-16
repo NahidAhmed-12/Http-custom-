@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Data to JSON Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-7xl">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Data to JSON Converter</h1>
+            <p class="text-slate-500 mt-2">Paste your raw text data below and convert it to a clean JSON format instantly.</p>
+        </header>
+
+        <main class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            
+            <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col h-[60vh]">
+                <label for="inputData" class="text-lg font-semibold text-slate-700 mb-3">Raw Data Input</label>
+                <textarea 
+                    id="inputData" 
+                    class="w-full flex-grow p-4 border border-slate-300 rounded-lg shadow-inner bg-slate-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
+                    placeholder="--- SamplicityCPX ফলাফল #1 ---
+Hostname      : www.surveys.com/
+Jumper Link   : https://surveys.thepeopleplatform.com/...
+Posted By     : SIW
+..."></textarea>
+            </div>
+
+            <div class="bg-slate-900 rounded-xl shadow-lg p-6 flex flex-col h-[60vh]">
+                <div class="flex justify-between items-center mb-3">
+                    <label for="outputJson" class="text-lg font-semibold text-slate-300">JSON Output</label>
+                    <button id="copyBtn" class="flex items-center gap-2 bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 shadow-md transition-all duration-300 transform active:scale-95">
+                        <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        <svg id="check-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span id="copy-text">Copy</span>
+                    </button>
+                </div>
+                <pre class="flex-grow bg-slate-800 text-slate-200 p-4 rounded-lg overflow-auto text-sm"><code id="outputJson">{
+    "message": "Click 'Convert Data' to see the result here."
+}</code></pre>
+            </div>
+        </main>
+
+        <div class="w-full text-center mt-6">
+            <button id="convertBtn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2 mx-auto">
+                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" />
+                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l6-6m-6 6l6 6" />
+                 </svg>
+                <span>Convert Data</span>
+            </button>
+        </div>
+        
+    </div>
+
+    <script>
+        const convertBtn = document.getElementById('convertBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const inputDataEl = document.getElementById('inputData');
+        const outputJsonEl = document.getElementById('outputJson');
+        const copyTextEl = document.getElementById('copy-text');
+        const copyIcon = document.getElementById('copy-icon');
+        const checkIcon = document.getElementById('check-icon');
+
+        /**
+         * [UPDATED FUNCTION]
+         * Generates a clean, consistent key from a hostname string.
+         * Handles protocols, paths, and casing.
+         * @param {string} hostnameUrl - The raw hostname string from input.
+         * @returns {string} A clean key like 'srvy-ninja' or 'invalid-hostname'.
+         */
+        const generateGroupKey = (hostnameUrl) => {
+            try {
+                // Convert to lowercase and remove protocol (http:// or https://)
+                let cleanUrl = hostnameUrl.toLowerCase().replace(/^(https?:\/\/)?/, '');
+
+                // Get only the domain part (before any path, query, or hash)
+                let domain = cleanUrl.split('/')[0].split('?')[0].split('#')[0];
+
+                // Remove 'www.' prefix
+                domain = domain.replace(/^www\./, '');
+
+                // Replace dots with dashes
+                const key = domain.replace(/\./g, '-');
+
+                return key || 'invalid-hostname';
+            } catch (error) {
+                console.warn("Could not generate key for:", hostnameUrl);
+                return 'invalid-hostname';
+            }
+        };
+
+        const parseTimeAgoAndGetTimestamp = (timeAgoString) => {
+            const now = new Date();
+            const match = timeAgoString.match(/(\d+)\s*(minute|hour|day|year)s?/i);
+
+            if (!match) {
+                return timeAgoString;
+            }
+
+            const value = parseInt(match[1], 10);
+            const unit = match[2].toLowerCase();
+
+            switch (unit) {
+                case 'minute':
+                    now.setMinutes(now.getMinutes() - value);
+                    break;
+                case 'hour':
+                    now.setHours(now.getHours() - value);
+                    break;
+                case 'day':
+                    now.setDate(now.getDate() - value);
+                    break;
+                case 'year':
+                    now.setFullYear(now.getFullYear() - value);
+                    break;
+                default:
+                    return timeAgoString; 
+            }
+            
+            return now.getTime();
+        };
+
+        convertBtn.addEventListener('click', () => {
+            const rawData = inputDataEl.value.trim();
+            if (!rawData) {
+                outputJsonEl.textContent = JSON.stringify({ error: "Input data is empty. Please paste your data." }, null, 4);
+                return;
+            }
+
+            const records = rawData.split(/---.*?---/).filter(record => record.trim() !== '');
+            const finalJson = {};
+
+            records.forEach(record => {
+                const lines = record.trim().split('\n');
+                const surveyObject = {};
+                let hostname = '';
+
+                lines.forEach(line => {
+                    const parts = line.split(/:(.*)/s);
+                    if (parts.length < 2) return;
+
+                    const key = parts[0].trim();
+                    const value = parts[1].trim();
+                    
+                    switch (key) {
+                        case 'Hostname':
+                            surveyObject.Hostname = value;
+                            hostname = value;
+                            break;
+                        case 'Jumper Link': surveyObject.Jumper_Link = value; break;
+                        case 'Posted By': surveyObject.Posted_By = value; break;
+                        case 'Posted Time': 
+                            surveyObject.Posted_Time = parseTimeAgoAndGetTimestamp(value); 
+                            break;
+                        case 'Likes': surveyObject.Likes = parseInt(value, 10) || 0; break;
+                        case 'Dislikes': surveyObject.Dislikes = parseInt(value, 10) || 0; break;
+                        case 'Probability': surveyObject.Probability = value; break;
+                    }
+                });
+
+                if (hostname) {
+                    const groupKey = generateGroupKey(hostname);
+                    if (!finalJson[groupKey]) {
+                        finalJson[groupKey] = [];
+                    }
+                    finalJson[groupKey].push(surveyObject);
+                }
+            });
+
+            if (Object.keys(finalJson).length > 0) {
+                outputJsonEl.textContent = JSON.stringify(finalJson, null, 4);
+            } else {
+                outputJsonEl.textContent = JSON.stringify({ error: "Could not parse any valid data. Please check the input format." }, null, 4);
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const jsonText = outputJsonEl.textContent;
+            navigator.clipboard.writeText(jsonText).then(() => {
+                copyTextEl.textContent = 'Copied!';
+                copyIcon.classList.add('hidden');
+                checkIcon.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    copyTextEl.textContent = 'Copy';
+                    copyIcon.classList.remove('hidden');
+                    checkIcon.classList.add('hidden');
+                }, 2000);
+
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+                copyTextEl.textContent = 'Failed';
+                setTimeout(() => {
+                    copyTextEl.textContent = 'Copy';
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+এই কোড এ এরকম ডাটা দিয়ে output টা এরকম আসতেছে এবং এটা খুবই ভালোই কাজ করতেছে, এখন একটা ছোট আপডেট আনতে হবে তা হলো। নিছে ডাটা এর মধ্যে Hostname আছে এখন সেটা Survey id নিয়ে json format convert করবে বাকি সব ঠিক থাকবে।
+
+
+
+--- ফলাফল #1 ---
+Survey ID      : 7076595
+Jumper Link    : https://s.cint.com/Survey/Complete?ProjectToken=2cf519f8-8f89-4ac1-9005-4bfd74b42c7d
+Posted By      : QUEMADORDEPANELES
+Posted Time    : 55 Days
+Likes          : 1
+Dislikes       : 0
+Probability    : 100%
+
+--- ফলাফল #2 ---
+Survey ID      : 7034382
+Jumper Link    : https://s.cint.com/Survey/Complete?ProjectToken=1e4fdf4b-93ee-4179-9018-153bd2e43f92
+Posted By      : USER XX
+Posted Time    : 146 Days
+Likes          : 0
+Dislikes       : 0
+Probability    : 1%
+
+
+output এরকম চাই।:
+
+
+{
+    "7076595": [
+        {
+            "Surveyid": "7076595",
+            "Jumper_Link": "https://s.cint.com/Survey/Complete?ProjectToken=2cf519f8-8f89-4ac1-9005-4bfd74b42c7d",
+            "Posted_By": "USER XX",
+            "Posted_Time": 1755336852680,
+            "Likes": 16,
+            "Dislikes": 0,
+            "Probability": "100%"
+        }
+    ],
+    "7034382": [
+        {
+            "surveyid": "7034382",
+            "Jumper_Link": "https://s.cint.com/Survey/Complete?ProjectToken=1e4fdf4b-93ee-4179-9018-153bd2e43f92",
+            "Posted_By": "DG795",
+            "Posted_Time": 1755335892682,
+            "Likes": 0,
+            "Dislikes": 0,
+            "Probability": "1%"
+        },
+        {
+            "7034382": "7034382",
+            "Jumper_Link": "https://s.cint.com/Survey/Complete?ProjectToken=1e4fdf4b-93ee-4179-9018-153bd2e43f92",
+            "Posted_By": "SUBEL HASAN",
+            "Posted_Time": 1755335352683,
+            "Likes": 28,
+            "Dislikes": 3,
+            "Probability": "90%"
+        }
+    ]
+}
+
+
+এরকম আপডেট চাই।
+
+মোটকথা hostname এর বদলে Survey id হবে এটাই।

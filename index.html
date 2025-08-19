@@ -3,195 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern Data to JSON Converter</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Firebase Login with App Check</title>
     <style>
-        /* Custom scrollbar for a cleaner look */
-        ::-webkit-scrollbar {
-            width: 8px;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .login-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 320px;
+            text-align: center;
         }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 10px;
+        h2 {
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #333;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
+        .input-group {
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Important for padding */
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #data-container {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            text-align: left;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .hidden {
+            display: none;
+        }
+        #message {
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+        .error {
+            color: #d93025;
+        }
+        .success {
+            color: #1e8e3e;
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans flex flex-col items-center justify-center min-h-screen p-4">
+<body>
 
-    <div class="w-full max-w-7xl">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Data to JSON Converter</h1>
-            <p class="text-slate-500 mt-2">Paste your raw text data below and convert it to a clean JSON format instantly.</p>
-        </header>
-
-        <main class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            
-            <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col h-[60vh]">
-                <label for="inputData" class="text-lg font-semibold text-slate-700 mb-3">Raw Data Input</label>
-                <textarea 
-                    id="inputData" 
-                    class="w-full flex-grow p-4 border border-slate-300 rounded-lg shadow-inner bg-slate-50 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
-                    placeholder="--- ফলাফল #1 ---
-Survey ID       : 7076595
-Jumper Link     : https://s.cint.com/...
-Posted By       : USERNAME
-..."></textarea>
-            </div>
-
-            <div class="bg-slate-900 rounded-xl shadow-lg p-6 flex flex-col h-[60vh]">
-                <div class="flex justify-between items-center mb-3">
-                    <label for="outputJson" class="text-lg font-semibold text-slate-300">JSON Output</label>
-                    <button id="copyBtn" class="flex items-center gap-2 bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 shadow-md transition-all duration-300 transform active:scale-95">
-                        <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <svg id="check-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span id="copy-text">Copy</span>
-                    </button>
-                </div>
-                <pre class="flex-grow bg-slate-800 text-slate-200 p-4 rounded-lg overflow-auto text-sm"><code id="outputJson">{
-    "message": "Click 'Convert Data' to see the result here."
-}</code></pre>
-            </div>
-        </main>
-
-        <div class="w-full text-center mt-6">
-            <button id="convertBtn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2 mx-auto">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                   <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5" />
-                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l6-6m-6 6l6 6" />
-                 </svg>
-                <span>Convert Data</span>
-            </button>
+    <div class="login-container">
+        <h2>লগইন করুন</h2>
+        <div class="input-group">
+            <label for="email">ইমেল</label>
+            <input type="email" id="email" required>
         </div>
-        
+        <div class="input-group">
+            <label for="password">পাসওয়ার্ড</label>
+            <input type="password" id="password" required>
+        </div>
+        <button id="loginBtn">লগইন</button>
+        <p id="message" class="hidden"></p>
+
+        <div id="data-container" class="hidden">
+            <h3>Samplicio'র ডেটা:</h3>
+            <pre id="samplicio-data"></pre>
+        </div>
     </div>
 
+    <!-- Firebase SDK গুলি যোগ করুন -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-check.js"></script>
+
     <script>
-        const convertBtn = document.getElementById('convertBtn');
-        const copyBtn = document.getElementById('copyBtn');
-        const inputDataEl = document.getElementById('inputData');
-        const outputJsonEl = document.getElementById('outputJson');
-        const copyTextEl = document.getElementById('copy-text');
-        const copyIcon = document.getElementById('copy-icon');
-        const checkIcon = document.getElementById('check-icon');
-
-        const parseTimeAgoAndGetTimestamp = (timeAgoString) => {
-            const now = new Date();
-            // Updated regex to include 'Days'
-            const match = timeAgoString.match(/(\d+)\s*(minute|hour|day|year)s?/i);
-
-            if (!match) {
-                return timeAgoString;
-            }
-
-            const value = parseInt(match[1], 10);
-            const unit = match[2].toLowerCase();
-
-            switch (unit) {
-                case 'minute':
-                    now.setMinutes(now.getMinutes() - value);
-                    break;
-                case 'hour':
-                    now.setHours(now.getHours() - value);
-                    break;
-                case 'day':
-                    now.setDate(now.getDate() - value);
-                    break;
-                case 'year':
-                    now.setFullYear(now.getFullYear() - value);
-                    break;
-                default:
-                    return timeAgoString; 
-            }
-            
-            return now.getTime();
+        // আপনার Firebase প্রোজেক্টের কনফিগারেশন
+        const firebaseConfig = {
+          apiKey: "AIzaSyDHiwQxicGpfwSsA-bxXtbHPg9Ingeqch4",
+          authDomain: "audio-capture-769d1.firebaseapp.com",
+          databaseURL: "https://audio-capture-769d1-default-rtdb.firebaseio.com",
+          projectId: "audio-capture-769d1",
+          storageBucket: "audio-capture-769d1.firebasestorage.app",
+          messagingSenderId: "1011816218756",
+          appId: "1:1011816218756:web:26c5209351a598023642d1",
+          measurementId: "G-DFVYJGFZCV"
         };
 
-        convertBtn.addEventListener('click', () => {
-            const rawData = inputDataEl.value.trim();
-            if (!rawData) {
-                outputJsonEl.textContent = JSON.stringify({ error: "Input data is empty. Please paste your data." }, null, 4);
+        // Firebase শুরু করুন
+        const app = firebase.initializeApp(firebaseConfig);
+
+        // --- App Check শুরু করুন (সবচেয়ে গুরুত্বপূর্ণ অংশ) ---
+        const appCheck = firebase.appCheck(app);
+        appCheck.activate(
+          '6LfjRKsrAAAAABlZxEruswrqzUYS_EmZay-8YlqU', // আপনার দেওয়া reCAPTCHA v3 Site Key
+          true);
+        // --------------------------------------------------
+
+        // Firebase পরিষেবাগুলি নিন
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        // HTML এলিমেন্টগুলি নিন
+        const loginBtn = document.getElementById('loginBtn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const dataContainer = document.getElementById('data-container');
+        const samplicioData = document.getElementById('samplicio-data');
+        const message = document.getElementById('message');
+
+        // 메시지 দেখানোর জন্য একটি ফাংশন
+        function showMessage(text, isError = false) {
+            message.textContent = text;
+            message.className = isError ? 'error' : 'success';
+        }
+
+        // লগইন বাটনে ক্লিক করলে যা হবে
+        loginBtn.addEventListener('click', () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            if (!email || !password) {
+                showMessage('অনুগ্রহ করে ইমেল এবং পাসওয়ার্ড দিন।', true);
                 return;
             }
 
-            const records = rawData.split(/---.*?---/).filter(record => record.trim() !== '');
-            const finalJson = {};
+            showMessage('লগইন করা হচ্ছে...', false);
 
-            records.forEach(record => {
-                const lines = record.trim().split('\n');
-                const surveyObject = {};
-                let surveyId = ''; // Changed from hostname to surveyId
-
-                lines.forEach(line => {
-                    const parts = line.split(/:(.*)/s);
-                    if (parts.length < 2) return;
-
-                    const key = parts[0].trim();
-                    const value = parts[1].trim();
+            // ইমেল ও পাসওয়ার্ড দিয়ে লগইন করার চেষ্টা
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // সফলভাবে লগইন হলে
+                    showMessage('সফলভাবে লগইন হয়েছে!');
+                    console.log("সফলভাবে লগইন হয়েছে", userCredential.user);
                     
-                    switch (key) {
-                        case 'Survey ID': // Changed from 'Hostname'
-                            surveyObject.Survey_ID = value; // Storing it inside the object
-                            surveyId = value;               // Using it for grouping
-                            break;
-                        case 'Jumper Link': surveyObject.Jumper_Link = value; break;
-                        case 'Posted By': surveyObject.Posted_By = value; break;
-                        case 'Posted Time': 
-                            surveyObject.Posted_Time = parseTimeAgoAndGetTimestamp(value); 
-                            break;
-                        case 'Likes': surveyObject.Likes = parseInt(value, 10) || 0; break;
-                        case 'Dislikes': surveyObject.Dislikes = parseInt(value, 10) || 0; break;
-                        case 'Probability': surveyObject.Probability = value; break;
+                    // ডাটাবেস থেকে 'Samplicio' ডেটা আনুন
+                    const samplicioRef = database.ref('Samplicio');
+                    samplicioRef.get().then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const data = snapshot.val();
+                            samplicioData.textContent = JSON.stringify(data, null, 2); // ডেটা সুন্দরভাবে ফরম্যাট করে দেখান
+                            dataContainer.classList.remove('hidden');
+                        } else {
+                            samplicioData.textContent = "ডেটাবেসে 'Samplicio' নামে কোনো ডেটা পাওয়া যায়নি।";
+                            dataContainer.classList.remove('hidden');
+                        }
+                    }).catch((error) => {
+                        console.error("ডেটা আনতে সমস্যা হয়েছে:", error);
+                        showMessage('ডেটা আনতে সমস্যা হয়েছে।', true);
+                        dataContainer.classList.add('hidden');
+                    });
+                })
+                .catch((error) => {
+                    // লগইন ব্যর্থ হলে
+                    console.error("লগইন ব্যর্থ হয়েছে:", error);
+                    if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                        showMessage('আপনার ইমেল বা পাসওয়ার্ড ভুল হয়েছে।', true);
+                    } else {
+                        showMessage('একটি ত্রুটি ঘটেছে। অনুগ্রহ করে আবার চেষ্টা করুন।', true);
                     }
+                    dataContainer.classList.add('hidden');
                 });
-
-                // Updated grouping logic to use surveyId
-                if (surveyId) {
-                    const groupKey = surveyId; // The key is the Survey ID itself
-                    if (!finalJson[groupKey]) {
-                        finalJson[groupKey] = [];
-                    }
-                    finalJson[groupKey].push(surveyObject);
-                }
-            });
-
-            if (Object.keys(finalJson).length > 0) {
-                outputJsonEl.textContent = JSON.stringify(finalJson, null, 4);
-            } else {
-                outputJsonEl.textContent = JSON.stringify({ error: "Could not parse any valid data. Please check the input format." }, null, 4);
-            }
-        });
-
-        copyBtn.addEventListener('click', () => {
-            const jsonText = outputJsonEl.textContent;
-            navigator.clipboard.writeText(jsonText).then(() => {
-                copyTextEl.textContent = 'Copied!';
-                copyIcon.classList.add('hidden');
-                checkIcon.classList.remove('hidden');
-                
-                setTimeout(() => {
-                    copyTextEl.textContent = 'Copy';
-                    copyIcon.classList.remove('hidden');
-                    checkIcon.classList.add('hidden');
-                }, 2000);
-
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-                copyTextEl.textContent = 'Failed';
-                setTimeout(() => {
-                    copyTextEl.textContent = 'Copy';
-                }, 2000);
-            });
         });
     </script>
+
 </body>
 </html>

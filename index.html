@@ -1,2404 +1,1125 @@
-
-
-
-
+নিছের কোড টায় শুধু phone screen এ responsive করে দিন আমি আবারো বলছি শুধু phone screen full code দিন এটা করে
 
 <!DOCTYPE html>
-<html lang="en" class="light">
-<head>
+
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1" name="viewport" />
-    <title>Admin Dashboard</title>
-
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-
+    <link rel="stylesheet" href="globals.css" />
+    <link rel="stylesheet" href="styleguide.css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script>
+      /** @type {import('tailwindcss').Config} */
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              dark: "var(--dark)",
+              "normal-dark": "var(--normal-dark)",
+              primary: "var(--primary)",
+              "primary-dark": "var(--primary-dark)",
+              white: "var(--white)",
+            },
+            fontFamily: {
+              description: "var(--description-font-family)",
+              h1: "var(--h1-font-family)",
+              h3: "var(--h3-font-family)",
+              h4: "var(--h4-font-family)",
+              paragraph: "var(--paragraph-font-family)",
+            },
+          },
+        },
+        plugins: [],
+      };
+    </script>
     <style>
-        /* --- Themes & Variables --- */
         :root {
-            --bg-color: #f8fafc; --text-primary: #1e293b; --text-secondary: #475569; --text-muted: #94a3b8; --panel-bg: rgba(255, 255, 255, 0.8); --panel-border: #e2e8f0; --input-bg: white; --input-border: #cbd5e1; --active-link-bg: #e0f2fe; --active-link-text: #0284c7; --active-link-icon: #0ea5e9; --sidebar-width: 16rem; --sidebar-width-collapsed: 5rem; --green-glow: rgba(22, 163, 74, 0.5); --red-glow: rgba(220, 38, 38, 0.5);
-            --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-            --active-link-icon-rgb: 14, 165, 233; /* For #0ea5e9 */
-        }
-        .dark {
-            --bg-color: #0f172a; --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #64748b; --panel-bg: rgba(15, 23, 42, 0.7); --panel-border: #1e293b; --input-bg: rgba(30, 41, 59, 0.8); --input-border: #334155; --active-link-bg: rgba(168, 85, 247, 0.1); --active-link-text: #f1f5f9; --active-link-icon: #a855f7; --green-glow: rgba(74, 222, 128, 0.4); --red-glow: rgba(248, 113, 113, 0.4);
-            --primary-gradient: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-            --active-link-icon-rgb: 168, 85, 247; /* For #a855f7 */
-        }
-
-/* --- Background Effects --- */
-.mesh-gradient-bg::before, .mesh-gradient-bg::after {
-content: ''; position: fixed; top: 50%; left: 50%; pointer-events: none; z-index: -1; transition: opacity 0.7s ease; filter: blur(150px);
-}
-.mesh-gradient-bg::before {
-width: 800px; height: 800px; background-image: radial-gradient(circle, rgba(6, 182, 212, 0.15), transparent 60%); transform: translate(-80%, -60%) rotate(20deg); opacity: 1;
-}
-.mesh-gradient-bg::after {
-width: 800px; height: 800px; background-image: radial-gradient(circle, rgba(16, 185, 129, 0.1), transparent 60%); transform: translate(30%, 40%) rotate(-30deg); opacity: 1; z-index: -2;
-}
-.dark .mesh-gradient-bg::before, .dark .mesh-gradient-bg::after { opacity: 0; }
-.dark .aurora-bg::before {
-content: ''; position: fixed; top: 50%; left: 50%; pointer-events: none; z-index: -1; transition: opacity 0.7s ease; width: 700px; height: 700px; background-image: radial-gradient(circle, rgba(168, 85, 247, 0.15), transparent 65%); filter: blur(120px); transform: translate(-50%, -50%); opacity: 1;
-}
-
-body { font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-primary); transition: background-color 0.4s ease, color 0.4s ease; }
-
-/* --- Animations --- */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes panIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes stagger-in { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-.animate-on-load { animation: fadeIn 0.8s ease-out forwards; }
-.animate-view-change { animation: panIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.animate-stagger { opacity: 0; animation: stagger-in 0.5s ease-out forwards; animation-delay: var(--stagger-delay, 0s); }
-
-/* --- [START] NEW Keyframes for Continuous Shine Effect --- */
-@keyframes continuous-shine-ltr {
-    from { transform: translateX(-110%) skewX(-25deg); }
-    to { transform: translateX(220%) skewX(-25deg); }
-}
-@keyframes continuous-shine-rtl {
-    from { transform: translateX(220%) skewX(-25deg); }
-    to { transform: translateX(-110%) skewX(-25deg); }
-}
-/* --- [END] NEW Keyframes for Continuous Shine Effect --- */
-
-
-/* --- Loader Styles --- */
-#page-loader { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background-color: var(--bg-color); transition: opacity 0.4s ease-out; }
-#page-loader.hidden { opacity: 0; pointer-events: none; }
-.spinner { width: 48px; height: 48px; border-radius: 50%; border: 5px solid var(--panel-border); border-top-color: var(--active-link-icon); animation: spin 1s linear infinite; }
-
-/* --- Base Components --- */
-.header { background-color: var(--panel-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid var(--panel-border); }
-.sidebar { position: fixed; top: 0; left: 0; height: 100vh; background-color: var(--panel-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid var(--panel-border); width: var(--sidebar-width); z-index: 100; display: flex; flex-direction: column; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease; }
-.content-wrapper { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-left: var(--sidebar-width); }
-.sidebar.collapsed { width: var(--sidebar-width-collapsed); }
-.sidebar.collapsed ~ .content-wrapper { margin-left: var(--sidebar-width-collapsed); }
-.search-input, .settings-input { background-color: var(--input-bg); border: 1px solid var(--input-border); transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.4s ease; }
-.search-input:focus, .settings-input:focus { box-shadow: 0 0 0 4px var(--active-link-bg); border-color: var(--active-link-icon); }
-
-/* --- Stat Cards --- */
-.stat-card { position: relative; background-color: var(--panel-bg); border-radius: 1rem; border: 1px solid var(--panel-border); transition: transform 0.3s ease, box-shadow 0.3s ease; overflow: hidden; cursor: pointer; backdrop-filter: blur(10px); }
-.stat-card:hover { transform: translateY(-8px); border-color: var(--active-link-icon); box-shadow: 0 10px 30px -5px rgba(14, 165, 233, 0.3); }
-.dark .stat-card:hover { box-shadow: 0 10px 30px -5px rgba(168, 85, 247, 0.3); }
-/* Style for Dashboard card with new messages */
-.stat-card.has-new-messages {
-    border-color: var(--active-link-icon);
-    box-shadow: 0 0 0 4px var(--active-link-bg);
-    animation: pulse-glow 1.5s infinite; /* Add a subtle pulse animation */
-}
-@keyframes pulse-glow {
-    0% { box-shadow: 0 0 0 0 rgba(var(--active-link-icon-rgb), 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(var(--active-link-icon-rgb), 0); }
-    100% { box-shadow: 0 0 0 0 rgba(var(--active-link-icon-rgb), 0); }
-}
-
-.stat-icon { background-color: var(--active-link-bg); color: var(--active-link-icon); }
-
-/* --- [START] UPDATED Buttons --- */
-.action-btn { 
-    padding: 8px 14px; 
-    line-height: 1; 
-    border-radius: 6px; 
-    font-weight: 600; 
-    font-size: 0.8rem; 
-    color: white; 
-    transition: all 0.3s ease; 
-    border: none; 
-    background-size: 200% auto; 
-    cursor: pointer; 
-    box-shadow: 0 2px 8px -3px rgba(0,0,0,0.2); 
-}
-/* --- NEW "See More" Button Style --- */
-#see-more-btn {
-    width: 100%;
-    max-width: 250px;
-    margin: 1.5rem auto 0;
-    display: block;
-    padding: 0.75rem 1rem;
-    font-weight: 600;
-    border-radius: 8px;
-    color: var(--active-link-text);
-    background-color: var(--active-link-bg);
-    border: 1px solid var(--active-link-icon);
-    transition: all 0.3s ease;
-}
-#see-more-btn:hover:not(:disabled) {
-    background-image: var(--primary-gradient);
-    color: white;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px -6px rgba(var(--active-link-icon-rgb), 0.5);
-}
-#see-more-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-.action-btn.activate { background-image: linear-gradient(to right, #22c55e 0%, #16a34a 51%, #15803d 100%); }
-.action-btn.deactivate { background-image: linear-gradient(to right, #ef4444 0%, #dc2626 51%, #b91c1c 100%); }
-.action-btn:hover:not(:disabled) { 
-    background-position: right center; 
-    transform: translateY(-2px); 
-    box-shadow: 0 7px 20px -4px var(--glow-color, rgba(0,0,0,0.4)); 
-}
-.action-btn.activate:hover { --glow-color: var(--green-glow); }
-.action-btn.deactivate:hover { --glow-color: var(--red-glow); }
-.action-btn:disabled { cursor: not-allowed; opacity: 0.7; }
-.header-btn { background-color: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-secondary); border-radius: 0.5rem; transition: all 0.2s ease-out; }
-.header-btn:hover { color: var(--active-link-icon); border-color: var(--active-link-icon); transform: scale(1.1) rotate(-5deg); }
-/* --- [END] UPDATED Buttons --- */
-
-/* START: New filter button styles */
-.user-filter-btn {
-    color: var(--text-secondary);
-}
-.user-filter-btn.active {
-    background-image: var(--primary-gradient);
-    color: white;
-    box-shadow: 0 4px 10px -4px rgba(var(--active-link-icon-rgb), 0.5);
-}
-/* END: New filter button styles */
-
-
-/* --- [START] NEW/UPDATED Premium User Card Styles --- */
-.user-card {
-    background-color: var(--panel-bg);
-    backdrop-filter: blur(12px);
-    padding: 1.25rem;
-    box-shadow: 0 4px 15px -2px rgba(0,0,0,0.06);
-    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    border-radius: 1.25rem;
-    border: 1px solid var(--panel-border);
-}
-
-/* CONTINUOUS SHINE (Subtle, always on) - uses ::before */
-.user-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 60%; height: 100%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0) 100%);
-    animation: continuous-shine-ltr 5s linear infinite;
-    animation-delay: var(--shine-delay);
-    pointer-events: none;
-    z-index: 1;
-}
-.dark .user-card::before {
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.04) 50%, rgba(255, 255, 255, 0) 100%);
-}
-#user-list-container .user-card:nth-child(even)::before {
-    animation-name: continuous-shine-rtl;
-}
-
-/* INTERACTIVE HOVER SHINE (Bright, on hover only) - uses ::after */
-.user-card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 50%; height: 100%;
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
-    transform: translateX(-180%) skewX(-25deg);
-    pointer-events: none;
-    z-index: 2; /* Place it above the continuous shine */
-    transition: transform 0.85s cubic-bezier(0.2, 1, 0.3, 1);
-}
-.user-card:hover::after {
-    transform: translateX(280%) skewX(-25deg);
-}
-.dark .user-card::after {
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
-}
-
-/* Ensure card content is always on top of the effects */
-.user-card > * {
-    position: relative;
-    z-index: 3;
-}
-
-.user-card:hover {
-    transform: translateY(-8px) scale(1.03);
-    box-shadow: 0 20px 40px -10px rgba(14, 165, 233, 0.3);
-    border-color: var(--active-link-icon);
-}
-.dark .user-card:hover {
-    box-shadow: 0 20px 40px -10px rgba(168, 85, 247, 0.3);
-    border-color: var(--active-link-icon);
-}
-
-.user-card .user-avatar {
-    transition: transform 0.3s ease;
-}
-.user-card:hover .user-avatar {
-    transform: scale(1.1);
-}
-/* --- [END] NEW/UPDATED Premium User Card Styles --- */
-
-
-/* --- NEW FINAL Sidebar & Navigation --- */
-.sidebar-header {
-    border-bottom: 1px solid var(--panel-border);
-}
-.nav-link { 
-    display: flex; 
-    align-items: center; 
-    gap: 1rem; 
-    padding: 0.8rem 1.5rem;
-    color: var(--text-secondary); 
-    font-weight: 600;
-    transition: all 0.25s ease-in-out;
-    white-space: nowrap; 
-    border-radius: 0.75rem; 
-    margin: 0.25rem 0.5rem;
-    position: relative;
-}
-.nav-link:hover {
-    color: var(--active-link-text);
-    background-color: var(--active-link-bg);
-    transform: translateX(5px);
-}
-.nav-link.active {
-    color: white; 
-    font-weight: 700; 
-    background-image: var(--primary-gradient);
-    box-shadow: 0 8px 20px -6px rgba(var(--active-link-icon-rgb), 0.5);
-    transform: scale(1.03) translateX(5px);
-}
-.dark .nav-link.active {
-    box-shadow: 0 8px 20px -6px rgba(var(--active-link-icon-rgb), 0.4);
-}
-.nav-link i {
-    font-size: 1.1rem;
-    width: 1.5rem; /* Ensures alignment */
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-.nav-link.active i {
-    color: white;
-}
-.nav-link:hover i {
-    transform: scale(1.1);
-}
-.sidebar.collapsed .nav-link { 
-    justify-content: center; 
-    padding: 0.8rem 0;
-}
-.sidebar.collapsed .nav-link-text, .sidebar.collapsed .logo-text { 
-    display: none; 
-}
-#logout-btn:hover {
-    color: #ef4444;
-    background-color: rgba(239, 68, 68, 0.1);
-}
-.dark #logout-btn:hover {
-    color: #f87171;
-    background-color: rgba(248, 113, 113, 0.1);
-}
-/* --- Overlay Loader (MODIFIED) --- */
-.card-loading-overlay {
-position: absolute;
-inset: 0;
-display: flex;
-align-items: center;
-justify-content: center;
-background: rgba(255, 255, 255, 0.85); /* Removed blur, increased opacity */
-opacity: 0;
-pointer-events: none;
-transition: opacity 0.25s ease-in-out;
-z-index: 10;
-border-radius: inherit;
-}
-.dark .card-loading-overlay {
-background: rgba(15, 23, 42, 0.85); /* Removed blur, increased opacity */
-}
-.user-card.is-loading .card-loading-overlay {
-opacity: 1;
-pointer-events: auto;
-}
-.loading-content {
-transform: scale(0.9);
-opacity: 0;
-transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-transition-delay: 0.05s;
-}
-.user-card.is-loading .loading-content {
-transform: scale(1);
-opacity: 1;
-}
-.fancy-spinner {
-width: 44px;
-height: 44px;
-border-radius: 50%;
-border: 4px solid var(--panel-border);
-border-top-color: var(--active-link-icon);
-animation: spin 0.85s cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
-}
-.loading-text {
-font-weight: 600;
-font-size: 0.9rem;
-margin-top: 0.75rem;
-color: var(--text-primary);
-}
-
-/* --- Activation Modal --- */
-#activation-modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
-#activation-modal-overlay.visible { opacity: 1; pointer-events: auto; }
-#activation-modal { background-color: var(--bg-color); color: var(--text-primary); border-radius: 1rem; padding: 2rem; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border: 1px solid var(--panel-border); transform: scale(0.95); transition: transform 0.3s ease; }
-#activation-modal-overlay.visible #activation-modal { transform: scale(1); }
-.plan-option { border: 2px solid var(--input-border); border-radius: 0.75rem; padding: 1rem; transition: all 0.2s ease; cursor: pointer; }
-.plan-option:hover { border-color: var(--active-link-icon); }
-.plan-option.selected { border-color: var(--active-link-icon); box-shadow: 0 0 0 3px var(--active-link-bg); }
-
-/* --- New Settings Page Styles --- */
-.settings-layout {
-display: grid;
-grid-template-columns: 300px 1fr;
-gap: 1.5rem;
-align-items: flex-start;
-}
-.settings-panel {
-background-color: var(--panel-bg);
-backdrop-filter: blur(12px);
-border-radius: 1.25rem;
-border: 1px solid var(--panel-border);
-box-shadow: 0 4px 15px -2px rgba(0,0,0,0.06);
-transition: all 0.3s ease;
-}
-.plan-list-item {
-padding: 1rem;
-cursor: pointer;
-border-bottom: 1px solid var(--panel-border);
-transition: background-color 0.2s ease;
-}
-.plan-list-item:last-child { border-bottom: none; }
-.plan-list-item:hover { background-color: rgba(128, 128, 128, 0.1); }
-.plan-list-item.active { background-color: var(--active-link-bg); }
-.plan-list-item.active .plan-name { color: var(--active-link-text); font-weight: 700; }
-.plan-editor-placeholder {
-display: flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-height: 100%;
-min-height: 400px;
-text-align: center;
-color: var(--text-secondary);
-}
-#add-new-plan-btn {
-background-image: var(--primary-gradient);
-color: white;
-transition: all 0.3s ease;
-background-size: 200% auto;
-}
-#add-new-plan-btn:hover { background-position: right center; transform: scale(1.05); }
-
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: var(--panel-bg); border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: var(--input-border); border-radius: 10px; border: 2px solid var(--panel-bg); }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-/* --- Chat UI Styles --- */
-.chat-message-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    max-width: 75%;
-    width: -moz-fit-content;
-    width: fit-content;
-}
-.chat-message-wrapper.user-message {
-    align-self: flex-start;
-}
-.chat-message-wrapper.admin-message {
-    align-self: flex-end;
-}
-.chat-bubble {
-    padding: 0.5rem; 
-    border-radius: 1.25rem;
-    line-height: 1.5;
-    word-wrap: break-word;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    transition: transform 0.2s ease;
-}
-.chat-bubble:hover {
-    transform: translateY(-2px);
-}
-.chat-bubble-text {
-    padding: 0.5rem 0.75rem;
-}
-.user-message .chat-bubble {
-    background-color: var(--active-link-bg);
-    color: var(--active-link-text);
-    border-bottom-left-radius: 0.25rem;
-}
-.admin-message .chat-bubble {
-    background-color: var(--panel-border);
-    color: var(--text-primary);
-    border-bottom-right-radius: 0.25rem;
-}
-.dark .admin-message .chat-bubble {
-    background-color: #334155;
-    color: var(--text-primary);
-}
-.message-sender-name {
-    font-weight: 600;
-    font-size: 0.8rem;
-    margin-bottom: 0.1rem;
-    color: var(--text-secondary);
-}
-.user-message .message-sender-name {
-    color: var(--active-link-icon);
-}
-.dark .user-message .message-sender-name {
-    color: var(--active-link-icon);
-}
-.message-text {
-    font-size: 0.9rem;
-    color: inherit;
-}
-.chat-image {
-    max-width: 280px; 
-    max-height: 280px;
-    object-fit: cover;
-    border-radius: 1rem;
-    cursor: pointer;
-    display: block;
-    transition: filter 0.2s ease;
-}
-.chat-image:hover {
-    filter: brightness(1.1);
-}
-.chat-timestamp {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-}
-.user-message .chat-timestamp {
-    align-self: flex-start;
-    padding-left: 0.25rem;
-}
-.admin-message .chat-timestamp {
-    align-self: flex-end;
-    padding-right: 0.25rem;
-}
-
-/* --- [START] CHAT INPUT FIX --- */
-#chat-input-form {
-    background-color: var(--panel-bg);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid var(--panel-border);
-    padding: 0.75rem 1rem; /* Adjusted padding */
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: background-color 0.4s ease, border-color 0.4s ease;
-}
-#chat-message-input {
-    flex-grow: 1;
-    min-width: 0; /* Important fix for flexbox overflow */
-    background-color: var(--input-bg);
-    border: 1px solid var(--input-border);
-    border-radius: 9999px;
-    padding: 0.65rem 1.25rem;
-    font-size: 0.95rem;
-    color: var(--text-primary);
-    outline: none;
-    transition: all 0.3s ease;
-}
-/* --- [END] CHAT INPUT FIX --- */
-
-#chat-message-input:focus {
-    border-color: var(--active-link-icon);
-    box-shadow: 0 0 0 3px var(--active-link-bg);
-}
-#chat-message-input::placeholder {
-    color: var(--text-muted);
-}
-#chat-message-input:disabled {
-    background-color: var(--panel-border);
-    cursor: not-allowed;
-}
-.chat-action-btn {
-    flex-shrink: 0;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-}
-.chat-action-btn i {
-    font-size: 1.1rem;
-}
-#chat-attach-btn {
-    background-color: var(--input-bg);
-    border: 1px solid var(--input-border);
-    color: var(--text-secondary);
-}
-#chat-attach-btn:hover:not(:disabled) {
-    border-color: var(--active-link-icon);
-    color: var(--active-link-icon);
-    transform: scale(1.1);
-}
-#send-message-btn {
-    background-image: var(--primary-gradient);
-    color: white;
-    box-shadow: 0 4px 10px -4px rgba(var(--active-link-icon-rgb), 0.5);
-}
-#send-message-btn:hover:not(:disabled) {
-    transform: scale(1.1);
-    box-shadow: 0 7px 15px -5px rgba(var(--active-link-icon-rgb), 0.6);
-}
-#send-message-btn:active:not(:disabled) {
-    transform: scale(1.05);
-}
-#send-message-btn:disabled, #chat-attach-btn:disabled {
-    background: var(--input-border);
-    cursor: not-allowed;
-    box-shadow: none;
-    opacity: 0.6;
-}
-#send-message-btn i {
-    margin-left: 1px;
-}
-
-/* --- Image Upload Progress Bar --- */
-#chat-upload-progress-container {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    width: 100%;
-    background: var(--panel-bg);
-    padding: 0.5rem 1rem;
-    border-top: 1px solid var(--panel-border);
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-#chat-upload-progress-container.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-.progress-bar-container { width: 100%; background-color: var(--input-bg); border-radius: 9999px; height: 8px; position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); border: 1px solid var(--panel-border); }
-.progress-bar-inner { height: 100%; border-radius: 9999px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); background-image: var(--primary-gradient); }
-
-/* --- Image Preview Modal --- */
-#image-preview-overlay { 
-    transition: opacity 0.3s ease; 
-}
-#image-preview-overlay.hidden { 
-    opacity: 0; 
-    pointer-events: none; 
-}
-#preview-image-src { 
-    transition: transform 0.3s ease, opacity 0.3s ease; 
-    transform: scale(0.95);
-    opacity: 0;
-}
-#image-preview-overlay:not(.hidden) #preview-image-src { 
-    transform: scale(1);
-    opacity: 1;
-}
-#preview-close-btn { 
-    transition: transform 0.3s ease;
-    width: 44px;
-    height: 44px;
-    background-color: rgba(0,0,0,0.3);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-#preview-close-btn:hover { 
-    transform: scale(1.1) rotate(90deg); 
-}
-
-/* Inbox Item Styles */
-.inbox-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    border: 1px solid transparent;
-}
-.inbox-item:hover {
-    background-color: var(--active-link-bg);
-    border-color: var(--active-link-icon);
-    transform: translateY(-2px);
-}
-.inbox-item.active-chat {
-    background-color: var(--active-link-bg);
-    border-color: var(--active-link-icon);
-    box-shadow: 0 0 0 3px var(--active-link-bg);
-}
-.inbox-item.unread {
-    background-color: rgba(var(--active-link-icon-rgb), 0.1); /* Use RGB for rgba */
-    font-weight: 700;
-}
-.dark .inbox-item.unread {
-    background-color: rgba(var(--active-link-icon-rgb), 0.05); /* Lighter for dark theme */
-}
-.inbox-item.unread .inbox-user-name,
-.inbox-item.unread .inbox-last-message {
-    font-weight: 700;
-}
-.inbox-item .unread-dot {
-    background-color: var(--active-link-icon);
-    box-shadow: 0 0 0 2px rgba(var(--active-link-icon-rgb), 0.5);
-}
-
-/* --- [START] NEW STYLES FOR OTHERS ROUTERS UI --- */
-.router-summary-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    background-color: var(--panel-bg);
-    border: 1px solid var(--panel-border);
-    border-radius: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px -2px rgba(0,0,0,0.05);
-}
-.router-summary-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--active-link-icon);
-    box-shadow: 0 10px 25px -8px rgba(var(--active-link-icon-rgb), 0.3);
-}
-.router-name-highlight {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--text-primary);
-    transition: color 0.3s ease;
-}
-.router-summary-card:hover .router-name-highlight {
-    color: var(--active-link-icon);
-}
-.toggle-icon i {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.router-details-wrapper.hidden {
-    display: none;
-}
-.router-details-wrapper {
-    margin-top: -0.5rem;
-    padding-top: 0.5rem;
-}
-.router-details-editor {
-    animation: panIn 0.4s ease-out forwards;
-}
-.child-key-section {
-    background-color: rgba(128, 128, 128, 0.05);
-    border: 1px solid var(--panel-border);
-    border-radius: 0.75rem;
-    margin-top: 1rem;
-}
-.dark .child-key-section {
-     background-color: rgba(255, 255, 255, 0.03);
-}
-/* --- [END] NEW STYLES FOR OTHERS ROUTERS UI --- */
-
-/* Responsive */
-@media (max-width: 1024px) {
-    .sidebar { 
-        transform: translateX(-105%); 
-        /* --- START: SIDEBAR ANIMATION ADDED --- */
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        /* --- END: SIDEBAR ANIMATION ADDED --- */
-    }
-    .sidebar.open { 
-        transform: translateX(0); 
-    }
-    .content-wrapper { margin-left: 0 !important; }
-    .sidebar-overlay { position: fixed; inset: 0; z-index: 99; background-color: rgba(0, 0, 0, 0.6); transition: opacity 0.3s ease-in-out; opacity: 0; pointer-events: none; }
-    .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
-
-    #messages-view {
-        flex-direction: column;
-    }
-    #messages-view > div:first-child { /* Inbox list */
-        width: 100%;
-        height: 100%; /* Take full height of its parent */
-        position: absolute;
-        top: 0;
-        left: 0;
-        transform: translateX(0); /* Default to visible */
-        transition: transform 0.3s ease-in-out;
-        z-index: 1000;
-    }
-    #messages-view.chat-open-mobile > div:first-child {
-        transform: translateX(-100%); /* Hide inbox when chat is open on mobile */
-    }
-    #chat-area {
-        width: 100%;
-        position: absolute; /* Position chat area to cover inbox */
-        height: 100%;
-        top: 0;
-        left: 0;
-        transform: translateX(100%); /* Default to hidden */
-        transition: transform 0.3s ease-in-out;
-        background-color: var(--bg-color); /* Ensure it covers properly */
-    }
-    #messages-view.chat-open-mobile #chat-area {
-        transform: translateX(0); /* Show chat when open on mobile */
-    }
-    #chat-header #close-chat-btn {
-        display: flex; /* Show close button only on mobile when chat is open */
-    }
-}
-@media (max-width: 768px) { .settings-layout { grid-template-columns: 1fr; } }
-</style>
-
-</head>
-<body class="mesh-gradient-bg aurora-bg">
-
-<div id="page-loader">
-    <div class="spinner"></div>
-</div>
-
-<div id="login-page" class="hidden">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <!-- MODIFIED LOGIN CARD -->
-        <div class="w-full max-w-sm p-8 space-y-8 rounded-2xl shadow-2xl animate-on-load" style="background-color: var(--panel-bg); border: 1px solid var(--panel-border); backdrop-filter: blur(20px); --shadow-color: rgba(var(--active-link-icon-rgb), 0.2); box-shadow: 0 0 40px -10px var(--shadow-color);">
-            
-            <!-- Logo and Title Section -->
-            <div class="text-center">
-                <div class="flex justify-center mb-4">
-                    <a href="#" class="flex items-center gap-3">
-                        <span class="flex items-center justify-center h-12 w-12 text-white rounded-xl transition-transform hover:scale-110" style="background: var(--primary-gradient);">
-                            <i class="fa-solid fa-square-poll-vertical text-2xl"></i>
-                        </span>
-                    </a>
-                </div>
-                <h1 class="text-3xl font-bold text-text-primary">Welcome Back!</h1>
-                <p class="text-text-secondary mt-2">Sign in to the <span class="font-semibold" style="color: var(--active-link-icon);">Baul 2.0</span> Dashboard</p>
+  --primary-dark: rgba(255, 127, 127, 1);
+  --primary: rgba(255, 164, 164, 1);
+  --dark: rgba(48, 48, 48, 1);
+  --normal-dark: rgba(122, 120, 120, 1);
+  --white: rgba(255, 255, 255, 1);
+  --h3-font-family: "Jost", Helvetica;
+  --h3-font-weight: 400;
+  --h3-font-size: 36px;
+  --h3-letter-spacing: 2.88px;
+  --h3-line-height: normal;
+  --h3-font-style: normal;
+  --h4-font-family: "Jost", Helvetica;
+  --h4-font-weight: 400;
+  --h4-font-size: 24px;
+  --h4-letter-spacing: 0px;
+  --h4-line-height: normal;
+  --h4-font-style: normal;
+  --paragraph-font-family: "Poppins", Helvetica;
+  --paragraph-font-weight: 400;
+  --paragraph-font-size: 20px;
+  --paragraph-letter-spacing: 0px;
+  --paragraph-line-height: normal;
+  --paragraph-font-style: normal;
+  --description-font-family: "Poppins", Helvetica;
+  --description-font-weight: 400;
+  --description-font-size: 16px;
+  --description-letter-spacing: 0px;
+  --description-line-height: normal;
+  --description-font-style: normal;
+  --h1-font-family: "Jost", Helvetica;
+  --h1-font-weight: 400;
+  --h1-font-size: 72px;
+  --h1-letter-spacing: 0px;
+  --h1-line-height: normal;
+  --h1-font-style: normal;
+}
+    </style>
+  </head>
+  <body>
+    <div class="bg-[#fff8f2] grid justify-items-center [align-items:start] w-screen">
+      <div class="bg-[#fff8f2] overflow-hidden w-[1920px] h-[7492px]">
+        <div class="relative w-[4849px] h-[9056px] top-[-527px] left-[-1465px]">
+          <div
+            class="absolute w-[1097px] h-[1097px] top-[5335px] left-[981px] bg-[#ffd3d359] rounded-[548.5px] blur-[200px]"
+          ></div>
+          <div
+            class="absolute w-[1097px] h-[1097px] top-[6080px] left-[2649px] bg-[#ffd3d359] rounded-[548.5px] blur-[200px]"
+          ></div>
+          <div
+            class="absolute w-[1920px] h-[1136px] top-[3064px] left-[1465px] [background:linear-gradient(244deg,rgba(255,164,164,0.05)_0%,rgba(255,248,242,0.1)_100%)]"
+          ></div>
+          <div
+            class="absolute w-64 h-[223px] top-[1601px] left-[1836px] bg-primary-dark rounded-[128px/111.5px] opacity-10"
+          ></div>
+          <div
+            class="absolute w-[268px] h-[223px] top-[1682px] left-[2796px] bg-primary-dark rounded-[134px/111.5px] opacity-[0.12]"
+          ></div>
+          <div
+            class="absolute w-[184px] h-[184px] top-[1627px] left-[1910px] bg-primary rounded-[92px] opacity-25"
+          ></div>
+          <div
+            class="absolute w-[184px] h-[184px] top-[1707px] left-[2799px] bg-primary rounded-[92px] opacity-25"
+          ></div>
+          <img
+            class="absolute w-[631px] h-[746px] top-[748px] left-[2614px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/vector.svg"
+          />
+          <div class="flex w-[1640px] items-center justify-between px-0 py-2.5 absolute top-[576px] left-[1605px]">
+            <div class="inline-flex items-center gap-[9px] px-2.5 py-0 relative flex-[0_0_auto]">
+              <img class="relative w-11 h-11" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ion-flower-sharp.svg" />
+              <div
+                class="relative w-fit mt-[-1.00px] font-h3 font-[number:var(--h3-font-weight)] text-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
+              >
+                Bkalp Design
+              </div>
             </div>
-
-            <!-- Login Form -->
-            <form id="login-form" class="space-y-6">
-                <!-- Email Input -->
-                <div class="relative">
-                    <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"></i>
-                    <input type="email" id="email" name="email" class="search-input w-full pl-12 pr-4 py-3 rounded-lg outline-none" placeholder="Email Address" required>
+            <div class="flex w-[551px] items-center justify-between relative">
+              <div
+                class="relative w-fit mt-[-1.00px] [font-family:'Jost',Helvetica] font-semibold text-primary text-2xl tracking-[0] leading-[normal]"
+              >
+                Home
+              </div>
+              <div
+                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Product
+              </div>
+              <div
+                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Pages
+              </div>
+              <div
+                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Blog
+              </div>
+              <div
+                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Contact
+              </div>
+            </div>
+            <img class="relative flex-[0_0_auto]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/frame-3.svg" />
+          </div>
+          <div class="absolute w-[1837px] h-[1991px] top-0 left-[544px]">
+            <div class="relative h-[1991px]">
+              <div
+                class="absolute w-[1097px] h-[1097px] top-[894px] left-[740px] bg-[#ffd3d359] rounded-[548.5px] blur-[200px]"
+              ></div>
+              <div
+                class="top-0 left-[79px] border-[#ffa3a385] absolute w-[1479px] h-[1479px] rounded-[739.5px] border border-solid"
+              ></div>
+              <div
+                class="top-[77px] left-0 border-[#ffa3a385] absolute w-[1479px] h-[1479px] rounded-[739.5px] border border-solid"
+              ></div>
+            </div>
+          </div>
+          <div class="absolute w-[2094px] h-[2198px] top-[986px] left-[2755px]">
+            <div class="relative h-[2198px]">
+              <div
+                class="absolute w-[1479px] h-[1479px] top-[304px] left-[304px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
+              ></div>
+              <div
+                class="absolute w-[1479px] h-[1479px] top-[415px] left-[311px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
+              ></div>
+            </div>
+          </div>
+          <div class="absolute w-[2094px] h-[2198px] top-[3972px] left-[2466px]">
+            <div class="relative h-[2198px]">
+              <div
+                class="absolute w-[1479px] h-[1479px] top-[304px] left-[304px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
+              ></div>
+              <div
+                class="absolute w-[1479px] h-[1479px] top-[415px] left-[311px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
+              ></div>
+            </div>
+          </div>
+          <div class="flex w-[1640px] items-center justify-between absolute top-[767px] left-[1605px]">
+            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
+              <div
+                class="inline-flex items-center justify-center gap-2.5 px-6 py-4 relative flex-[0_0_auto] border-l-4 [border-left-style:solid] border-[#ffa3a3]"
+              >
+                <div
+                  class="relative w-fit mt-[-4.00px] font-h3 font-[number:var(--h3-font-weight)] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
+                >
+                  ARTIFICIAL FLOWER
                 </div>
-                
-                <!-- Password Input -->
-                <div class="relative">
-                    <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-text-muted"></i>
-                    <input type="password" id="password" name="password" class="search-input w-full pl-12 pr-4 py-3 rounded-lg outline-none" placeholder="Password" required>
+              </div>
+              <p
+                class="relative w-[784px] [font-family:'Jost',Helvetica] font-normal text-dark text-7xl tracking-[0] leading-[72px]"
+              >
+                <span class="text-[#303030] leading-[95px]">Unique Flowers </span>
+                <span class="text-[#ff7f7f] leading-[95px]">delivered</span>
+                <span class="text-[#303030] leading-[95px]"> to your doorstep</span>
+              </p>
+              <p
+                class="w-[763px] text-normal-dark text-[length:var(--paragraph-font-size)] relative font-paragraph font-[number:var(--paragraph-font-weight)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
+              >
+                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
+              </p>
+              <div class="inline-flex items-start gap-2.5 px-8 py-2.5 relative flex-[0_0_auto] bg-[#ffa3a3] rounded-md">
+                <div
+                  class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-white text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                >
+                  Shop Now
                 </div>
-
-                <!-- Error Message -->
-                <p id="login-error" class="text-red-500 text-sm text-center !mt-4 hidden"></p>
-                
-                <!-- Submit Button -->
-                <div>
-                    <button type="submit" class="w-full text-white font-bold py-3 px-5 rounded-lg transition-all duration-300 hover:scale-105" style="background: var(--primary-gradient); box-shadow: 0 8px 20px -6px rgba(var(--active-link-icon-rgb), 0.5);">
-                        Login
-                    </button>
+              </div>
+            </div>
+            <img
+              class="relative w-[807px] h-[807px] object-cover"
+              src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-13.png"
+            />
+          </div>
+          <div
+            class="flex w-[1432px] items-center justify-between px-[130px] py-[57px] absolute top-[1674px] left-[1708px] bg-[#ffffff] rounded-[80px_0px_80px_0px] opacity-95"
+          >
+            <div class="gap-6 inline-flex items-center relative flex-[0_0_auto]">
+              <img
+                class="relative w-16 h-16"
+                src="https://c.animaapp.com/mfms5gth2zVCyY/img/emojione-monotone-shopping-bags.svg"
+              />
+              <div class="inline-flex flex-col items-start gap-0.5 relative flex-[0_0_auto]">
+                <div
+                  class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                >
+                  Free Shopping
                 </div>
-            </form>
+                <p
+                  class="relative w-fit font-description font-[number:var(--description-font-weight)] text-normal-dark text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+                >
+                  Cost on all order $0.00
+                </p>
+              </div>
+            </div>
+            <img class="relative w-0.5 h-[42px]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/line-1.svg" />
+            <div class="gap-6 inline-flex items-center relative flex-[0_0_auto]">
+              <img
+                class="relative w-16 h-16"
+                src="https://c.animaapp.com/mfms5gth2zVCyY/img/fluent-emoji-high-contrast-delivery-truck.svg"
+              />
+              <div class="inline-flex flex-col items-start gap-0.5 relative flex-[0_0_auto]">
+                <div
+                  class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                >
+                  Free Delivery
+                </div>
+                <div
+                  class="relative w-fit font-description font-[number:var(--description-font-weight)] text-normal-dark text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+                >
+                  We offer FREE&nbsp;&nbsp;deliver
+                </div>
+              </div>
+            </div>
+            <img class="relative w-0.5 h-[42px]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/line-1.svg" />
+            <div class="gap-6 inline-flex items-center relative flex-[0_0_auto]">
+              <img
+                class="relative w-16 h-16"
+                src="https://c.animaapp.com/mfms5gth2zVCyY/img/emojione-monotone-wrapped-gift.svg"
+              />
+              <div class="inline-flex flex-col items-start gap-0.5 relative flex-[0_0_auto]">
+                <div
+                  class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                >
+                  Free Delivery
+                </div>
+                <div
+                  class="relative w-fit font-description font-[number:var(--description-font-weight)] text-normal-dark text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+                >
+                  We offer FREE&nbsp;&nbsp;deliver
+                </div>
+              </div>
+            </div>
+          </div>
+          <img
+            class="absolute w-[62px] h-[62px] top-[1520px] left-[2946px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+          />
+          <img
+            class="absolute w-[62px] h-[62px] top-[2122px] left-[2946px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+          />
+          <img
+            class="absolute w-9 h-[38px] top-[1582px] left-[3064px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+          />
+          <img
+            class="absolute w-9 h-[38px] top-[2004px] left-[1926px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+          />
+          <img
+            class="absolute w-9 h-[38px] top-[856px] left-[1615px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+          />
+          <img
+            class="absolute w-9 h-[38px] top-[918px] left-[3183px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+          />
+          <div class="inline-flex flex-col items-center gap-[72px] absolute top-[1991px] left-[1605px]">
+            <div class="inline-flex flex-col items-center relative flex-[0_0_auto]">
+              <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
+                <div
+                  class="mt-[-4.00px] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] relative w-fit font-h3 font-[number:var(--h3-font-weight)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
+                >
+                  PRODUCTS
+                </div>
+              </div>
+              <p
+                class="relative w-fit [font-family:'Jost',Helvetica] font-normal text-dark text-7xl text-center tracking-[0] leading-[72px]"
+              >
+                <span class="text-[#303030]">This month’s top selling </span>
+                <span
+                  class="text-[#ff7f7f] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
+                  >Product</span
+                >
+              </p>
+            </div>
+            <div class="flex w-[1640px] items-end justify-between relative flex-[0_0_auto]">
+              <div class="inline-flex flex-col items-center justify-center gap-6 relative flex-[0_0_auto]">
+                <div
+                  class="absolute w-[239px] h-[239px] top-[203px] left-[81px] bg-[#ffcfcf91] rounded-[110px_110px_0px_110px]"
+                ></div>
+                <img
+                  class="relative w-[443px] h-[443px] object-cover"
+                  src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-22.png"
+                />
+                <div class="flex-col gap-3 inline-flex items-center relative flex-[0_0_auto]">
+                  <div
+                    class="relative w-fit mt-[-1.00px] [font-family:'Jost',Helvetica] font-normal text-dark text-4xl tracking-[0.72px] leading-[normal]"
+                  >
+                    Combo Bouquet 01
+                  </div>
+                  <div class="flex items-start justify-between relative self-stretch w-full flex-[0_0_auto]">
+                    <div
+                      class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                    >
+                      $40.00
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 relative flex-[0_0_auto]">
+                      <img
+                        class="relative w-[30px] h-[30px]"
+                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg"
+                      />
+                      <div
+                        class="w-fit mt-[-1.00px] text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
+                      >
+                        5.0
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="inline-flex flex-col items-center justify-center gap-6 relative flex-[0_0_auto]">
+                <div
+                  class="w-[294px] h-[294px] top-[274px] left-[138px] rounded-[135.31px_135.31px_0px_135.31px] absolute bg-[#ffcfcf91]"
+                ></div>
+                <img class="relative w-[614px] h-[572px]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-2.png" />
+                <div class="flex-col gap-3 inline-flex items-center relative flex-[0_0_auto]">
+                  <div
+                    class="relative w-fit mt-[-1.00px] [font-family:'Jost',Helvetica] font-normal text-dark text-4xl tracking-[0.72px] leading-[normal]"
+                  >
+                    Combo Bouquet 01
+                  </div>
+                  <div class="flex items-start justify-between relative self-stretch w-full flex-[0_0_auto]">
+                    <div
+                      class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                    >
+                      $40.00
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 relative flex-[0_0_auto]">
+                      <img
+                        class="relative w-[30px] h-[30px]"
+                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg"
+                      />
+                      <div
+                        class="w-fit mt-[-1.00px] text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
+                      >
+                        5.0
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="inline-flex flex-col items-center justify-center gap-6 relative flex-[0_0_auto]">
+                <div
+                  class="w-[239px] h-[239px] top-[209px] left-[81px] rounded-[110px_110px_0px_110px] absolute bg-[#ffcfcf91]"
+                ></div>
+                <img
+                  class="relative w-[443px] h-[443px] object-cover"
+                  src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-11.png"
+                />
+                <div class="flex-col gap-3 inline-flex items-center relative flex-[0_0_auto]">
+                  <div
+                    class="relative w-fit mt-[-1.00px] [font-family:'Jost',Helvetica] font-normal text-dark text-4xl tracking-[0.72px] leading-[normal]"
+                  >
+                    Combo Bouquet 01
+                  </div>
+                  <div class="flex items-start justify-between relative self-stretch w-full flex-[0_0_auto]">
+                    <div
+                      class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                    >
+                      $40.00
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 relative flex-[0_0_auto]">
+                      <img
+                        class="relative w-[30px] h-[30px]"
+                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg"
+                      />
+                      <div
+                        class="w-fit mt-[-1.00px] text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
+                      >
+                        5.0
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="absolute w-[2158px] h-[2211px] top-[2468px] left-0">
+            <div class="relative h-[2211px]">
+              <div
+                class="top-[306px] left-[306px] border-[#ffa3a3] rotate-[-45.51deg] absolute w-[1479px] h-[1479px] rounded-[739.5px] border border-solid"
+              ></div>
+              <div
+                class="top-[428px] left-[375px] border-[#ffa3a3] rotate-[-48.62deg] absolute w-[1479px] h-[1479px] rounded-[739.5px] border border-solid"
+              ></div>
+            </div>
+          </div>
+          <div class="inline-flex flex-col h-[884px] items-center justify-between absolute top-[3174px] left-[1619px]">
+            <div class="inline-flex flex-col items-center gap-[42px] relative flex-[0_0_auto]">
+              <div class="inline-flex flex-col items-center relative flex-[0_0_auto]">
+                <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
+                  <div
+                    class="relative w-fit mt-[-4.00px] font-h3 font-[number:var(--h3-font-weight)] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
+                  >
+                    OFFERS
+                  </div>
+                </div>
+                <div
+                  class="relative w-fit font-h1 font-[number:var(--h1-font-weight)] text-dark text-[length:var(--h1-font-size)] text-center tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] [font-style:var(--h1-font-style)]"
+                >
+                  Deal of the day
+                </div>
+              </div>
+              <div class="inline-flex items-start gap-6 relative flex-[0_0_auto]">
+                <div
+                  class="inline-flex flex-col items-center px-[39px] py-3 relative flex-[0_0_auto] bg-primary rounded-xl border-2 border-solid border-[#ffffff]"
+                >
+                  <div
+                    class="relative w-fit mt-[-2.00px] [font-family:'Jost',Helvetica] font-medium text-[#ffffff] text-4xl text-center tracking-[2.88px] leading-[normal]"
+                  >
+                    24
+                  </div>
+                  <div
+                    class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] text-center tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                  >
+                    Days
+                  </div>
+                </div>
+                <div
+                  class="inline-flex flex-col items-center px-[39px] py-3 relative flex-[0_0_auto] bg-primary rounded-xl border-2 border-solid border-[#ffffff]"
+                >
+                  <div
+                    class="relative w-fit mt-[-2.00px] [font-family:'Jost',Helvetica] font-medium text-[#ffffff] text-4xl text-center tracking-[2.88px] leading-[normal]"
+                  >
+                    36
+                  </div>
+                  <div
+                    class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] text-center tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                  >
+                    Hours
+                  </div>
+                </div>
+                <div
+                  class="inline-flex flex-col items-center px-[39px] py-3 relative flex-[0_0_auto] bg-primary rounded-xl border-2 border-solid border-[#ffffff]"
+                >
+                  <div
+                    class="relative w-fit mt-[-2.00px] [font-family:'Jost',Helvetica] font-medium text-[#ffffff] text-4xl text-center tracking-[2.88px] leading-[normal]"
+                  >
+                    12
+                  </div>
+                  <div
+                    class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] text-center tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                  >
+                    Mins
+                  </div>
+                </div>
+                <div
+                  class="inline-flex flex-col items-center px-[39px] py-3 relative flex-[0_0_auto] bg-primary rounded-xl border-2 border-solid border-[#ffffff]"
+                >
+                  <div
+                    class="relative w-fit mt-[-2.00px] [font-family:'Jost',Helvetica] font-medium text-[#ffffff] text-4xl text-center tracking-[2.88px] leading-[normal]"
+                  >
+                    55
+                  </div>
+                  <div
+                    class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] text-center tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                  >
+                    Secs
+                  </div>
+                </div>
+              </div>
+              <img
+                class="absolute w-[62px] h-[62px] top-[104px] left-[548px]"
+                src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+              />
+            </div>
+            <div class="inline-flex items-end gap-[60px] relative flex-[0_0_auto]">
+              <div class="relative w-[491px] h-[514px]">
+                <div class="relative h-[514px]">
+                  <div
+                    class="w-[491px] h-[353px] top-[161px] left-0 bg-[#ffffffd9] overflow-hidden absolute rounded-3xl"
+                  >
+                    <div class="relative w-[527px] h-[385px] top-[-49px]">
+                      <div
+                        class="absolute w-[206px] h-[206px] top-0 left-[321px] bg-[#ffe497] rounded-[103px] blur-[33.3px]"
+                      ></div>
+                      <div
+                        class="absolute w-[165px] h-[165px] top-[21px] left-[226px] bg-[#ffd1d4] rounded-[82.5px] blur-[33.3px]"
+                      ></div>
+                      <div
+                        class="flex flex-col w-[491px] items-start justify-end gap-[18px] px-[52px] py-6 absolute top-[139px] left-0 rounded-3xl"
+                      >
+                        <p
+                          class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                        >
+                          <span
+                            class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                            >Wall hanging
+                          </span>
+                          <span
+                            class="text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                            >flower/ bouquet</span
+                          >
+                        </p>
+                        <p
+                          class="relative self-stretch font-description font-[number:var(--description-font-weight)] text-[#b0b0b0] text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+                        >
+                          Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
+                        </p>
+                        <div class="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
+                          <p
+                            class="flex-1 text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
+                          >
+                            <span
+                              class="font-[number:var(--h4-font-weight)] text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                              >$24.00</span
+                            >
+                            <span
+                              class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                              >&nbsp;</span
+                            >
+                            <span
+                              class="font-h4 text-[#797777] text-[length:var(--h4-font-size)] line-through [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)]"
+                              >$24.00</span
+                            >
+                          </p>
+                          <div
+                            class="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 relative flex-[0_0_auto] bg-primary-dark rounded-[10px]"
+                          >
+                            <div
+                              class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                            >
+                              Add to Cart
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <img
+                    class="absolute w-[285px] h-[285px] top-0 left-[206px] object-cover"
+                    src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-9.png"
+                  />
+                  <img
+                    class="absolute w-[285px] h-[285px] top-0 left-[202px] object-cover"
+                    src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-9.png"
+                  />
+                </div>
+              </div>
+              <div class="relative w-[491px] h-[519px]">
+                <div class="relative h-[519px]">
+                  <div
+                    class="absolute w-[491px] h-[353px] top-[166px] left-0 bg-[#ffffffd9] rounded-3xl overflow-hidden"
+                  >
+                    <div class="relative w-[511px] h-[391px] top-[-55px]">
+                      <div
+                        class="absolute w-[156px] h-[151px] top-12 left-[355px] bg-[#ffdcc8] rounded-[78px/75.5px] blur-[33.3px]"
+                      ></div>
+                      <div
+                        class="w-[165px] h-[165px] top-0 left-[214px] bg-[#ffd7a1] rounded-[82.5px] absolute blur-[33.3px]"
+                      ></div>
+                      <div
+                        class="w-[491px] gap-[18px] px-[52px] py-6 top-[145px] left-0 flex flex-col items-start justify-end absolute rounded-3xl"
+                      >
+                        <p
+                          class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                        >
+                          <span
+                            class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                            >Wall hanging
+                          </span>
+                          <span
+                            class="text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                            >flower/ bouquet</span
+                          >
+                        </p>
+                        <p
+                          class="relative self-stretch font-description font-[number:var(--description-font-weight)] text-[#b0b0b0] text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+                        >
+                          Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
+                        </p>
+                        <div class="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
+                          <p
+                            class="flex-1 text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
+                          >
+                            <span
+                              class="font-[number:var(--h4-font-weight)] text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                              >$24.00</span
+                            >
+                            <span
+                              class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                              >&nbsp;</span
+                            >
+                            <span
+                              class="font-h4 text-[#797777] text-[length:var(--h4-font-size)] line-through [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)]"
+                              >$24.00</span
+                            >
+                          </p>
+                          <div
+                            class="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 relative flex-[0_0_auto] bg-primary-dark rounded-[10px]"
+                          >
+                            <div
+                              class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                            >
+                              Add to Cart
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <img
+                    class="absolute w-[285px] h-[285px] top-0 left-[204px] object-cover"
+                    src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-9-1.png"
+                  />
+                </div>
+              </div>
+              <div class="relative w-[509.76px] h-[519px]">
+                <div class="relative w-[510px] h-[519px]">
+                  <div
+                    class="absolute w-[491px] h-[353px] top-[166px] left-0 bg-[#ffffffd9] rounded-3xl overflow-hidden"
+                  >
+                    <div class="relative w-[527px] h-[385px] top-[-49px]">
+                      <div
+                        class="absolute w-[206px] h-[206px] top-0 left-[321px] bg-[#ffe497] rounded-[103px] blur-[33.3px]"
+                      ></div>
+                      <div
+                        class="w-[181px] h-[181px] top-[13px] left-[226px] bg-[#d2d1ff] rounded-[90.5px] absolute blur-[33.3px]"
+                      ></div>
+                      <div
+                        class="flex flex-col w-[491px] items-start justify-end gap-[18px] px-[52px] py-6 absolute top-[139px] left-0 rounded-3xl"
+                      >
+                        <p
+                          class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                        >
+                          <span
+                            class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                            >Wall hanging
+                          </span>
+                          <span
+                            class="text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                            >flower/ bouquet</span
+                          >
+                        </p>
+                        <p
+                          class="relative self-stretch font-description font-[number:var(--description-font-weight)] text-[#b0b0b0] text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+                        >
+                          Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
+                        </p>
+                        <div class="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
+                          <p
+                            class="flex-1 text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
+                          >
+                            <span
+                              class="font-[number:var(--h4-font-weight)] text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                              >$24.00</span
+                            >
+                            <span
+                              class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
+                              >&nbsp;</span
+                            >
+                            <span
+                              class="font-h4 text-[#797777] text-[length:var(--h4-font-size)] line-through [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)]"
+                              >$24.00</span
+                            >
+                          </p>
+                          <div
+                            class="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 relative flex-[0_0_auto] bg-primary-dark rounded-[10px]"
+                          >
+                            <div
+                              class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                            >
+                              Add to Cart
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <img
+                    class="absolute w-[323px] h-[294px] top-0 left-[187px]"
+                    src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-16.png"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <img
+            class="absolute w-[62px] h-[62px] top-[4033px] left-[2084px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+          />
+          <img
+            class="absolute w-[173px] h-[285px] top-[3142px] left-[3212px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/mask-group.png"
+          />
+          <img
+            class="absolute w-[167px] h-[285px] top-[6825px] left-[3218px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/mask-group-1.png"
+          />
+          <img
+            class="absolute w-[226px] h-[380px] top-[3665px] left-[1465px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/mask-group-2.png"
+          />
+          <div
+            class="absolute w-[1920px] h-[1351px] top-[4200px] left-[1465px] [background:linear-gradient(180deg,rgba(255,255,255,0.33)_0%,rgba(255,223,206,0.15)_100%)]"
+          >
+            <div class="inline-flex absolute top-[100px] left-[574px] flex-col items-center">
+              <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
+                <div
+                  class="mt-[-4.00px] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] relative w-fit font-h3 font-[number:var(--h3-font-weight)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
+                >
+                  PRODUCTS
+                </div>
+              </div>
+              <p
+                class="relative w-fit font-h1 font-[number:var(--h1-font-weight)] text-dark text-[length:var(--h1-font-size)] text-center tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] [font-style:var(--h1-font-style)]"
+              >
+                <span
+                  class="text-[#303030] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
+                  >Why choose
+                </span>
+                <span
+                  class="text-[#ff7f7f] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
+                  >Our Flowers
+                </span>
+              </p>
+            </div>
+            <div
+              class="absolute w-[562px] h-[846px] top-[388px] left-[679px] bg-[url(https://c.animaapp.com/mfms5gth2zVCyY/img/image-18.png)] bg-cover bg-[50%_50%]"
+            >
+              <img
+                class="absolute w-[62px] h-[62px] top-[763px] left-[281px]"
+                src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+              />
+            </div>
+            <div
+              class="w-[409px] gap-3 px-[42px] py-6 top-[405px] left-[258px] bg-[#ffe1d1] flex flex-col items-start justify-end absolute rounded-3xl"
+            >
+              <div
+                class="relative self-stretch mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Lifetime Use
+              </div>
+              <p
+                class="self-stretch text-normal-dark text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+              >
+                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
+              </p>
+            </div>
+            <div
+              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 absolute top-[1063px] left-[258px] bg-[#ffefcf] rounded-3xl"
+            >
+              <div
+                class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Best Quality
+              </div>
+              <p
+                class="self-stretch text-normal-dark text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+              >
+                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
+              </p>
+            </div>
+            <div
+              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 absolute top-[734px] left-[145px] bg-primary rounded-3xl"
+            >
+              <div
+                class="relative self-stretch mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-white text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Eco-friendly
+              </div>
+              <p
+                class="self-stretch text-white text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+              >
+                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
+              </p>
+            </div>
+            <div
+              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 absolute top-[734px] left-[1366px] bg-primary rounded-3xl"
+            >
+              <div
+                class="relative self-stretch mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-white text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Comical Free
+              </div>
+              <p
+                class="self-stretch text-white text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+              >
+                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
+              </p>
+            </div>
+            <div
+              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 top-[405px] left-[1242px] bg-[#ffefcf] absolute rounded-3xl"
+            >
+              <div
+                class="relative self-stretch mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Customization
+              </div>
+              <p
+                class="self-stretch text-normal-dark text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+              >
+                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
+              </p>
+            </div>
+            <div
+              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 absolute top-[1063px] left-[1242px] bg-[#ffe1d1] rounded-3xl"
+            >
+              <div
+                class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Wall hanging flower/ bouquet
+              </div>
+              <p
+                class="self-stretch text-normal-dark text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
+              >
+                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
+              </p>
+            </div>
+            <img
+              class="absolute w-[62px] h-[62px] top-[614px] left-[1277px]"
+              src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+            />
+            <img
+              class="absolute w-[62px] h-[62px] top-[727px] left-[563px]"
+              src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
+            />
+          </div>
+          <div class="inline-flex flex-col items-start gap-[82px] absolute top-[5682px] left-[1463px]">
+            <div class="flex relative self-stretch w-full flex-[0_0_auto] flex-col items-center">
+              <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
+                <div
+                  class="relative w-fit mt-[-4.00px] font-h3 font-[number:var(--h3-font-weight)] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
+                >
+                  Collection
+                </div>
+              </div>
+              <p
+                class="relative w-fit font-h1 font-[number:var(--h1-font-weight)] text-dark text-[length:var(--h1-font-size)] text-center tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] [font-style:var(--h1-font-style)]"
+              >
+                <span
+                  class="text-[#303030] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
+                  >Our Best
+                </span>
+                <span
+                  class="text-[#ff7f7f] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
+                  >Collections</span
+                >
+              </p>
+            </div>
+            <img class="relative flex-[0_0_auto]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/frame-37.svg" />
+          </div>
+          <div class="top-[6660px] left-16 absolute w-[2094px] h-[2198px]">
+            <div class="relative h-[2198px]">
+              <div
+                class="absolute w-[1479px] h-[1479px] top-[304px] left-[304px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
+              ></div>
+              <div
+                class="absolute w-[1479px] h-[1479px] top-[415px] left-[311px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
+              ></div>
+            </div>
+          </div>
+          <div class="top-[6858px] left-[2593px] absolute w-[2094px] h-[2198px]">
+            <div class="relative h-[2198px]">
+              <div
+                class="absolute w-[1479px] h-[1479px] top-[304px] left-[304px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
+              ></div>
+              <div
+                class="absolute w-[1479px] h-[1479px] top-[415px] left-[311px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
+              ></div>
+            </div>
+          </div>
+          <div class="absolute w-[1920px] h-[695px] top-[7324px] left-[1465px] bg-[#ffffffe6]"></div>
+          <div class="flex w-[1640px] items-start justify-between absolute top-[7458px] left-[1605px]">
+            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
+              <div class="inline-flex items-center gap-[9px] px-2.5 py-0 relative flex-[0_0_auto]">
+                <img class="relative w-11 h-11" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ion-flower-sharp.svg" />
+                <div
+                  class="w-fit text-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] relative mt-[-1.00px] font-h3 font-[number:var(--h3-font-weight)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
+                >
+                  Flowers
+                </div>
+              </div>
+              <p
+                class="w-[528px] text-normal-dark text-[length:var(--paragraph-font-size)] relative font-paragraph font-[number:var(--paragraph-font-weight)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
+              >
+                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor tellus diam
+                mauris dolor at dui.
+              </p>
+              <img class="relative flex-[0_0_auto]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/frame-3-1.svg" />
+            </div>
+            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
+              <div
+                class="mt-[-1.00px] text-dark relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Home
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Product
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Pages
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Blog
+              </div>
+              <div
+                class="text-normal-dark relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Contact
+              </div>
+            </div>
+            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
+              <div
+                class="mt-[-1.00px] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative w-fit font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Products
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Winter Collection
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Summer Collection
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Special Discount
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Top rated Products
+              </div>
+            </div>
+            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
+              <div
+                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Payment Method
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Credit card
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Debit card
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Bank Transfer
+              </div>
+              <div
+                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Paypal
+              </div>
+            </div>
+            <div class="inline-flex flex-col items-start gap-[19px] relative flex-[0_0_auto]">
+              <div
+                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+              >
+                Get Online
+              </div>
+              <img
+                class="relative w-[219px] h-[166px] object-cover"
+                src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-27.png"
+              />
+            </div>
+          </div>
+          <div class="flex w-[1644px] items-center justify-between absolute top-[7905px] left-[1605px]">
+            <p
+              class="relative w-[528px] mt-[-1.00px] font-paragraph font-[number:var(--paragraph-font-weight)] text-normal-dark text-[length:var(--paragraph-font-size)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
+            >
+              © 2024 all right reserved by bkalpdesign
+            </p>
+            <div
+              class="relative w-[245px] mt-[-1.00px] font-paragraph font-[number:var(--paragraph-font-weight)] text-primary text-[length:var(--paragraph-font-size)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
+            >
+              Design By- Bkalp design
+            </div>
+          </div>
+          <img
+            class="absolute w-[1640px] h-px top-[7833px] left-[1605px] object-cover"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/line-3.svg"
+          />
+          <img
+            class="absolute w-[238px] h-[379px] top-[6635px] left-[1465px]"
+            src="https://c.animaapp.com/mfms5gth2zVCyY/img/mask-group-3.png"
+          />
+          <div
+            class="absolute w-[1920px] h-[760px] top-[6564px] left-[1465px] bg-[#ffffff1f] border-t [border-top-style:solid] border-[#ffffff]"
+          >
+            <div class="relative w-[1364px] h-[645px] top-[115px] left-[230px]">
+              <div class="inline-flex absolute top-[21px] left-[387px] flex-col items-center">
+                <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
+                  <div
+                    class="relative w-fit mt-[-4.00px] font-h3 font-[number:var(--h3-font-weight)] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
+                  >
+                    TESTIMONIALS
+                  </div>
+                </div>
+                <p
+                  class="relative w-fit font-h1 font-[number:var(--h1-font-weight)] text-dark text-[length:var(--h1-font-size)] text-center tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] [font-style:var(--h1-font-style)]"
+                >
+                  <span
+                    class="text-[#303030] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
+                    >What our
+                  </span>
+                  <span
+                    class="text-[#ff7f7f] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
+                    >Clients Say</span
+                  >
+                </p>
+              </div>
+              <div class="absolute w-[1364px] h-[645px] top-0 left-0">
+                <img
+                  class="absolute w-[248px] h-[248px] top-0 left-[1116px]"
+                  src="https://c.animaapp.com/mfms5gth2zVCyY/img/bxs-quote-alt-left.svg"
+                />
+                <img
+                  class="absolute w-[248px] h-[217px] top-[428px] left-0"
+                  src="https://c.animaapp.com/mfms5gth2zVCyY/img/bxs-quote-alt-left-1.svg"
+                />
+                <div
+                  class="inline-flex flex-col items-center justify-center gap-[26px] absolute top-[217px] left-[175px]"
+                >
+                  <p
+                    class="w-[1059px] mt-[-1.00px] text-normal-dark text-[length:var(--paragraph-font-size)] text-center relative font-paragraph font-[number:var(--paragraph-font-weight)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
+                  >
+                    Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.Lorem
+                    ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.Lorem ipsum
+                    dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.Lorem ipsum dolor
+                    sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
+                  </p>
+                  <div class="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
+                    <div
+                      class="inline-flex flex-col items-start gap-[9px] px-6 py-1.5 relative flex-[0_0_auto] border-l-2 [border-left-style:solid] border-[#ffa3a3]"
+                    >
+                      <div
+                        class="relative w-[157px] mt-[-2.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
+                      >
+                        Bkalp Design
+                      </div>
+                      <div
+                        class="relative w-[157px] font-paragraph font-[number:var(--paragraph-font-weight)] text-normal-dark text-[length:var(--paragraph-font-size)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
+                      >
+                        UI/UX Designer
+                      </div>
+                    </div>
+                    <div class="inline-flex items-center justify-center gap-3 relative flex-[0_0_auto]">
+                      <img
+                        class="relative w-[30.43px] h-[28.94px]"
+                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
+                      />
+                      <img
+                        class="relative w-[30.43px] h-[28.94px]"
+                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
+                      />
+                      <img
+                        class="relative w-[30.43px] h-[28.94px]"
+                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
+                      />
+                      <img
+                        class="relative w-[30.43px] h-[28.94px]"
+                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
+                      />
+                      <img
+                        class="relative w-[30.43px] h-[28.94px]"
+                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </div>
-</div>
-
-<div id="dashboard-page" class="hidden">
-    <aside id="sidebar" class="sidebar"></aside>
-    <div id="sidebar-overlay" class="sidebar-overlay lg:hidden"></div>
-    <div class="content-wrapper w-full">
-        <div class="h-screen flex flex-col">
-            <header class="header sticky top-0 z-50 flex-shrink-0"></header>
-            <main class="flex-grow overflow-y-auto">
-                <div id="dashboard-wrapper" class="p-6">
-                    <div class="w-full max-w-7xl mx-auto space-y-6">
-                        <div id="dashboard-view" class="space-y-6 animate-on-load">
-                            <div>
-                                <h1 class="text-2xl font-extrabold text-text-primary">Good morning, Admin!</h1>
-                                <p class="text-text-secondary mt-1">Here's your performance summary for today.</p>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                <div id="total-users-card" class="stat-card p-5"><div class="flex items-center gap-4"><div class="stat-icon h-12 w-12 flex items-center justify-center rounded-lg"><i class="fa-solid fa-users text-xl"></i></div><div><p class="text-sm text-text-secondary font-medium">Total Users</p><p id="total-users-count" class="text-2xl font-bold">0</p></div></div></div>
-                                <div class="stat-card p-5"><div class="flex items-center gap-4"><div class="stat-icon h-12 w-12 flex items-center justify-center rounded-lg"><i class="fa-solid fa-dollar-sign text-xl"></i></div><div><p class="text-sm text-text-secondary font-medium">Revenue</p><p id="revenue-total" class="text-2xl font-bold">$0.00</p></div></div></div>
-                                <div id="active-users-card" class="stat-card p-5"><div class="flex items-center gap-4"><div class="stat-icon h-12 w-12 flex items-center justify-center rounded-lg"><i class="fa-solid fa-user-check text-xl"></i></div><div><p class="text-sm text-text-secondary font-medium">Active Users</p><p id="active-users-count" class="text-2xl font-bold">0</p></div></div></div>
-                                <div class="stat-card p-5" id="messages-card"><div class="flex items-center gap-4"><div class="stat-icon h-12 w-12 flex items-center justify-center rounded-lg"><i class="fa-solid fa-envelope text-xl"></i></div><div><p class="text-sm text-text-secondary font-medium">Messages</p><p id="messages-count" class="text-2xl font-bold">0</p></div></div></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="user-management-view" class="hidden">
-                    <div class="space-y-6 px-6 pb-6">
-                        <div class="pt-6 flex items-center gap-4">
-                            <button id="back-to-dashboard-from-users" class="header-btn h-10 w-10 flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-arrow-left text-lg"></i>
-                            </button>
-                            <div>
-                                <h2 id="user-list-title" class="text-2xl font-bold text-text-primary">User Management</h2>
-                                <p class="text-sm text-text-secondary mt-1">Search, view, and manage all users.</p>
-                            </div>
-                        </div>
-                        <!-- START: ADDED FILTER CONTROLS -->
-                        <div id="user-filter-controls" class="flex items-center gap-2 p-1 rounded-lg" style="background-color: var(--input-bg); border: 1px solid var(--input-border);">
-                            <button data-filter="inactive" class="user-filter-btn flex-1 px-4 py-2 text-sm font-semibold rounded-md transition-colors">Inactive</button>
-                            <button data-filter="active" class="user-filter-btn flex-1 px-4 py-2 text-sm font-semibold rounded-md transition-colors">Active</button>
-                        </div>
-                        <!-- END: ADDED FILTER CONTROLS -->
-                        <div class="relative">
-                            <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary"></i>
-                            <input type="text" id="user-search-input" placeholder="Search by name or email..." class="search-input w-full pl-10 pr-4 py-2.5 rounded-lg outline-none">
-                        </div>
-                        <div id="user-list-container"></div>
-                        <!-- Container for the "See More" button and loader -->
-                        <div id="user-list-footer" class="text-center py-4"></div>
-                    </div>
-                </div>
-                <div id="messages-view" class="hidden h-full flex">
-                    <div class="flex-none w-80 bg-panel-bg backdrop-filter backdrop-blur-md border-r border-panel-border flex flex-col">
-                        <div class="p-6 border-b border-panel-border flex items-center gap-4">
-                            <button id="back-to-dashboard-from-messages" class="header-btn h-10 w-10 flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-arrow-left text-lg"></i>
-                            </button>
-                            <div>
-                                <h2 class="text-2xl font-bold text-text-primary">Inbox</h2>
-                                <p class="text-sm text-text-secondary mt-1">Conversations with users.</p>
-                            </div>
-                        </div>
-                        <div id="inbox-list" class="flex-grow overflow-y-auto custom-scrollbar p-2">
-                            <div class="text-center text-text-muted py-10">Loading inbox...</div>
-                        </div>
-                    </div>
-                    <div id="chat-area" class="flex-grow flex flex-col relative">
-                        <div id="chat-header" class="flex-none p-6 border-b border-panel-border bg-panel-bg backdrop-filter backdrop-blur-md z-10 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <button id="close-chat-btn" class="lg:hidden h-8 w-8 flex-shrink-0 items-center justify-center header-btn"><i class="fa-solid fa-arrow-left text-lg"></i></button>
-                                <div>
-                                    <h3 id="chat-user-name" class="font-bold text-lg text-text-primary">Select a conversation</h3>
-                                    <!-- START: EMAIL WITH COPY ICON -->
-                                    <div class="flex items-center gap-2">
-                                        <p id="chat-user-email" class="text-sm text-text-secondary">No user selected</p>
-                                        <button id="copy-email-btn" class="hidden text-text-muted hover:text-active-link-icon transition-colors" title="Copy email">
-                                            <i class="fa-regular fa-copy"></i>
-                                        </button>
-                                    </div>
-                                    <!-- END: EMAIL WITH COPY ICON -->
-                                </div>
-                            </div>
-                        </div>
-                        <div id="chat-messages" class="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar flex flex-col">
-                            <div class="text-center text-text-muted py-10">No conversation selected.</div>
-                        </div>
-                        <div id="chat-upload-progress-container">
-                            <div class="progress-bar-container">
-                                <div id="chat-upload-progress-bar" class="progress-bar-inner"></div>
-                            </div>
-                        </div>
-                        <form id="chat-input-form" data-active-user-id="">
-                            <input type="file" id="chat-image-input" class="hidden" accept="image/*">
-                            <button type="button" id="chat-attach-btn" class="chat-action-btn" title="Attach Image" disabled>
-                                <i class="fa-solid fa-paperclip"></i>
-                            </button>
-                            <input type="text" id="chat-message-input" placeholder="Type a message..." disabled>
-                            <button type="submit" id="send-message-btn" class="chat-action-btn" title="Send Message" disabled>
-                                <i class="fa-solid fa-paper-plane"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                <div id="settings-view" class="hidden">
-                    <div class="space-y-6 px-6 pb-6">
-                        <div class="pt-6 flex items-center gap-4">
-                            <button id="back-to-dashboard-from-settings" class="header-btn h-10 w-10 flex items-center justify-center flex-shrink-0">
-                                <i class="fa-solid fa-arrow-left text-lg"></i>
-                            </button>
-                            <div>
-                                <h2 class="text-2xl font-bold text-text-primary">Pricing Plan Settings</h2>
-                                <p class="text-sm text-text-secondary mt-1">Manage your application's pricing plans.</p>
-                            </div>
-                        </div>
-                        <div class="settings-layout">
-                            <div class="settings-panel">
-                                <div class="p-4 border-b border-panel-border">
-                                    <button id="add-new-plan-btn" class="w-full flex items-center justify-center gap-2 px-5 py-2.5 font-semibold rounded-lg shadow-md">
-                                        <i class="fa-solid fa-plus"></i>
-                                        Add New Plan
-                                    </button>
-                                </div>
-                                <div id="settings-plan-list" class="overflow-y-auto max-h-[60vh]">
-                                </div>
-                            </div>
-                            <div id="settings-plan-editor" class="settings-panel">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-				
-				<!-- START: NEW VIEW FOR OTHERS ROUTERS -->
-                <div id="others-routers-view" class="hidden">
-                    <div class="space-y-6 px-6 pb-6">
-                        <div class="pt-6 flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <button id="back-to-dashboard-from-routers" class="header-btn h-10 w-10 flex items-center justify-center flex-shrink-0">
-                                    <i class="fa-solid fa-arrow-left text-lg"></i>
-                                </button>
-                                <div>
-                                    <h2 class="text-2xl font-bold text-text-primary">Others Routers</h2>
-
-                                </div>
-                            </div>
-                            <button id="add-new-router-btn" class="flex items-center justify-center gap-2 px-5 py-2.5 font-semibold rounded-lg shadow-md action-btn activate">
-                                <i class="fa-solid fa-plus"></i>
-                                Add New Router
-                            </button>
-                        </div>
-                        <div id="routers-container" class="space-y-4">
-                            <!-- Router cards will be rendered here by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-				<!-- END: NEW VIEW FOR OTHERS ROUTERS -->
-
-            </main>
-        </div>
-    </div>
-</div>
-
-<div id="activation-modal-overlay">
-    <div id="activation-modal">
-        <h2 class="text-xl font-bold text-text-primary mb-1">Activate User</h2>
-        <p class="text-text-secondary mb-6">Select an activation plan for the user.</p>
-        <div id="pricing-plans-container" class="space-y-3 mb-6">
-        </div>
-        <p id="modal-error" class="text-red-500 text-sm mb-4 text-center hidden"></p>
-        <div class="flex justify-end gap-3">
-            <button id="modal-cancel-btn" class="px-4 py-2 rounded-lg font-semibold text-text-secondary hover:bg-gray-500/10 transition-colors">Cancel</button>
-            <button id="modal-confirm-btn" class="px-6 py-2 rounded-lg font-semibold text-white" style="background: var(--primary-gradient);">Confirm</button>
-        </div>
-    </div>
-</div>
-
-<div id="image-preview-overlay" class="hidden fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm z-[2000] flex items-center justify-center p-4">
-    <img id="preview-image-src" src="" alt="Image Preview" class="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl">
-    <button id="preview-close-btn" class="absolute top-5 right-5 text-white text-3xl font-bold">
-        <i class="fa-solid fa-times"></i>
-    </button>
-</div>
-
-<!-- START: সঠিক ক্রমে Firebase SDK যোগ করা হয়েছে -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app-check.js"></script>
-<!-- END: Firebase SDK -->
-
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-    // --- START: FIREBASE এবং APP CHECK চালু করার সঠিক প্রক্রিয়া ---
-    try {
-        // ধাপ ১: সার্ভার (Vercel API) থেকে Firebase কনফিগারেশন আনা হচ্ছে।
-        // এটি আপনার সিক্রেট কী-গুলোকে সুরক্ষিত রাখে।
-        const response = await fetch('/api/config');
-        if (!response.ok) {
-            throw new Error(`Firebase কনফিগারেশন লোড করা যায়নি। স্ট্যাটাস: ${response.status}`);
-        }
-        const firebaseConfig = await response.json();
-
-        // ধাপ ২: প্রাপ্ত কনফিগারেশন দিয়ে Firebase অ্যাপ চালু করা হচ্ছে।
-        // এটি মাত্র একবারই করতে হয়।
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-
-        // ধাপ ৩: Firebase চালু হওয়ার ঠিক পরেই App Check فعال করা হচ্ছে।
-        // এটি সবচেয়ে গুরুত্বপূর্ণ ধাপ। আপনার অ্যাপের ব্যাকএন্ডকে সুরক্ষিত রাখার জন্য এটি আবশ্যক।
-        // App Check ব্যাকগ্রাউন্ডে অ্যাসিঙ্ক্রোনাসভাবে কাজ করে টোকেন সংগ্রহ করে।
-        const appCheck = firebase.appCheck();
-        appCheck.activate(
-            '6LdDE6wrAAAAAAwoKDphiThT-W7MHcS676QE6hgP', // আপনার reCAPTCHA v3 Site Key
-            true // টোকেন অটো-রিফ্রেশ চালু করা হলো
-        );
-        
-        console.log("অ্যাডমিন প্যানেল: Firebase App Check সফলভাবে চালু হয়েছে।");
-
-    } catch (error) {
-        console.error("গুরুতর ত্রুটি: Firebase চালু করা বা App Check فعال করা যায়নি।", error);
-        // ব্যবহারকারীকে একটি এরর মেসেজ দেখানো হচ্ছে কারণ অ্যাপটি কাজ করতে পারবে না
-        document.body.innerHTML = `<div style="text-align: center; padding: 40px; font-family: sans-serif;">
-            <h1>অ্যাপ্লিকেশন এরর</h1>
-            <p>অ্যাপ্লিকেশনের কনফিগারেশন লোড করা যায়নি। অনুগ্রহ করে কনসোল চেক করুন এবং সাপোর্টে যোগাযোগ করুন।</p>
-        </div>`;
-        return; // পরবর্তী কোড এক্সিকিউশন বন্ধ করা হলো
-    }
-    // --- END: FIREBASE এবং APP CHECK চালু করার প্রক্রিয়া ---
-
-
-    // Firebase সফলভাবে চালু হওয়ার পর বাকি কোডগুলো এখানে থাকবে
-    const auth = firebase.auth();
-    const database = firebase.database();
-    const storage = firebase.storage();
-
-    // --- START: CORRECTED State Management for User Loading ---
-    let userCache = {}; // Cache for stats and chat user details
-    let allUsersArray = []; // Single source of truth for the user list UI
-    let filteredUsers = []; // The currently filtered list (active/inactive)
-    let displayedUsersCount = 0; // How many users from the filtered list are currently shown
-    let pricingPlans = [];
-    let currentUserFilter = 'inactive'; // Default filter state
-
-    const USERS_PER_PAGE = 10;
-    let isRenderingUsers = false; // Flag to prevent multiple render calls
-    let searchDebounceTimer;
-    // --- END: CORRECTED State Management ---
-
-
-    const pageLoader = document.getElementById('page-loader');
-    const loginPage = document.getElementById('login-page');
-    const dashboardPage = document.getElementById('dashboard-page');
-    const loginForm = document.getElementById('login-form');
-    
-    // Views
-    const dashboardWrapper = document.getElementById('dashboard-wrapper');
-    const userManagementView = document.getElementById('user-management-view');
-    const settingsView = document.getElementById('settings-view');
-    const messagesView = document.getElementById('messages-view');
-	const othersRoutersView = document.getElementById('others-routers-view'); // New View Element
-    const inboxList = document.getElementById('inbox-list');
-    const chatArea = document.getElementById('chat-area');
-    const chatHeader = document.getElementById('chat-header');
-    const chatUserNameEl = document.getElementById('chat-user-name');
-    const chatUserEmailEl = document.getElementById('chat-user-email');
-    const copyEmailBtn = document.getElementById('copy-email-btn'); // New element
-    const chatMessagesEl = document.getElementById('chat-messages');
-    const chatInputForm = document.getElementById('chat-input-form');
-    const chatMessageInput = document.getElementById('chat-message-input');
-    const sendMessageBtn = document.getElementById('send-message-btn');
-    const closeChatBtn = document.getElementById('close-chat-btn');
-    const chatAttachBtn = document.getElementById('chat-attach-btn');
-    const chatImageInput = document.getElementById('chat-image-input');
-    const chatUploadProgressContainer = document.getElementById('chat-upload-progress-container');
-    const chatUploadProgressBar = document.getElementById('chat-upload-progress-bar');
-
-
-    // Modal elements
-    const modalOverlay = document.getElementById('activation-modal-overlay');
-    const modal = document.getElementById('activation-modal');
-    const plansContainer = document.getElementById('pricing-plans-container');
-    const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-    const modalCancelBtn = document.getElementById('modal-cancel-btn');
-    const modalError = document.getElementById('modal-error');
-    
-    // Image Preview Modal Elements
-    const imagePreviewOverlay = document.getElementById('image-preview-overlay');
-    const previewImageSrc = document.getElementById('preview-image-src');
-    const previewCloseBtn = document.getElementById('preview-close-btn');
-
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            dashboardPage.classList.remove('hidden');
-            loginPage.classList.add('hidden');
-            initializeDashboard(user);
-        } else {
-            loginPage.classList.remove('hidden');
-            dashboardPage.classList.add('hidden');
-            pageLoader.classList.add('hidden');
-        }
-    });
-
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        pageLoader.classList.remove('hidden');
-        const email = loginForm.email.value;
-        const password = loginForm.password.value;
-        auth.signInWithEmailAndPassword(email, password).catch(error => {
-            document.getElementById('login-error').textContent = error.message;
-            document.getElementById('login-error').classList.remove('hidden');
-            pageLoader.classList.add('hidden');
-        });
-    });
-    
-    // Image preview logic
-    window.showImagePreview = (src) => {
-        if (!src) return;
-        previewImageSrc.setAttribute('src', src);
-        imagePreviewOverlay.classList.remove('hidden');
-    };
-    const hideImagePreview = () => {
-        imagePreviewOverlay.classList.add('hidden');
-        previewImageSrc.setAttribute('src', '');
-    };
-    previewCloseBtn.addEventListener('click', hideImagePreview);
-    imagePreviewOverlay.addEventListener('click', (e) => {
-        if (e.target.id === 'image-preview-overlay') {
-            hideImagePreview();
-        }
-    });
-
-
-    async function runExpiredUserCheck() {
-        const now = Date.now();
-        const usersRef = database.ref('users');
-        const snapshot = await usersRef.orderByChild('active').equalTo(true).once('value');
-        const activeUsers = snapshot.val() || {};
-        const expiredUserIds = Object.entries(activeUsers).filter(([id, user]) => user.expire && user.expire < now).map(([id, user]) => id);
-        if (expiredUserIds.length === 0) return;
-        const deactivationDelay = 300;
-        for (const userId of expiredUserIds) {
-            try {
-                await database.ref(`users/${userId}`).update({ active: false });
-            } catch (error) { console.error(`Failed to deactivate user ${userId}:`, error); }
-            await new Promise(resolve => setTimeout(resolve, deactivationDelay));
-        }
-    }
-
-    let currentActiveChatUserId = null;
-    let messagesRef = database.ref('massages');
-    let adminReadsRef = database.ref('adminReads');
-    let inboxUsers = []; 
-    let adminLastReads = {};
-
-    function initializeDashboard(user) {
-        const sidebar = document.getElementById('sidebar');
-        const header = dashboardPage.querySelector('header');
-        
-        const totalUsersCountEl = document.getElementById('total-users-count');
-        const activeUsersCountEl = document.getElementById('active-users-count');
-        const revenueTotalEl = document.getElementById('revenue-total');
-        const messagesCountEl = document.getElementById('messages-count');
-        const totalUsersCard = document.getElementById('total-users-card');
-        const activeUsersCard = document.getElementById('active-users-card');
-        const messagesCard = document.getElementById('messages-card');
-        const userListContainer = document.getElementById('user-list-container');
-        const userListTitle = document.getElementById('user-list-title');
-        const userSearchInput = document.getElementById('user-search-input');
-
-        sidebar.innerHTML = `
-            <div class="flex flex-col h-full">
-                <!-- START: SIDEBAR DESIGN IMPROVEMENT -->
-                <div class="sidebar-header h-20 flex items-center justify-start px-4">
-                    <a href="#" class="flex items-center gap-3 w-full">
-                        <span class="flex items-center justify-center h-12 w-12 text-white rounded-xl transition-transform duration-300 hover:scale-110 flex-shrink-0" style="background: var(--primary-gradient);">
-                            <i class="fa-solid fa-square-poll-vertical text-2xl"></i>
-                        </span>
-                        <span class="logo-text text-2xl font-bold" style="color:var(--active-link-icon);">Baul 2.0</span>
-                    </a>
-                </div>
-                <!-- END: SIDEBAR DESIGN IMPROVEMENT -->
-
-                <nav class="flex-grow p-2 space-y-1">
-                    <a href="#" class="nav-link active" id="dashboard-nav-link">
-                        <i class="fa-solid fa-house"></i>
-                        <span class="nav-link-text">Dashboard</span>
-                    </a>
-                    <a href="#" class="nav-link" id="messages-nav-link">
-                        <i class="fa-solid fa-envelope"></i>
-                        <span class="nav-link-text">Messages</span>
-                    </a>
-                    <a href="#" class="nav-link" id="settings-nav-link">
-                        <i class="fa-solid fa-cog"></i>
-                        <span class="nav-link-text">Setting</span>
-                    </a>
-					<a href="#" class="nav-link" id="others-routers-nav-link">
-						<i class="fa-solid fa-route"></i>
-						<span class="nav-link-text">Others Routers</span>
-					</a>
-                </nav>
-
-                <div class="p-4 mt-auto">
-                    <a href="#" id="logout-btn" class="nav-link">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span class="nav-link-text">Logout</span>
-                    </a>
-                </div>
-            </div>`;
-        
-        header.innerHTML = `<div class="w-full mx-auto flex items-center justify-between h-20 px-6"><div class="flex items-center gap-4"><button id="menu-button" aria-label="Open menu" class="lg:hidden h-10 w-10 flex items-center justify-center header-btn"><i class="fa-solid fa-bars text-lg"></i></button></div><div class="flex items-center gap-4 ml-auto"><button id="theme-toggle" aria-label="Toggle theme" class="header-btn h-10 w-10 flex items-center justify-center"><i class="fa-solid fa-sun hidden dark:inline"></i><i class="fa-solid fa-moon dark:hidden"></i></button><button aria-label="Notifications" class="header-btn h-10 w-10 flex items-center justify-center relative"><i class="fa-regular fa-bell text-lg"></i><span class="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full"></span></button></div></div>`;
-        
-        const messagesNavLink = document.getElementById('messages-nav-link');
-
-        const docElement = document.documentElement;
-        const applyTheme = (theme) => docElement.classList.toggle('dark', theme === 'dark');
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        applyTheme(savedTheme);
-        document.getElementById('theme-toggle').addEventListener('click', () => { const newTheme = docElement.classList.contains('dark') ? 'light' : 'dark'; applyTheme(newTheme); localStorage.setItem('theme', newTheme); });
-        document.getElementById('menu-button').addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.add('open'); document.getElementById('sidebar-overlay').classList.add('open'); });
-        document.getElementById('sidebar-overlay').addEventListener('click', () => { sidebar.classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); });
-        document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); auth.signOut(); });
-        
-        const navLinks = sidebar.querySelectorAll('.nav-link');
-        const hideAllViews = () => {
-            dashboardWrapper.classList.add('hidden');
-            userManagementView.classList.add('hidden');
-            settingsView.classList.add('hidden');
-            messagesView.classList.add('hidden'); 
-			othersRoutersView.classList.add('hidden');
-            navLinks.forEach(link => link.classList.remove('active'));
-            messagesView.classList.remove('chat-open-mobile');
-        };
-        
-        const showUserManagementView = (filter) => {
-            hideAllViews();
-            currentUserFilter = filter;
-            userSearchInput.value = '';
-
-            // Filter the master user list
-            const isFilterActive = filter === 'active';
-            filteredUsers = allUsersArray.filter(user => (user.active || false) === isFilterActive);
-            
-            // Reset display
-            displayedUsersCount = 0;
-            userListContainer.innerHTML = '';
-            
-            userManagementView.classList.remove('hidden');
-            userManagementView.classList.add('animate-view-change');
-            
-            // Update filter buttons UI
-            const buttons = document.querySelectorAll('#user-filter-controls .user-filter-btn');
-            buttons.forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.filter === currentUserFilter);
-            });
-            
-            renderMoreUsers(); // Initial render of the first page
-        };
-        
-        const showDashboardView = () => { hideAllViews(); dashboardWrapper.classList.remove('hidden'); dashboardWrapper.classList.add('animate-view-change'); document.getElementById('dashboard-nav-link').classList.add('active'); };
-        const showSettingsView = () => { hideAllViews(); settingsView.classList.remove('hidden'); settingsView.classList.add('animate-view-change'); document.getElementById('settings-nav-link').classList.add('active'); renderSettingsLayout(); };
-        
-		const showOthersRoutersView = () => {
-			hideAllViews();
-			othersRoutersView.classList.remove('hidden');
-			othersRoutersView.classList.add('animate-view-change');
-			document.getElementById('others-routers-nav-link').classList.add('active');
-			loadAndRenderRouters();
-		};
-
-        const showMessagesView = () => {
-            hideAllViews();
-            messagesView.classList.remove('hidden');
-            messagesView.classList.add('animate-view-change');
-            messagesNavLink.classList.add('active');
-            loadInbox();
-            chatUserNameEl.textContent = 'Select a conversation';
-            chatUserEmailEl.textContent = 'No user selected';
-            copyEmailBtn.classList.add('hidden'); // Hide copy button initially
-            chatMessagesEl.innerHTML = '<div class="text-center text-text-muted py-10">No conversation selected.</div>';
-            chatMessageInput.disabled = true;
-            sendMessageBtn.disabled = true;
-            chatAttachBtn.disabled = true;
-            currentActiveChatUserId = null;
-            chatInputForm.dataset.activeUserId = "";
-        };
-
-        totalUsersCard.addEventListener('click', () => showUserManagementView('inactive'));
-        activeUsersCard.addEventListener('click', () => showUserManagementView('active'));
-        messagesCard.addEventListener('click', () => showMessagesView());
-        document.getElementById('dashboard-nav-link').addEventListener('click', (e) => { e.preventDefault(); showDashboardView(); });
-        document.getElementById('messages-nav-link').addEventListener('click', (e) => { e.preventDefault(); showMessagesView(); });
-        document.getElementById('settings-nav-link').addEventListener('click', (e) => { e.preventDefault(); showSettingsView(); });
-		document.getElementById('others-routers-nav-link').addEventListener('click', (e) => { e.preventDefault(); showOthersRoutersView(); });
-        
-        document.getElementById('back-to-dashboard-from-users').addEventListener('click', (e) => { e.preventDefault(); showDashboardView(); });
-        document.getElementById('back-to-dashboard-from-messages').addEventListener('click', (e) => { e.preventDefault(); showDashboardView(); });
-        document.getElementById('back-to-dashboard-from-settings').addEventListener('click', (e) => { e.preventDefault(); showDashboardView(); });
-		document.getElementById('back-to-dashboard-from-routers').addEventListener('click', (e) => { e.preventDefault(); showDashboardView(); });
-		document.getElementById('add-new-router-btn').addEventListener('click', addNewRouterCard);
-
-        document.getElementById('add-new-plan-btn').addEventListener('click', () => editPlanForm(-1));
-        
-        document.querySelectorAll('#user-filter-controls .user-filter-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const newFilter = btn.dataset.filter;
-                if (newFilter !== currentUserFilter) {
-                    showUserManagementView(newFilter);
-                }
-            });
-        });
-        
-        database.ref('setting/pricingPlans').on('value', (snapshot) => { pricingPlans = snapshot.val() || []; if (!settingsView.classList.contains('hidden')) renderSettingsLayout(); });
-
-        // --- START: DATA LOADING LOGIC ---
-        const usersRef = database.ref('users');
-
-        // Load all user data once for caching and for the user list UI.
-        usersRef.once('value', (snapshot) => {
-            userCache = snapshot.val() || {};
-            allUsersArray = Object.entries(userCache).map(([id, data]) => ({ id, ...data }));
-            updateDashboardCounts();
-            pageLoader.classList.add('hidden');
-            runExpiredUserCheck();
-        });
-
-        // Listen for realtime changes to update caches and the UI.
-        usersRef.on('child_changed', (snapshot) => {
-            const userId = snapshot.key;
-            const updatedUser = snapshot.val();
-            
-            // Update caches
-            userCache[userId] = updatedUser;
-            const userIndex = allUsersArray.findIndex(u => u.id === userId);
-            if (userIndex > -1) {
-                allUsersArray[userIndex] = { id: userId, ...updatedUser };
-            }
-            
-            updateDashboardCounts();
-            
-            const cardInDom = document.querySelector(`.user-card[data-user-id="${userId}"]`);
-            if (cardInDom) {
-                const cardIsActive = updatedUser.active || false;
-                const filterIsActive = currentUserFilter === 'active';
-                
-                // If the user's new status mismatches the current filter, remove the card.
-                if (cardIsActive !== filterIsActive) {
-                    cardInDom.style.transition = 'opacity 0.5s, transform 0.5s';
-                    cardInDom.style.opacity = '0';
-                    cardInDom.style.transform = 'scale(0.8)';
-                    setTimeout(() => cardInDom.remove(), 500);
-                } else {
-                    // Otherwise, just update its content.
-                    cardInDom.querySelector('.card-content-wrapper').innerHTML = createUserCardHTML(userId, updatedUser, true);
-                }
-            }
-        });
-        
-        usersRef.on('child_added', (snapshot) => {
-            const userId = snapshot.key;
-            if (!userCache[userId]) { // If it's a genuinely new user
-                const newUser = { id: userId, ...snapshot.val() };
-                userCache[userId] = snapshot.val();
-                allUsersArray.push(newUser);
-                updateDashboardCounts();
-            }
-        });
-        
-        usersRef.on('child_removed', (snapshot) => {
-            const userId = snapshot.key;
-            delete userCache[userId];
-            allUsersArray = allUsersArray.filter(u => u.id !== userId);
-            updateDashboardCounts();
-            const cardInDom = document.querySelector(`.user-card[data-user-id="${userId}"]`);
-            if (cardInDom) {
-                cardInDom.remove();
-            }
-        });
-        // --- END: DATA LOADING LOGIC ---
-
-
-        database.ref('Revenue/total').on('value', (snapshot) => { const total = snapshot.val() || 0; revenueTotalEl.textContent = `$${total.toFixed(2)}`; });
-        
-        userSearchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.trim();
-            clearTimeout(searchDebounceTimer);
-            
-            if (!searchTerm) {
-                showUserManagementView(currentUserFilter);
-                return;
-            }
-            
-            searchDebounceTimer = setTimeout(() => {
-                searchUsers(searchTerm);
-            }, 500);
-        });
-        
-        function updateDashboardCounts() {
-            if (!totalUsersCountEl || !activeUsersCountEl || !allUsersArray) return;
-            totalUsersCountEl.textContent = allUsersArray.length;
-            activeUsersCountEl.textContent = allUsersArray.filter(user => user.active).length;
-        }
-
-        adminReadsRef.on('value', (snapshot) => {
-            adminLastReads = snapshot.val() || {};
-            if (!messagesView.classList.contains('hidden')) {
-                renderInboxList();
-            }
-            updateMessagesCount();
-        });
-
-        messagesRef.on('value', (snapshot) => {
-            const allMessages = snapshot.val() || {};
-            inboxUsers = [];
-            
-            for (const userId in allMessages) {
-                if (!userCache[userId]) continue; 
-
-                const userMessages = allMessages[userId];
-                const messageKeys = Object.keys(userMessages);
-                if (messageKeys.length === 0) continue;
-
-                const sortedMessages = Object.values(userMessages).sort((a, b) => a.timestamp - b.timestamp);
-                const lastMessage = sortedMessages[sortedMessages.length - 1];
-
-                const userName = userCache[userId]?.Name || 'Unknown User';
-                const userEmail = userCache[userId]?.email || 'N/A';
-                const photoURL = userCache[userId]?.photoURL;
-
-                const lastReadTimestamp = adminLastReads[userId] || 0;
-                const isUnread = (lastMessage.sender === 'user' && lastMessage.timestamp > lastReadTimestamp);
-
-                inboxUsers.push({
-                    userId: userId,
-                    userName: userName,
-                    userEmail: userEmail,
-                    photoURL: photoURL,
-                    lastMessage: lastMessage.text,
-                    lastMessageTimestamp: lastMessage.timestamp,
-                    isUnread: isUnread,
-                    lastMessageIsImage: !!lastMessage.imageUrl
-                });
-            }
-
-            inboxUsers.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp);
-
-            updateMessagesCount(inboxUsers.filter(u => u.isUnread).length);
-            if (!messagesView.classList.contains('hidden')) {
-                renderInboxList();
-                if (currentActiveChatUserId && inboxUsers.some(u => u.userId === currentActiveChatUserId)) {
-                    openChat(currentActiveChatUserId, false); 
-                }
-            }
-        });
-
-        function updateMessagesCount(count) {
-            if (count === undefined) {
-                count = inboxUsers.filter(u => u.isUnread).length;
-            }
-            messagesCountEl.textContent = count;
-            if (count > 0) {
-                messagesCard.classList.add('has-new-messages');
-            } else {
-                messagesCard.classList.remove('has-new-messages');
-            }
-        }
-
-        function loadInbox() {
-            inboxList.innerHTML = `<div class="flex justify-center items-center py-10 text-text-muted"><div class="spinner w-8 h-8"></div></div>`;
-            renderInboxList();
-        }
-
-        function renderInboxList() {
-            inboxList.innerHTML = ''; 
-            if (inboxUsers.length === 0) {
-                inboxList.innerHTML = `<div class="text-center text-text-muted py-10">No messages yet.</div>`;
-                return;
-            }
-
-            inboxUsers.forEach((user) => {
-                const item = document.createElement('div');
-                item.className = `inbox-item ${user.isUnread ? 'unread' : ''} ${user.userId === currentActiveChatUserId ? 'active-chat' : ''}`;
-                item.dataset.userId = user.userId;
-                
-                const avatarSrc = user.photoURL 
-                    ? user.photoURL 
-                    : `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(user.userName || user.userEmail)}`;
-
-                const lastMessageText = user.lastMessageIsImage ? '<i class="fa-regular fa-image mr-1"></i> Photo' : (user.lastMessage || 'No messages yet');
-
-                item.innerHTML = `
-                    <div class="inbox-avatar flex-shrink-0">
-                        <img src="${avatarSrc}" alt="Avatar" class="h-10 w-10 rounded-full border border-panel-border object-cover">
-                    </div>
-                    <div class="flex-grow overflow-hidden">
-                        <p class="inbox-user-name font-bold text-text-primary truncate">${user.userName}</p>
-                        <p class="inbox-last-message text-sm text-text-secondary truncate">${lastMessageText}</p>
-                    </div>
-                    <div class="inbox-meta flex-shrink-0 text-right">
-                        <p class="text-xs text-text-muted">${formatTimestampShort(user.lastMessageTimestamp)}</p>
-                        ${user.isUnread ? '<span class="unread-dot h-2.5 w-2.5 rounded-full block ml-auto mt-1"></span>' : ''}
-                    </div>
-                `;
-                item.addEventListener('click', () => {
-                    openChat(user.userId, true);
-                    if (window.innerWidth <= 1024) {
-                        messagesView.classList.add('chat-open-mobile');
-                    }
-                });
-                inboxList.appendChild(item);
-            });
-        }
-
-        function formatTimestampShort(timestamp) {
-            if (!timestamp) return '';
-            const date = new Date(timestamp);
-            const now = new Date();
-            const diffTime = Math.abs(now.getTime() - date.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-            if (diffDays <= 1 && date.getDate() === now.getDate()) {
-                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            } else if (diffDays <= 2 && date.getDate() === now.getDate() - 1) {
-                return 'Yesterday';
-            } else {
-                return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-            }
-        }
-
-        copyEmailBtn.addEventListener('click', () => {
-            const email = chatUserEmailEl.textContent;
-            if (email && email !== 'No user selected') {
-                navigator.clipboard.writeText(email).then(() => {
-                    const icon = copyEmailBtn.querySelector('i');
-                    icon.classList.remove('fa-copy');
-                    icon.classList.add('fa-check');
-                    copyEmailBtn.title = 'Copied!';
-                    setTimeout(() => {
-                        icon.classList.remove('fa-check');
-                        icon.classList.add('fa-copy');
-                        copyEmailBtn.title = 'Copy email';
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Failed to copy email: ', err);
-                });
-            }
-        });
-
-        function openChat(userId, markAsRead = true) {
-            currentActiveChatUserId = userId;
-            document.querySelectorAll('.inbox-item').forEach(item => {
-                item.classList.toggle('active-chat', item.dataset.userId === userId);
-            });
-
-            const user = inboxUsers.find(u => u.userId === userId);
-            if (!user) {
-                chatUserNameEl.textContent = 'User Not Found';
-                chatUserEmailEl.textContent = '';
-                copyEmailBtn.classList.add('hidden'); // Hide on error
-                chatMessagesEl.innerHTML = '<div class="text-center text-text-muted py-10">Error: User data not found.</div>';
-                chatMessageInput.disabled = true;
-                sendMessageBtn.disabled = true;
-                chatAttachBtn.disabled = true;
-                return;
-            }
-            
-            chatUserNameEl.textContent = user.userName;
-            chatUserEmailEl.textContent = user.userEmail;
-            copyEmailBtn.classList.remove('hidden'); // Show copy button
-
-            chatMessageInput.disabled = false;
-            sendMessageBtn.disabled = false;
-            chatAttachBtn.disabled = false;
-            chatInputForm.dataset.activeUserId = userId;
-
-            const selectedInboxItem = document.querySelector(`.inbox-item[data-user-id="${userId}"]`);
-            if (selectedInboxItem) {
-                selectedInboxItem.classList.remove('unread');
-                selectedInboxItem.querySelector('.unread-dot')?.remove();
-            }
-
-            if (markAsRead && user.isUnread) {
-                adminReadsRef.child(userId).set(Date.now())
-                    .catch(error => console.error("Failed to mark as read:", error));
-            }
-            
-            if (currentActiveChatUserId && messagesRef.child(currentActiveChatUserId)) {
-                messagesRef.child(currentActiveChatUserId).off('value');
-            }
-            messagesRef.child(userId).on('value', (snapshot) => {
-                const messages = snapshot.val() || {};
-                renderChatMessages(Object.values(messages));
-            });
-        }
-        
-        function renderChatMessages(messages) {
-            chatMessagesEl.innerHTML = '';
-            if (messages.length === 0) {
-                chatMessagesEl.innerHTML = `<div class="text-center text-text-muted py-10">Start the conversation!</div>`;
-                return;
-            }
-
-            messages.sort((a, b) => a.timestamp - b.timestamp);
-
-            messages.forEach(msg => {
-                const wrapperDiv = document.createElement('div');
-                const isUserMessage = msg.sender === 'user';
-                
-                wrapperDiv.className = `chat-message-wrapper ${isUserMessage ? 'user-message' : 'admin-message'}`;
-                
-                const senderDisplayName = isUserMessage ? (userCache[currentActiveChatUserId]?.Name || 'User') : 'Admin';
-
-                let messageContentHTML = '';
-                if (msg.imageUrl) {
-                    messageContentHTML = `<img src="${msg.imageUrl}" alt="Chat Image" class="chat-image" onclick="window.showImagePreview('${msg.imageUrl}')">`;
-                } else if (msg.text) {
-                    messageContentHTML = `<div class="chat-bubble-text"><p class="message-sender-name">${senderDisplayName}</p><p class="message-text">${msg.text}</p></div>`;
-                } else {
-                    messageContentHTML = `<div class="chat-bubble-text"><p class="message-sender-name">${senderDisplayName}</p></div>`;
-                }
-
-                wrapperDiv.innerHTML = `
-                    <div class="chat-bubble">
-                        ${messageContentHTML}
-                    </div>
-                    <p class="chat-timestamp">${new Date(msg.timestamp).toLocaleTimeString([], {hour: 'numeric', minute: '2-digit'})}</p>
-                `;
-                chatMessagesEl.appendChild(wrapperDiv);
-            });
-
-            setTimeout(() => {
-                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
-            }, 50);
-        }
-
-        chatInputForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const userId = chatInputForm.dataset.activeUserId;
-            const messageText = chatMessageInput.value.trim();
-
-            if (!userId || !messageText) {
-                return;
-            }
-            sendMessage(userId, { text: messageText });
-            chatMessageInput.value = '';
-        });
-
-        chatAttachBtn.addEventListener('click', () => {
-            if (!chatAttachBtn.disabled) {
-                chatImageInput.click();
-            }
-        });
-
-        chatImageInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            const userId = chatInputForm.dataset.activeUserId;
-            if (file && userId) {
-                handleImageUpload(userId, file);
-            }
-            e.target.value = '';
-        });
-
-        function sendMessage(userId, messageData) {
-            const finalMessage = {
-                sender: 'admin',
-                senderName: 'Admin',
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                ...messageData
-            };
-            messagesRef.child(userId).push(finalMessage)
-                .catch(error => console.error("Failed to send message:", error));
-        }
-
-        function handleImageUpload(userId, file) {
-            const timestamp = Date.now();
-            const storageRef = storage.ref(`chat_images/${userId}/${timestamp}_${file.name}`);
-            const uploadTask = storageRef.put(file);
-
-            chatUploadProgressContainer.classList.add('visible');
-            chatAttachBtn.disabled = true;
-            sendMessageBtn.disabled = true;
-            chatMessageInput.disabled = true;
-            chatMessageInput.placeholder = 'Uploading image...';
-
-            uploadTask.on('state_changed', 
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    chatUploadProgressBar.style.width = progress + '%';
-                }, 
-                (error) => {
-                    console.error("Image upload failed:", error);
-                    alert("Image upload failed. Please try again.");
-                    chatUploadProgressContainer.classList.remove('visible');
-                    chatAttachBtn.disabled = false;
-                    sendMessageBtn.disabled = false;
-                    chatMessageInput.disabled = false;
-                    chatMessageInput.placeholder = 'Type a message...';
-                }, 
-                () => {
-                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        sendMessage(userId, { imageUrl: downloadURL });
-
-                        setTimeout(() => {
-                           chatUploadProgressContainer.classList.remove('visible');
-                           chatUploadProgressBar.style.width = '0%';
-                           chatAttachBtn.disabled = false;
-                           sendMessageBtn.disabled = false;
-                           chatMessageInput.disabled = false;
-                           chatMessageInput.placeholder = 'Type a message...';
-                        }, 500);
-                    });
-                }
-            );
-        }
-
-        closeChatBtn.addEventListener('click', () => {
-            if (window.innerWidth <= 1024) {
-                messagesView.classList.remove('chat-open-mobile');
-            }
-        });
-        
-        function createButtonHTML(id, isActive) { return isActive ? `<button class="action-btn deactivate w-full" onclick="window.handleDeactivationClick(event, '${id}')">Deactivate</button>` : `<button class="action-btn activate w-full" onclick="window.openActivationModal(event, '${id}')">Activate</button>`; }
-        
-        function createUserCardHTML(id, user, innerOnly = false) {
-            const avatarUrl = user.photoURL 
-                ? user.photoURL 
-                : `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(user.Name || user.email)}`;
-            
-            const statusDotClass = user.active ? 'bg-green-500' : 'bg-red-500';
-            const statusText = user.active ? 'Active' : 'Inactive';
-            let expiryHTML = '';
-            
-            const now = Date.now();
-            const isExpired = !user.active && user.expire && user.expire < now;
-
-            if (user.active && user.expire) {
-                expiryHTML = `<div class="mt-2 text-xs text-text-muted flex items-center gap-1.5"><i class="fa-regular fa-clock"></i><span class="expiry-countdown" data-expire="${user.expire}">Calculating...</span></div>`;
-            } else if (isExpired) {
-                expiryHTML = `<div class="mt-2 text-xs text-red-500 font-semibold flex items-center gap-1.5"><i class="fa-solid fa-triangle-exclamation"></i><span>Expired</span></div>`;
-            }
-
-            const content = `<div class="flex items-center gap-4"><img src="${avatarUrl}" alt="Avatar" class="user-avatar h-12 w-12 rounded-full border-2 border-white dark:border-slate-700 shadow-lg object-cover"><div class="overflow-hidden"><p class="font-bold text-md text-text-primary truncate" title="${user.Name || ''}">${user.Name || 'N/A'}</p><p class="text-xs text-text-muted truncate" title="${user.email || ''}">${user.email || 'N/A'}</p>${expiryHTML}</div></div><div class="flex-grow my-4"><div class="flex items-center gap-2"><div class="status-dot h-2.5 w-2.5 rounded-full ${statusDotClass}"></div><p class="status-label text-sm font-semibold text-text-secondary">${statusText}</p></div></div><div class="action-button-wrapper mt-auto pt-4 border-t border-panel-border/50">${createButtonHTML(id, user.active)}</div>`;
-
-            if (innerOnly) {
-                return content;
-            }
-
-            return `<div class="card-content-wrapper">${content}</div><div class="card-loading-overlay"><div class="flex flex-col items-center loading-content"><div class="fancy-spinner"></div><p class="loading-text">Updating...</p></div></div>`;
-        }
-        
-        // --- START: NEW AND CORRECTED FUNCTIONS FOR USER LIST RENDERING ---
-        
-        function renderMoreUsers() {
-            if (isRenderingUsers) return;
-            isRenderingUsers = true;
-
-            const userListContainer = document.getElementById('user-list-container');
-            const userListFooter = document.getElementById('user-list-footer');
-
-            if (displayedUsersCount === 0) {
-                userListContainer.innerHTML = '';
-                userListContainer.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
-            }
-            
-            const startIndex = displayedUsersCount;
-            const endIndex = startIndex + USERS_PER_PAGE;
-            const usersToRender = filteredUsers.slice(startIndex, endIndex);
-
-            if (usersToRender.length === 0 && startIndex === 0) {
-                userListContainer.className = 'text-center py-10';
-                userListContainer.innerHTML = `<p class="text-text-secondary">No users found for this filter.</p>`;
-                userListFooter.innerHTML = '';
-                isRenderingUsers = false;
-                return;
-            }
-
-            usersToRender.forEach((user, index) => {
-                const card = document.createElement('div');
-                card.className = 'user-card animate-stagger';
-                card.dataset.userId = user.id;
-                card.style.setProperty('--stagger-delay', `${index * 50}ms`);
-                card.style.setProperty('--shine-delay', `${Math.random() * -5}s`);
-                card.innerHTML = createUserCardHTML(user.id, user);
-                userListContainer.appendChild(card);
-            });
-
-            displayedUsersCount += usersToRender.length;
-            
-            // Update the footer (loader or button)
-            if (displayedUsersCount < filteredUsers.length) {
-                userListFooter.innerHTML = `<button id="see-more-btn">See More</button>`;
-                document.getElementById('see-more-btn').addEventListener('click', renderMoreUsers);
-            } else {
-                 userListFooter.innerHTML = `<p class="text-text-muted text-sm mt-4">You've reached the end of the list.</p>`;
-            }
-
-            isRenderingUsers = false;
-        }
-
-
-        function searchUsers(searchTerm) {
-            const userListContainer = document.getElementById('user-list-container');
-            const userListFooter = document.getElementById('user-list-footer');
-            userListFooter.innerHTML = '';
-
-            const term = searchTerm.toLowerCase();
-            const results = allUsersArray.filter(user => {
-                const name = (user.Name || '').toLowerCase();
-                const email = (user.email || '').toLowerCase();
-                return name.includes(term) || email.includes(term);
-            });
-
-            userListContainer.innerHTML = ''; // Clear previous cards
-            
-            if (results.length === 0) {
-                userListContainer.className = 'text-center py-10';
-                userListContainer.innerHTML = `<p class="text-text-secondary">No users found for "${searchTerm}".</p>`;
-                return;
-            }
-            
-            userListContainer.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6';
-            results.forEach((user, index) => {
-                const card = document.createElement('div');
-                card.className = 'user-card animate-stagger';
-                card.dataset.userId = user.id;
-                card.style.setProperty('--stagger-delay', `${index * 50}ms`);
-                card.style.setProperty('--shine-delay', `${Math.random() * -5}s`);
-                card.innerHTML = createUserCardHTML(user.id, user);
-                userListContainer.appendChild(card);
-            });
-        }
-        // --- END: NEW AND CORRECTED FUNCTIONS ---
-
-        function renderSettingsLayout(activeIndex = -1) {
-            const listContainer = document.getElementById('settings-plan-list');
-            listContainer.innerHTML = '';
-            pricingPlans.forEach((plan, index) => {
-                const item = document.createElement('div');
-                item.className = 'plan-list-item';
-                item.innerHTML = `<div class="plan-name font-semibold text-text-primary">${plan.name || 'Untitled Plan'}</div><div class="text-sm text-text-secondary">${plan.price || '$0.00'} - ${plan.period || 'N/A'}</div>`;
-                item.onclick = () => editPlanForm(index);
-                listContainer.appendChild(item);
-            });
-            if(activeIndex !== -1) {
-                editPlanForm(activeIndex);
-            } else {
-                showPlanEditorPlaceholder();
-            }
-        }
-
-        function showPlanEditorPlaceholder() {
-            document.getElementById('settings-plan-editor').innerHTML = `
-                <div class="plan-editor-placeholder p-6">
-                    <i class="fa-solid fa-wand-magic-sparkles text-5xl text-text-muted mb-4"></i>
-                    <h3 class="font-bold text-lg">Manage Plans</h3>
-                    <p class="max-w-xs mx-auto">Select a plan from the left to edit its details, or add a new one.</p>
-                </div>
-            `;
-            document.querySelectorAll('.plan-list-item').forEach(el => el.classList.remove('active'));
-        }
-
-        function editPlanForm(index) {
-            const editorContainer = document.getElementById('settings-plan-editor');
-            const isNew = index === -1;
-            const plan = isNew ? { name: '', price: '', description: '', period: '', buttonText: 'Get Started', features: ['', '', ''], isRecommended: false } : pricingPlans[index];
-            
-            document.querySelectorAll('.plan-list-item').forEach((el, i) => el.classList.toggle('active', i === index));
-            
-            editorContainer.innerHTML = createPlanFormHTML(plan, index);
-        }
-        
-        function createPlanFormHTML(plan, index) {
-            const isNew = index === -1;
-            const featuresHTML = (plan.features || ['','','']).map((feature, fIndex) => `
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-check-circle text-green-500/70"></i>
-                    <input type="text" value="${feature || ''}" placeholder="Feature ${fIndex + 1}" class="settings-input w-full px-3 py-1.5 rounded-md text-sm outline-none">
-                </div>
-            `).join('');
-
-            return `
-                <form class="p-6 space-y-5 animate-view-change" data-plan-index="${index}" onsubmit="event.preventDefault(); window.updatePlan(this, ${index})">
-                    <div>
-                        <h3 class="text-lg font-bold text-text-primary">${isNew ? 'Create New Plan' : 'Edit Plan'}</h3>
-                        <p class="text-sm text-text-secondary">Update the details for the pricing plan.</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium text-text-secondary mb-1">Plan Name</label><input type="text" value="${plan.name || ''}" placeholder="e.g., Basic, Pro" class="settings-input w-full px-3 py-2 rounded-lg outline-none" required></div>
-                        <div><label class="block text-sm font-medium text-text-secondary mb-1">Price</label><input type="text" value="${plan.price || ''}" placeholder="e.g., $10.00" class="settings-input w-full px-3 py-2 rounded-lg outline-none"></div>
-                    </div>
-                    <div><label class="block text-sm font-medium text-text-secondary mb-1">Description</label><input type="text" value="${plan.description || ''}" placeholder="Plan description" class="settings-input w-full px-3 py-2 rounded-lg outline-none"></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium text-text-secondary mb-1">Period</label><input type="text" value="${plan.period || ''}" placeholder="e.g., /1 month" class="settings-input w-full px-3 py-2 rounded-lg outline-none"></div>
-                        <div><label class="block text-sm font-medium text-text-secondary mb-1">Button Text</label><input type="text" value="${plan.buttonText || ''}" placeholder="e.g., Get Started" class="settings-input w-full px-3 py-2 rounded-lg outline-none"></div>
-                    </div>
-                    <div><label class="block text-sm font-medium text-text-secondary mb-1">Features (leave blank to hide)</label><div class="space-y-2 pt-1">${featuresHTML}</div></div>
-                    <div class="pt-2">
-                        <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" ${plan.isRecommended ? 'checked' : ''} class="w-4 h-4 rounded text-active-link-icon focus:ring-active-link-icon"><span class="text-sm font-medium text-text-secondary">Set as Recommended</span></label>
-                    </div>
-                    <div class="flex items-center justify-between pt-4 border-t border-panel-border">
-                        <div>
-                           ${!isNew ? `<button type="button" class="font-semibold text-sm text-red-500 hover:text-red-700 transition-colors" onclick="window.deletePlan(${index})">Delete Plan</button>` : '<div></div>'}
-                        </div>
-                        <button type="submit" class="px-6 py-2.5 text-sm rounded-lg font-semibold text-white action-btn activate">${isNew ? 'Save Plan' : 'Update Plan'}</button>
-                    </div>
-                </form>`;
-        }
-        
-        window.updatePlan = (form, index) => {
-            const isNew = index === -1;
-            const inputs = form.querySelectorAll('input[type="text"]');
-            const features = Array.from(form.querySelectorAll('.space-y-2 input[type="text"]')).map(input => input.value || null);
-            const updatedPlan = {
-                name: inputs[0].value,
-                price: inputs[1].value,
-                description: inputs[2].value,
-                period: inputs[3].value,
-                buttonText: inputs[4].value,
-                features: features.filter(f => f),
-                isRecommended: form.querySelector('input[type="checkbox"]').checked
-            };
-            
-            let updatedPlans = [...pricingPlans];
-            let newIndex = index;
-            if (isNew) {
-                updatedPlans.push(updatedPlan);
-                newIndex = updatedPlans.length - 1;
-            } else {
-                updatedPlans[index] = updatedPlan;
-            }
-
-            database.ref('setting/pricingPlans').set(updatedPlans)
-                .then(() => {
-                    renderSettingsLayout(newIndex);
-                })
-                .catch(error => console.error('Failed to update plans:', error));
-        }
-
-        window.deletePlan = (index) => {
-            if (!confirm('Are you sure you want to delete this plan? This action cannot be undone.')) return;
-            let updatedPlans = [...pricingPlans];
-            updatedPlans.splice(index, 1);
-            database.ref('setting/pricingPlans').set(updatedPlans)
-                .then(() => {
-                    renderSettingsLayout();
-                })
-                .catch(error => console.error('Failed to delete plan:', error));
-        }
-
-        modalCancelBtn.addEventListener('click', () => modalOverlay.classList.remove('visible'));
-        modalConfirmBtn.addEventListener('click', () => handleActivationConfirm());
-        
-        setInterval(updateAllCountdowns, 1000);
-        showDashboardView();
-    }
-	
-	// --- [START] UPDATED SCRIPT FOR OTHERS ROUTERS ---
-	const routersRef = firebase.database().ref('Others/RouterName');
-
-    function sanitizeFirebaseKey(key) {
-        if (!key || typeof key !== 'string') return '';
-        // Replaces invalid characters like . # $ [ ] with a hyphen
-        return key.replace(/[\.\#\$\[\]]/g, '-');
-    }
-
-	function loadAndRenderRouters() {
-		const container = document.getElementById('routers-container');
-		container.innerHTML = `<div class="text-center py-10"><div class="spinner"></div></div>`;
-
-		routersRef.on('value', (snapshot) => {
-			const data = snapshot.val();
-			if (!data) {
-				container.innerHTML = `<div class="text-center text-text-secondary py-10">No router configurations found. Click 'Add New Router' to start.</div>`;
-				return;
-			}
-			container.innerHTML = ''; 
-			Object.entries(data).forEach(([routerKey, childKeysObject]) => {
-				const cardHtml = createRouterCardHtml(routerKey, childKeysObject);
-				container.insertAdjacentHTML('beforeend', cardHtml);
-			});
-		}, (error) => {
-			console.error("Firebase data loading error:", error);
-			container.innerHTML = `<div class="text-center text-red-500 py-10">Error loading data. Check the console for details.</div>`;
-		});
-	}
-
-    function createEntryFormHtml(entryData, index) {
-        const { Dislikes = 0, Hostname = '', Jumper_Link = '', Likes = 0, Posted_By = '', Probability = '' } = entryData;
-        return `
-        <div class="router-entry p-4 rounded-lg border space-y-3" style="background-color: var(--input-bg); border-color: var(--input-border);">
-            <div class="flex justify-between items-center">
-                <p class="text-sm font-semibold text-text-secondary">Entry ${index + 1}</p>
-                <button type="button" class="text-red-500 hover:text-red-700 h-8 w-8 rounded-full hover:bg-red-500/10 flex items-center justify-center transition-colors" onclick="removeEntryFromCard(this)">
-                    <i class="fa-solid fa-trash-alt"></i>
-                </button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div><label class="block text-xs font-medium text-text-secondary mb-1">Hostname</label><input type="text" value="${Hostname}" class="settings-input w-full px-3 py-1.5 rounded-md text-sm outline-none entry-hostname"></div>
-                <div><label class="block text-xs font-medium text-text-secondary mb-1">Jumper Link</label><input type="text" value="${Jumper_Link}" class="settings-input w-full px-3 py-1.5 rounded-md text-sm outline-none entry-jumperlink"></div>
-                <div><label class="block text-xs font-medium text-text-secondary mb-1">Posted By</label><input type="text" value="${Posted_By}" class="settings-input w-full px-3 py-1.5 rounded-md text-sm outline-none entry-postedby"></div>
-                <div><label class="block text-xs font-medium text-text-secondary mb-1">Probability</label><input type="text" value="${Probability}" class="settings-input w-full px-3 py-1.5 rounded-md text-sm outline-none entry-probability"></div>
-                <div><label class="block text-xs font-medium text-text-secondary mb-1">Likes</label><input type="number" value="${Likes}" class="settings-input w-full px-3 py-1.5 rounded-md text-sm outline-none entry-likes"></div>
-                <div><label class="block text-xs font-medium text-text-secondary mb-1">Dislikes</label><input type="number" value="${Dislikes}" class="settings-input w-full px-3 py-1.5 rounded-md text-sm outline-none entry-dislikes"></div>
-            </div>
-        </div>
-        `;
-    }
-
-    function createChildKeySectionHtml(childKey, entries = []) {
-        const entriesHtml = entries.map((entry, index) => createEntryFormHtml(entry, index)).join('');
-        return `
-        <div class="child-key-section p-4">
-            <div class="flex justify-between items-center pb-3 mb-3 border-b" style="border-color: var(--input-border);">
-                <div>
-                    <label class="block text-xs font-medium text-text-secondary mb-1">Child Key Name</label>
-                    <input type="text" value="${childKey}" class="child-key-input settings-input w-full px-3 py-1.5 rounded-md outline-none font-medium">
-                </div>
-                <button type="button" class="text-red-500 hover:text-red-700 h-8 w-8 rounded-full hover:bg-red-500/10 flex items-center justify-center transition-colors" onclick="removeChildKeyFromCard(this)" title="Delete Child Key">
-                    <i class="fa-solid fa-times"></i>
-                </button>
-            </div>
-            <div class="entries-container space-y-3">${entriesHtml}</div>
-            <div class="mt-4">
-                <button type="button" class="header-btn px-4 py-2 text-sm font-semibold w-full" onclick="addNewEntryToCard(this)">
-                    <i class="fa-solid fa-plus mr-2"></i>Add Entry to this Key
-                </button>
-            </div>
-        </div>
-        `;
-    }
-
-	function createRouterCardHtml(routerKey, childKeysObject = {}) {
-        const childKeys = Object.keys(childKeysObject);
-        const childKeyCount = childKeys.length;
-        const totalEntries = childKeys.reduce((acc, key) => acc + (childKeysObject[key]?.length || 0), 0);
-        
-        const childSectionsHtml = childKeys.map(key => createChildKeySectionHtml(key, childKeysObject[key])).join('');
-
-        const detailsViewHtml = `
-            <div class="settings-panel p-6 router-details-editor" data-original-key="${routerKey}">
-                <div class="space-y-4">
-                    <div class="pb-4 border-b" style="border-color: var(--panel-border);">
-                        <div>
-                            <label class="block text-sm font-medium text-text-secondary mb-1">Router Name (Key)</label>
-                            <input type="text" value="${routerKey}" class="router-key-input settings-input w-full px-3 py-2 rounded-lg outline-none font-semibold text-lg">
-                        </div>
-                    </div>
-                    <div class="child-keys-container space-y-4">${childSectionsHtml}</div>
-                    <div class="pt-4">
-                         <button type="button" class="header-btn px-4 py-2 text-sm font-semibold w-full border-dashed" onclick="addNewChildKeyToCard(this)">
-                            <i class="fa-solid fa-plus-circle mr-2"></i>Add New Child Key
-                        </button>
-                    </div>
-                    <div class="pt-4 border-t flex justify-between items-center" style="border-color: var(--panel-border);">
-                        <button type="button" class="text-sm font-semibold text-red-500 hover:text-red-700 transition-colors" onclick="handleDeleteRouter('${routerKey}')">Delete Router</button>
-                        <button type="button" class="action-btn activate px-5 py-2.5" onclick="handleUpdateRouter(this)">Update Router</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        const summaryViewHtml = `
-            <div class="router-summary-card" onclick="this.nextElementSibling.classList.toggle('hidden'); const icon = this.querySelector('.toggle-icon i'); icon.classList.toggle('fa-chevron-down'); icon.classList.toggle('fa-chevron-up');">
-                <div class="flex-grow flex items-center gap-4 overflow-hidden">
-                    <i class="fa-solid fa-server text-xl" style="color: var(--active-link-icon);"></i>
-                    <div class="overflow-hidden">
-                        <p class="router-name-highlight truncate" title="${routerKey}">${routerKey}</p>
-                        <p class="text-xs text-text-secondary">${childKeyCount} Child Key(s), ${totalEntries} Total Entrie(s). Click to expand.</p>
-                    </div>
-                </div>
-                <div class="toggle-icon text-lg text-text-muted">
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-            </div>
-        `;
-        
-		return `
-            <div class="router-card-wrapper animate-stagger">
-                ${summaryViewHtml}
-                <div class="router-details-wrapper hidden">
-                    ${detailsViewHtml}
-                </div>
-            </div>
-		`;
-	}
-
-	function addNewRouterCard() {
-		const container = document.getElementById('routers-container');
-		if (document.querySelector('.router-card-wrapper[data-is-new="true"]')) return;
-
-		const newCardHtml = `
-            <div class="router-card-wrapper animate-stagger" data-is-new="true">
-                <div class="router-details-wrapper">
-                     <div class="settings-panel p-6 router-details-editor" data-original-key="">
-                        <div class="space-y-4">
-                            <div class="pb-4 border-b" style="border-color: var(--panel-border);">
-                                <p class="font-bold text-lg text-text-primary">Create New Router</p>
-                                <p class="text-sm text-text-secondary">Fill the details. At least one child key and one entry are required.</p>
-                            </div>
-                            <div class="pt-2">
-                                <label class="block text-sm font-medium text-text-secondary mb-1">Router Name (e.g., my-router)</label>
-                                <input type="text" value="" placeholder="Enter a unique router name" class="router-key-input settings-input w-full px-3 py-2 rounded-lg outline-none font-semibold text-lg">
-                            </div>
-                            <div class="child-keys-container space-y-4"></div>
-                            <div class="pt-4">
-                                <button type="button" class="header-btn px-4 py-2 text-sm font-semibold w-full border-dashed" onclick="addNewChildKeyToCard(this)">
-                                    <i class="fa-solid fa-plus-circle mr-2"></i>Add New Child Key
-                                </button>
-                            </div>
-                            <div class="pt-4 border-t flex justify-end items-center gap-3" style="border-color: var(--panel-border);">
-                                <button type="button" class="header-btn px-4 py-2 text-sm font-semibold" onclick="this.closest('.router-card-wrapper').remove()">Cancel</button>
-                                <button type="button" class="action-btn activate px-5 py-2.5" onclick="handleSaveNewRouter(this)">Save New Router</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-		`;
-		container.insertAdjacentHTML('afterbegin', newCardHtml);
-		const newCardEl = container.querySelector('[data-is-new="true"]');
-        addNewChildKeyToCard(newCardEl.querySelector('button[onclick*="addNewChildKeyToCard"]'));
-	}
-
-	function readDataFromCard(cardElement) {
-        const sanitizedRouterKey = sanitizeFirebaseKey(cardElement.querySelector('.router-key-input').value);
-        if (!sanitizedRouterKey) { alert('Router Name cannot be empty.'); return null; }
-
-        const routerData = {};
-        const childKeySections = cardElement.querySelectorAll('.child-key-section');
-        if (childKeySections.length === 0) { alert('A router must have at least one Child Key.'); return null; }
-
-        let hasError = false;
-        childKeySections.forEach(section => {
-            if(hasError) return;
-            const childKeyInput = section.querySelector('.child-key-input');
-            const sanitizedChildKey = sanitizeFirebaseKey(childKeyInput.value);
-            if (!sanitizedChildKey) { alert('Child Key name cannot be empty.'); hasError = true; return; }
-            if (routerData[sanitizedChildKey]) { alert(`Duplicate Child Key found: "${childKeyInput.value}". Please use unique names.`); hasError = true; return; }
-
-            const entries = [];
-            const entryForms = section.querySelectorAll('.router-entry');
-            if (entryForms.length === 0) { alert(`Child Key "${childKeyInput.value}" must have at least one entry.`); hasError = true; return; }
-
-            entryForms.forEach(el => {
-                entries.push({
-                    Hostname: el.querySelector('.entry-hostname').value,
-                    Jumper_Link: el.querySelector('.entry-jumperlink').value,
-                    Posted_By: el.querySelector('.entry-postedby').value,
-                    Probability: el.querySelector('.entry-probability').value,
-                    Likes: parseInt(el.querySelector('.entry-likes').value, 10) || 0,
-                    Dislikes: parseInt(el.querySelector('.entry-dislikes').value, 10) || 0,
-                    Posted_Time: firebase.database.ServerValue.TIMESTAMP
-                });
-            });
-            routerData[sanitizedChildKey] = entries;
-        });
-
-        if (hasError) return null;
-        return { routerKey: sanitizedRouterKey, routerData: routerData };
-    }
-
-
-	window.handleSaveNewRouter = (buttonEl) => {
-		const card = buttonEl.closest('.router-details-editor');
-		const parsedData = readDataFromCard(card);
-		if (!parsedData) return;
-
-		buttonEl.disabled = true;
-		buttonEl.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Saving...';
-
-		routersRef.child(parsedData.routerKey).once('value', snapshot => {
-			if (snapshot.exists()) {
-				alert(`Error: Router with name "${parsedData.routerKey}" already exists.`);
-				buttonEl.disabled = false;
-				buttonEl.textContent = 'Save New Router';
-			} else {
-				routersRef.child(parsedData.routerKey).set(parsedData.routerData)
-					.catch(error => {
-						alert('Failed to save router. Error: ' + error.message);
-						buttonEl.disabled = false;
-						buttonEl.textContent = 'Save New Router';
-					});
-			}
-		});
-	};
-
-	window.handleUpdateRouter = (buttonEl) => {
-		const card = buttonEl.closest('.router-details-editor');
-        const originalKey = card.dataset.originalKey;
-		const parsedData = readDataFromCard(card);
-		if (!parsedData) return;
-		
-		const { routerKey: newKey, routerData: newData } = parsedData;
-
-		buttonEl.disabled = true;
-		buttonEl.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Updating...';
-
-		if (originalKey !== newKey) {
-			routersRef.child(newKey).once('value', snapshot => {
-				if (snapshot.exists()) {
-					alert(`Error: A router with name "${newKey}" already exists. Cannot rename.`);
-					buttonEl.disabled = false; buttonEl.textContent = 'Update Router';
-				} else {
-					const updates = { [newKey]: newData, [originalKey]: null };
-					routersRef.update(updates).catch(error => {
-                        alert('Failed to update router. Error: ' + error.message);
-                        buttonEl.disabled = false; buttonEl.textContent = 'Update Router';
-                    });
-				}
-			});
-		} else {
-			routersRef.child(originalKey).set(newData).catch(error => {
-                alert('Failed to update router. Error: ' + error.message);
-            }).finally(() => {
-                buttonEl.disabled = false; buttonEl.textContent = 'Update Router';
-            });
-		}
-	};
-	
-	window.handleDeleteRouter = (key) => {
-		if (confirm(`Are you sure you want to permanently delete the router "${key}"?`)) {
-			routersRef.child(key).remove().catch(error => alert('Failed to delete. Error: ' + error.message));
-		}
-	};
-	
-    window.addNewChildKeyToCard = (buttonEl) => {
-        const container = buttonEl.closest('.router-details-editor').querySelector('.child-keys-container');
-        const newKeyHtml = createChildKeySectionHtml('new-child-key', []);
-        container.insertAdjacentHTML('beforeend', newKeyHtml);
-        const newChildSection = container.lastElementChild;
-        addNewEntryToCard(newChildSection.querySelector('button[onclick*="addNewEntryToCard"]'));
-        newChildSection.querySelector('.child-key-input').focus();
-    };
-
-	window.addNewEntryToCard = (buttonEl) => {
-		const container = buttonEl.closest('.child-key-section').querySelector('.entries-container');
-		const entryCount = container.querySelectorAll('.router-entry').length;
-		const newEntryHtml = createEntryFormHtml({}, entryCount);
-		container.insertAdjacentHTML('beforeend', newEntryHtml);
-	};
-    
-    window.removeChildKeyFromCard = (buttonEl) => {
-        if(confirm('Are you sure you want to remove this child key and all its entries?')) {
-            buttonEl.closest('.child-key-section').remove();
-        }
-    };
-
-	window.removeEntryFromCard = (buttonEl) => {
-        const entryElement = buttonEl.closest('.router-entry');
-        const parentContainer = entryElement.parentElement;
-		entryElement.remove();
-		parentContainer.querySelectorAll('.router-entry').forEach((entry, index) => {
-			entry.querySelector('p').textContent = `Entry ${index + 1}`;
-		});
-	};
-	// --- [END] UPDATED SCRIPT FOR OTHERS ROUTERS ---
-
-});
-
-function updateAllCountdowns() {
-    document.querySelectorAll('.expiry-countdown').forEach(el => {
-        const expireTimestamp = parseInt(el.dataset.expire, 10);
-        if (isNaN(expireTimestamp)) { el.textContent = 'Invalid date'; return; }
-        const now = new Date().getTime();
-        const distance = expireTimestamp - now;
-        if (distance < 0) { el.textContent = 'Expired'; el.classList.add('text-red-500', 'font-semibold'); return; }
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        let output = '';
-        if (days > 0) output += `${days}d `;
-        if (hours > 0 || days > 0) output += `${hours}h `;
-        if (minutes > 0 || hours > 0 || days > 0) output += `${minutes}m `;
-        output += `${seconds}s`;
-        el.textContent = output.trim();
-    });
-}
-
-function setLoadingState(userId, isLoading) {
-    const card = document.querySelector(`.user-card[data-user-id="${userId}"]`);
-    if (card) card.classList.toggle('is-loading', isLoading);
-}
-
-// --- [START] CORRECTED Deactivation and Activation Logic ---
-window.handleDeactivationClick = (event, userId) => {
-    if (confirm('Are you sure you want to deactivate this user?')) {
-        setLoadingState(userId, true);
-        firebase.database().ref('users/' + userId).update({ active: false, expire: null })
-            .catch((error) => {
-                 console.error("Deactivation failed: ", error);
-                 alert("Deactivation failed. Please check console.");
-            })
-            .finally(() => { 
-                setLoadingState(userId, false);
-            });
-    }
-}
-
-window.handleActivationConfirm = () => {
-    const modal = document.getElementById('activation-modal');
-    const modalOverlay = document.getElementById('activation-modal-overlay');
-    const modalError = document.getElementById('modal-error');
-    const userId = modal.dataset.userId;
-    const selectedPlanInput = document.querySelector('input[name="pricing-plan"]:checked');
-    if (!selectedPlanInput) { modalError.textContent = 'Please select a plan.'; modalError.classList.remove('hidden'); return; }
-    
-    modalError.classList.add('hidden');
-    const selectedPlanDiv = selectedPlanInput.closest('.plan-option');
-    const priceString = selectedPlanDiv.dataset.price;
-    const periodString = selectedPlanDiv.dataset.period;
-    const price = parsePrice(priceString);
-    const expireTimestamp = calculateExpiry(periodString);
-    
-    modalOverlay.classList.remove('visible');
-    setLoadingState(userId, true);
-    
-    const updates = {};
-    updates[`users/${userId}/active`] = true;
-    updates[`users/${userId}/expire`] = expireTimestamp;
-    
-    const db = firebase.database();
-    db.ref().update(updates)
-        .then(() => { 
-            if (price > 0) { 
-                return db.ref('Revenue/total').transaction(currentTotal => (currentTotal || 0) + price); 
-            }
-            return Promise.resolve(); 
-        })
-        .catch((error) => { 
-            console.error("Activation failed: ", error); 
-            db.ref(`users/${userId}/active`).set(false); // Revert on failure
-            alert("Activation failed. Please check console.");
-        })
-        .finally(() => { 
-             setLoadingState(userId, false);
-        });
-}
-// --- [END] CORRECTED Deactivation and Activation Logic ---
-
-function parsePrice(priceString) {
-    if (typeof priceString !== 'string') return 0;
-    const price = parseFloat(priceString.replace(/[^0-9.-]+/g,""));
-    return isNaN(price) ? 0 : price;
-}
-
-function calculateExpiry(periodString) {
-    const now = new Date();
-    if (typeof periodString !== 'string') return now.getTime();
-    if (periodString.includes('week')) { const weeks = parseInt(periodString.match(/\d+/)?.[0] || '1', 10); now.setDate(now.getDate() + (weeks * 7)); } 
-    else if (periodString.includes('month')) { const months = parseInt(periodString.match(/\d+/)?.[0] || '1', 10); now.setMonth(now.getMonth() + months); } 
-    else if (periodString.includes('year')) { const years = parseInt(periodString.match(/\d+/)?.[0] || '1', 10); now.setFullYear(now.getFullYear() + years); }
-    return now.getTime();
-}
-
-window.openActivationModal = (event, userId) => {
-    const plansContainer = document.getElementById('pricing-plans-container');
-    const modal = document.getElementById('activation-modal');
-    const modalOverlay = document.getElementById('activation-modal-overlay');
-    const modalError = document.getElementById('modal-error');
-    modalError.classList.add('hidden');
-    plansContainer.innerHTML = `<div class="flex justify-center items-center py-4"><div class="spinner"></div></div>`;
-    modal.dataset.userId = userId;
-    modalOverlay.classList.add('visible');
-    firebase.database().ref('setting/pricingPlans').once('value', (snapshot) => {
-        const plans = snapshot.val() || [];
-        plansContainer.innerHTML = '';
-        if (plans.length === 0) { plansContainer.innerHTML = `<p class="text-text-secondary text-center">No pricing plans found.</p>`; return; }
-        plans.forEach((plan, index) => {
-            const isRecommended = plan.isRecommended ? `<span class="absolute top-0 right-3 -translate-y-1/2 bg-purple-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">Recommended</span>` : '';
-            const planEl = document.createElement('div');
-            planEl.className = 'plan-option relative';
-            planEl.innerHTML = `<input type="radio" id="plan-${index}" name="pricing-plan" class="sr-only"><label for="plan-${index}" class="flex justify-between items-center cursor-pointer"><div><h4 class="font-bold text-text-primary">${plan.name}</h4><p class="text-sm text-text-secondary">${plan.description}</p></div><div class="text-right"><p class="text-lg font-bold text-text-primary">${plan.price}</p><p class="text-xs text-text-muted">${plan.period}</p></div></label>${isRecommended}`;
-            planEl.addEventListener('click', () => { document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected')); planEl.classList.add('selected'); planEl.querySelector('input[type="radio"]').checked = true; });
-            planEl.dataset.price = plan.price;
-            planEl.dataset.period = plan.period;
-            plansContainer.appendChild(planEl);
-        });
-    }).catch(err => { plansContainer.innerHTML = `<p class="text-red-500 text-center">Error fetching plans: ${err.message}</p>`; });
-};
-</script>
-    
-</body>
+  </body>
 </html>
-

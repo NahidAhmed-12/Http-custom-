@@ -1,13 +1,13 @@
-
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="globals.css" />
-    <link rel="stylesheet" href="styleguide.css" />
+    <title>Bkalp Design - Responsive</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
     <script>
       /** @type {import('tailwindcss').Config} */
       tailwind.config = {
@@ -21,11 +21,8 @@
               white: "var(--white)",
             },
             fontFamily: {
-              description: "var(--description-font-family)",
-              h1: "var(--h1-font-family)",
-              h3: "var(--h3-font-family)",
-              h4: "var(--h4-font-family)",
-              paragraph: "var(--paragraph-font-family)",
+                jost: ['Jost', 'sans-serif'],
+                poppins: ['Poppins', 'sans-serif'],
             },
           },
         },
@@ -33,1092 +30,328 @@
       };
     </script>
     <style>
-        :root {
-  --primary-dark: rgba(255, 127, 127, 1);
-  --primary: rgba(255, 164, 164, 1);
-  --dark: rgba(48, 48, 48, 1);
-  --normal-dark: rgba(122, 120, 120, 1);
-  --white: rgba(255, 255, 255, 1);
-  --h3-font-family: "Jost", Helvetica;
-  --h3-font-weight: 400;
-  --h3-font-size: 36px;
-  --h3-letter-spacing: 2.88px;
-  --h3-line-height: normal;
-  --h3-font-style: normal;
-  --h4-font-family: "Jost", Helvetica;
-  --h4-font-weight: 400;
-  --h4-font-size: 24px;
-  --h4-letter-spacing: 0px;
-  --h4-line-height: normal;
-  --h4-font-style: normal;
-  --paragraph-font-family: "Poppins", Helvetica;
-  --paragraph-font-weight: 400;
-  --paragraph-font-size: 20px;
-  --paragraph-letter-spacing: 0px;
-  --paragraph-line-height: normal;
-  --paragraph-font-style: normal;
-  --description-font-family: "Poppins", Helvetica;
-  --description-font-weight: 400;
-  --description-font-size: 16px;
-  --description-letter-spacing: 0px;
-  --description-line-height: normal;
-  --description-font-style: normal;
-  --h1-font-family: "Jost", Helvetica;
-  --h1-font-weight: 400;
-  --h1-font-size: 72px;
-  --h1-letter-spacing: 0px;
-  --h1-line-height: normal;
-  --h1-font-style: normal;
-}
+      :root {
+        --primary-dark: rgba(255, 127, 127, 1);
+        --primary: rgba(255, 164, 164, 1);
+        --dark: rgba(48, 48, 48, 1);
+        --normal-dark: rgba(122, 120, 120, 1);
+        --white: rgba(255, 255, 255, 1);
+      }
+      body {
+        overflow-x: hidden; /* Prevent horizontal scroll */
+      }
     </style>
   </head>
-  <body>
-    <div class="bg-[#fff8f2] grid justify-items-center [align-items:start] w-screen">
-      <div class="bg-[#fff8f2] overflow-hidden w-[1920px] h-[7492px]">
-        <div class="relative w-[4849px] h-[9056px] top-[-527px] left-[-1465px]">
-          <div
-            class="absolute w-[1097px] h-[1097px] top-[5335px] left-[981px] bg-[#ffd3d359] rounded-[548.5px] blur-[200px]"
-          ></div>
-          <div
-            class="absolute w-[1097px] h-[1097px] top-[6080px] left-[2649px] bg-[#ffd3d359] rounded-[548.5px] blur-[200px]"
-          ></div>
-          <div
-            class="absolute w-[1920px] h-[1136px] top-[3064px] left-[1465px] [background:linear-gradient(244deg,rgba(255,164,164,0.05)_0%,rgba(255,248,242,0.1)_100%)]"
-          ></div>
-          <div
-            class="absolute w-64 h-[223px] top-[1601px] left-[1836px] bg-primary-dark rounded-[128px/111.5px] opacity-10"
-          ></div>
-          <div
-            class="absolute w-[268px] h-[223px] top-[1682px] left-[2796px] bg-primary-dark rounded-[134px/111.5px] opacity-[0.12]"
-          ></div>
-          <div
-            class="absolute w-[184px] h-[184px] top-[1627px] left-[1910px] bg-primary rounded-[92px] opacity-25"
-          ></div>
-          <div
-            class="absolute w-[184px] h-[184px] top-[1707px] left-[2799px] bg-primary rounded-[92px] opacity-25"
-          ></div>
-          <img
-            class="absolute w-[631px] h-[746px] top-[748px] left-[2614px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/vector.svg"
-          />
-          <div class="flex w-[1640px] items-center justify-between px-0 py-2.5 absolute top-[576px] left-[1605px]">
-            <div class="inline-flex items-center gap-[9px] px-2.5 py-0 relative flex-[0_0_auto]">
-              <img class="relative w-11 h-11" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ion-flower-sharp.svg" />
-              <div
-                class="relative w-fit mt-[-1.00px] font-h3 font-[number:var(--h3-font-weight)] text-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
-              >
-                Bkalp Design
-              </div>
-            </div>
-            <div class="flex w-[551px] items-center justify-between relative">
-              <div
-                class="relative w-fit mt-[-1.00px] [font-family:'Jost',Helvetica] font-semibold text-primary text-2xl tracking-[0] leading-[normal]"
-              >
-                Home
-              </div>
-              <div
-                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Product
-              </div>
-              <div
-                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Pages
-              </div>
-              <div
-                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Blog
-              </div>
-              <div
-                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Contact
-              </div>
-            </div>
-            <img class="relative flex-[0_0_auto]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/frame-3.svg" />
+  <body class="bg-[#fff8f2] font-jost">
+
+    <!-- Main Wrapper -->
+    <div class="w-full max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+
+      <!-- Header Section -->
+      <header class="py-5">
+        <nav class="flex flex-wrap items-center justify-between gap-6">
+          <!-- Logo -->
+          <a href="#" class="flex items-center gap-2">
+            <img class="w-10 h-10" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ion-flower-sharp.svg" alt="Logo" />
+            <span class="text-3xl font-normal text-dark tracking-wider">Bkalp Design</span>
+          </a>
+          <!-- Navigation Links -->
+          <div class="hidden lg:flex items-center gap-10 text-xl text-normal-dark">
+            <a href="#" class="font-semibold text-primary">Home</a>
+            <a href="#">Product</a>
+            <a href="#">Pages</a>
+            <a href="#">Blog</a>
+            <a href="#">Contact</a>
           </div>
-          <div class="absolute w-[1837px] h-[1991px] top-0 left-[544px]">
-            <div class="relative h-[1991px]">
-              <div
-                class="absolute w-[1097px] h-[1097px] top-[894px] left-[740px] bg-[#ffd3d359] rounded-[548.5px] blur-[200px]"
-              ></div>
-              <div
-                class="top-0 left-[79px] border-[#ffa3a385] absolute w-[1479px] h-[1479px] rounded-[739.5px] border border-solid"
-              ></div>
-              <div
-                class="top-[77px] left-0 border-[#ffa3a385] absolute w-[1479px] h-[1479px] rounded-[739.5px] border border-solid"
-              ></div>
-            </div>
+          <!-- Cart Icon -->
+          <a href="#">
+            <img src="https://c.animaapp.com/mfms5gth2zVCyY/img/frame-3.svg" alt="Cart"/>
+          </a>
+           <!-- Mobile Menu Button (Optional, for full functionality) -->
+           <button class="lg:hidden text-3xl">
+             &#9776;
+           </button>
+        </nav>
+      </header>
+
+      <!-- Hero Section -->
+      <section class="flex flex-col lg:flex-row items-center justify-between gap-12 py-16 lg:py-24">
+        <!-- Hero Text -->
+        <div class="w-full lg:w-1/2 space-y-6 text-center lg:text-left">
+          <div class="inline-block border-l-4 border-[#ffa3a3] px-4 py-2">
+            <h2 class="text-3xl text-normal-dark tracking-widest">ARTIFICIAL FLOWER</h2>
           </div>
-          <div class="absolute w-[2094px] h-[2198px] top-[986px] left-[2755px]">
-            <div class="relative h-[2198px]">
-              <div
-                class="absolute w-[1479px] h-[1479px] top-[304px] left-[304px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
-              ></div>
-              <div
-                class="absolute w-[1479px] h-[1479px] top-[415px] left-[311px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
-              ></div>
-            </div>
-          </div>
-          <div class="absolute w-[2094px] h-[2198px] top-[3972px] left-[2466px]">
-            <div class="relative h-[2198px]">
-              <div
-                class="absolute w-[1479px] h-[1479px] top-[304px] left-[304px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
-              ></div>
-              <div
-                class="absolute w-[1479px] h-[1479px] top-[415px] left-[311px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
-              ></div>
-            </div>
-          </div>
-          <div class="flex w-[1640px] items-center justify-between absolute top-[767px] left-[1605px]">
-            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
-              <div
-                class="inline-flex items-center justify-center gap-2.5 px-6 py-4 relative flex-[0_0_auto] border-l-4 [border-left-style:solid] border-[#ffa3a3]"
-              >
-                <div
-                  class="relative w-fit mt-[-4.00px] font-h3 font-[number:var(--h3-font-weight)] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
-                >
-                  ARTIFICIAL FLOWER
-                </div>
-              </div>
-              <p
-                class="relative w-[784px] [font-family:'Jost',Helvetica] font-normal text-dark text-7xl tracking-[0] leading-[72px]"
-              >
-                <span class="text-[#303030] leading-[95px]">Unique Flowers </span>
-                <span class="text-[#ff7f7f] leading-[95px]">delivered</span>
-                <span class="text-[#303030] leading-[95px]"> to your doorstep</span>
-              </p>
-              <p
-                class="w-[763px] text-normal-dark text-[length:var(--paragraph-font-size)] relative font-paragraph font-[number:var(--paragraph-font-weight)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
-              >
-                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
-              </p>
-              <div class="inline-flex items-start gap-2.5 px-8 py-2.5 relative flex-[0_0_auto] bg-[#ffa3a3] rounded-md">
-                <div
-                  class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-white text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                >
-                  Shop Now
-                </div>
-              </div>
-            </div>
-            <img
-              class="relative w-[807px] h-[807px] object-cover"
-              src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-13.png"
-            />
-          </div>
-          <div
-            class="flex w-[1432px] items-center justify-between px-[130px] py-[57px] absolute top-[1674px] left-[1708px] bg-[#ffffff] rounded-[80px_0px_80px_0px] opacity-95"
-          >
-            <div class="gap-6 inline-flex items-center relative flex-[0_0_auto]">
-              <img
-                class="relative w-16 h-16"
-                src="https://c.animaapp.com/mfms5gth2zVCyY/img/emojione-monotone-shopping-bags.svg"
-              />
-              <div class="inline-flex flex-col items-start gap-0.5 relative flex-[0_0_auto]">
-                <div
-                  class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                >
-                  Free Shopping
-                </div>
-                <p
-                  class="relative w-fit font-description font-[number:var(--description-font-weight)] text-normal-dark text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-                >
-                  Cost on all order $0.00
-                </p>
-              </div>
-            </div>
-            <img class="relative w-0.5 h-[42px]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/line-1.svg" />
-            <div class="gap-6 inline-flex items-center relative flex-[0_0_auto]">
-              <img
-                class="relative w-16 h-16"
-                src="https://c.animaapp.com/mfms5gth2zVCyY/img/fluent-emoji-high-contrast-delivery-truck.svg"
-              />
-              <div class="inline-flex flex-col items-start gap-0.5 relative flex-[0_0_auto]">
-                <div
-                  class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                >
-                  Free Delivery
-                </div>
-                <div
-                  class="relative w-fit font-description font-[number:var(--description-font-weight)] text-normal-dark text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-                >
-                  We offer FREE&nbsp;&nbsp;deliver
-                </div>
-              </div>
-            </div>
-            <img class="relative w-0.5 h-[42px]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/line-1.svg" />
-            <div class="gap-6 inline-flex items-center relative flex-[0_0_auto]">
-              <img
-                class="relative w-16 h-16"
-                src="https://c.animaapp.com/mfms5gth2zVCyY/img/emojione-monotone-wrapped-gift.svg"
-              />
-              <div class="inline-flex flex-col items-start gap-0.5 relative flex-[0_0_auto]">
-                <div
-                  class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                >
-                  Free Delivery
-                </div>
-                <div
-                  class="relative w-fit font-description font-[number:var(--description-font-weight)] text-normal-dark text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-                >
-                  We offer FREE&nbsp;&nbsp;deliver
-                </div>
-              </div>
-            </div>
-          </div>
-          <img
-            class="absolute w-[62px] h-[62px] top-[1520px] left-[2946px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-          />
-          <img
-            class="absolute w-[62px] h-[62px] top-[2122px] left-[2946px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-          />
-          <img
-            class="absolute w-9 h-[38px] top-[1582px] left-[3064px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-          />
-          <img
-            class="absolute w-9 h-[38px] top-[2004px] left-[1926px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-          />
-          <img
-            class="absolute w-9 h-[38px] top-[856px] left-[1615px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-          />
-          <img
-            class="absolute w-9 h-[38px] top-[918px] left-[3183px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-          />
-          <div class="inline-flex flex-col items-center gap-[72px] absolute top-[1991px] left-[1605px]">
-            <div class="inline-flex flex-col items-center relative flex-[0_0_auto]">
-              <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
-                <div
-                  class="mt-[-4.00px] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] relative w-fit font-h3 font-[number:var(--h3-font-weight)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
-                >
-                  PRODUCTS
-                </div>
-              </div>
-              <p
-                class="relative w-fit [font-family:'Jost',Helvetica] font-normal text-dark text-7xl text-center tracking-[0] leading-[72px]"
-              >
-                <span class="text-[#303030]">This month’s top selling </span>
-                <span
-                  class="text-[#ff7f7f] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
-                  >Product</span
-                >
-              </p>
-            </div>
-            <div class="flex w-[1640px] items-end justify-between relative flex-[0_0_auto]">
-              <div class="inline-flex flex-col items-center justify-center gap-6 relative flex-[0_0_auto]">
-                <div
-                  class="absolute w-[239px] h-[239px] top-[203px] left-[81px] bg-[#ffcfcf91] rounded-[110px_110px_0px_110px]"
-                ></div>
-                <img
-                  class="relative w-[443px] h-[443px] object-cover"
-                  src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-22.png"
-                />
-                <div class="flex-col gap-3 inline-flex items-center relative flex-[0_0_auto]">
-                  <div
-                    class="relative w-fit mt-[-1.00px] [font-family:'Jost',Helvetica] font-normal text-dark text-4xl tracking-[0.72px] leading-[normal]"
-                  >
-                    Combo Bouquet 01
-                  </div>
-                  <div class="flex items-start justify-between relative self-stretch w-full flex-[0_0_auto]">
-                    <div
-                      class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                    >
-                      $40.00
-                    </div>
-                    <div class="inline-flex items-center gap-1.5 relative flex-[0_0_auto]">
-                      <img
-                        class="relative w-[30px] h-[30px]"
-                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg"
-                      />
-                      <div
-                        class="w-fit mt-[-1.00px] text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
-                      >
-                        5.0
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="inline-flex flex-col items-center justify-center gap-6 relative flex-[0_0_auto]">
-                <div
-                  class="w-[294px] h-[294px] top-[274px] left-[138px] rounded-[135.31px_135.31px_0px_135.31px] absolute bg-[#ffcfcf91]"
-                ></div>
-                <img class="relative w-[614px] h-[572px]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-2.png" />
-                <div class="flex-col gap-3 inline-flex items-center relative flex-[0_0_auto]">
-                  <div
-                    class="relative w-fit mt-[-1.00px] [font-family:'Jost',Helvetica] font-normal text-dark text-4xl tracking-[0.72px] leading-[normal]"
-                  >
-                    Combo Bouquet 01
-                  </div>
-                  <div class="flex items-start justify-between relative self-stretch w-full flex-[0_0_auto]">
-                    <div
-                      class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                    >
-                      $40.00
-                    </div>
-                    <div class="inline-flex items-center gap-1.5 relative flex-[0_0_auto]">
-                      <img
-                        class="relative w-[30px] h-[30px]"
-                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg"
-                      />
-                      <div
-                        class="w-fit mt-[-1.00px] text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
-                      >
-                        5.0
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="inline-flex flex-col items-center justify-center gap-6 relative flex-[0_0_auto]">
-                <div
-                  class="w-[239px] h-[239px] top-[209px] left-[81px] rounded-[110px_110px_0px_110px] absolute bg-[#ffcfcf91]"
-                ></div>
-                <img
-                  class="relative w-[443px] h-[443px] object-cover"
-                  src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-11.png"
-                />
-                <div class="flex-col gap-3 inline-flex items-center relative flex-[0_0_auto]">
-                  <div
-                    class="relative w-fit mt-[-1.00px] [font-family:'Jost',Helvetica] font-normal text-dark text-4xl tracking-[0.72px] leading-[normal]"
-                  >
-                    Combo Bouquet 01
-                  </div>
-                  <div class="flex items-start justify-between relative self-stretch w-full flex-[0_0_auto]">
-                    <div
-                      class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                    >
-                      $40.00
-                    </div>
-                    <div class="inline-flex items-center gap-1.5 relative flex-[0_0_auto]">
-                      <img
-                        class="relative w-[30px] h-[30px]"
-                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg"
-                      />
-                      <div
-                        class="w-fit mt-[-1.00px] text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
-                      >
-                        5.0
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="absolute w-[2158px] h-[2211px] top-[2468px] left-0">
-            <div class="relative h-[2211px]">
-              <div
-                class="top-[306px] left-[306px] border-[#ffa3a3] rotate-[-45.51deg] absolute w-[1479px] h-[1479px] rounded-[739.5px] border border-solid"
-              ></div>
-              <div
-                class="top-[428px] left-[375px] border-[#ffa3a3] rotate-[-48.62deg] absolute w-[1479px] h-[1479px] rounded-[739.5px] border border-solid"
-              ></div>
-            </div>
-          </div>
-          <div class="inline-flex flex-col h-[884px] items-center justify-between absolute top-[3174px] left-[1619px]">
-            <div class="inline-flex flex-col items-center gap-[42px] relative flex-[0_0_auto]">
-              <div class="inline-flex flex-col items-center relative flex-[0_0_auto]">
-                <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
-                  <div
-                    class="relative w-fit mt-[-4.00px] font-h3 font-[number:var(--h3-font-weight)] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
-                  >
-                    OFFERS
-                  </div>
-                </div>
-                <div
-                  class="relative w-fit font-h1 font-[number:var(--h1-font-weight)] text-dark text-[length:var(--h1-font-size)] text-center tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] [font-style:var(--h1-font-style)]"
-                >
-                  Deal of the day
-                </div>
-              </div>
-              <div class="inline-flex items-start gap-6 relative flex-[0_0_auto]">
-                <div
-                  class="inline-flex flex-col items-center px-[39px] py-3 relative flex-[0_0_auto] bg-primary rounded-xl border-2 border-solid border-[#ffffff]"
-                >
-                  <div
-                    class="relative w-fit mt-[-2.00px] [font-family:'Jost',Helvetica] font-medium text-[#ffffff] text-4xl text-center tracking-[2.88px] leading-[normal]"
-                  >
-                    24
-                  </div>
-                  <div
-                    class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] text-center tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                  >
-                    Days
-                  </div>
-                </div>
-                <div
-                  class="inline-flex flex-col items-center px-[39px] py-3 relative flex-[0_0_auto] bg-primary rounded-xl border-2 border-solid border-[#ffffff]"
-                >
-                  <div
-                    class="relative w-fit mt-[-2.00px] [font-family:'Jost',Helvetica] font-medium text-[#ffffff] text-4xl text-center tracking-[2.88px] leading-[normal]"
-                  >
-                    36
-                  </div>
-                  <div
-                    class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] text-center tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                  >
-                    Hours
-                  </div>
-                </div>
-                <div
-                  class="inline-flex flex-col items-center px-[39px] py-3 relative flex-[0_0_auto] bg-primary rounded-xl border-2 border-solid border-[#ffffff]"
-                >
-                  <div
-                    class="relative w-fit mt-[-2.00px] [font-family:'Jost',Helvetica] font-medium text-[#ffffff] text-4xl text-center tracking-[2.88px] leading-[normal]"
-                  >
-                    12
-                  </div>
-                  <div
-                    class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] text-center tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                  >
-                    Mins
-                  </div>
-                </div>
-                <div
-                  class="inline-flex flex-col items-center px-[39px] py-3 relative flex-[0_0_auto] bg-primary rounded-xl border-2 border-solid border-[#ffffff]"
-                >
-                  <div
-                    class="relative w-fit mt-[-2.00px] [font-family:'Jost',Helvetica] font-medium text-[#ffffff] text-4xl text-center tracking-[2.88px] leading-[normal]"
-                  >
-                    55
-                  </div>
-                  <div
-                    class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] text-center tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                  >
-                    Secs
-                  </div>
-                </div>
-              </div>
-              <img
-                class="absolute w-[62px] h-[62px] top-[104px] left-[548px]"
-                src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-              />
-            </div>
-            <div class="inline-flex items-end gap-[60px] relative flex-[0_0_auto]">
-              <div class="relative w-[491px] h-[514px]">
-                <div class="relative h-[514px]">
-                  <div
-                    class="w-[491px] h-[353px] top-[161px] left-0 bg-[#ffffffd9] overflow-hidden absolute rounded-3xl"
-                  >
-                    <div class="relative w-[527px] h-[385px] top-[-49px]">
-                      <div
-                        class="absolute w-[206px] h-[206px] top-0 left-[321px] bg-[#ffe497] rounded-[103px] blur-[33.3px]"
-                      ></div>
-                      <div
-                        class="absolute w-[165px] h-[165px] top-[21px] left-[226px] bg-[#ffd1d4] rounded-[82.5px] blur-[33.3px]"
-                      ></div>
-                      <div
-                        class="flex flex-col w-[491px] items-start justify-end gap-[18px] px-[52px] py-6 absolute top-[139px] left-0 rounded-3xl"
-                      >
-                        <p
-                          class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                        >
-                          <span
-                            class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                            >Wall hanging
-                          </span>
-                          <span
-                            class="text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                            >flower/ bouquet</span
-                          >
-                        </p>
-                        <p
-                          class="relative self-stretch font-description font-[number:var(--description-font-weight)] text-[#b0b0b0] text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-                        >
-                          Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
-                        </p>
-                        <div class="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
-                          <p
-                            class="flex-1 text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
-                          >
-                            <span
-                              class="font-[number:var(--h4-font-weight)] text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                              >$24.00</span
-                            >
-                            <span
-                              class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                              >&nbsp;</span
-                            >
-                            <span
-                              class="font-h4 text-[#797777] text-[length:var(--h4-font-size)] line-through [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)]"
-                              >$24.00</span
-                            >
-                          </p>
-                          <div
-                            class="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 relative flex-[0_0_auto] bg-primary-dark rounded-[10px]"
-                          >
-                            <div
-                              class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                            >
-                              Add to Cart
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <img
-                    class="absolute w-[285px] h-[285px] top-0 left-[206px] object-cover"
-                    src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-9.png"
-                  />
-                  <img
-                    class="absolute w-[285px] h-[285px] top-0 left-[202px] object-cover"
-                    src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-9.png"
-                  />
-                </div>
-              </div>
-              <div class="relative w-[491px] h-[519px]">
-                <div class="relative h-[519px]">
-                  <div
-                    class="absolute w-[491px] h-[353px] top-[166px] left-0 bg-[#ffffffd9] rounded-3xl overflow-hidden"
-                  >
-                    <div class="relative w-[511px] h-[391px] top-[-55px]">
-                      <div
-                        class="absolute w-[156px] h-[151px] top-12 left-[355px] bg-[#ffdcc8] rounded-[78px/75.5px] blur-[33.3px]"
-                      ></div>
-                      <div
-                        class="w-[165px] h-[165px] top-0 left-[214px] bg-[#ffd7a1] rounded-[82.5px] absolute blur-[33.3px]"
-                      ></div>
-                      <div
-                        class="w-[491px] gap-[18px] px-[52px] py-6 top-[145px] left-0 flex flex-col items-start justify-end absolute rounded-3xl"
-                      >
-                        <p
-                          class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                        >
-                          <span
-                            class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                            >Wall hanging
-                          </span>
-                          <span
-                            class="text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                            >flower/ bouquet</span
-                          >
-                        </p>
-                        <p
-                          class="relative self-stretch font-description font-[number:var(--description-font-weight)] text-[#b0b0b0] text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-                        >
-                          Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
-                        </p>
-                        <div class="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
-                          <p
-                            class="flex-1 text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
-                          >
-                            <span
-                              class="font-[number:var(--h4-font-weight)] text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                              >$24.00</span
-                            >
-                            <span
-                              class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                              >&nbsp;</span
-                            >
-                            <span
-                              class="font-h4 text-[#797777] text-[length:var(--h4-font-size)] line-through [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)]"
-                              >$24.00</span
-                            >
-                          </p>
-                          <div
-                            class="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 relative flex-[0_0_auto] bg-primary-dark rounded-[10px]"
-                          >
-                            <div
-                              class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                            >
-                              Add to Cart
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <img
-                    class="absolute w-[285px] h-[285px] top-0 left-[204px] object-cover"
-                    src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-9-1.png"
-                  />
-                </div>
-              </div>
-              <div class="relative w-[509.76px] h-[519px]">
-                <div class="relative w-[510px] h-[519px]">
-                  <div
-                    class="absolute w-[491px] h-[353px] top-[166px] left-0 bg-[#ffffffd9] rounded-3xl overflow-hidden"
-                  >
-                    <div class="relative w-[527px] h-[385px] top-[-49px]">
-                      <div
-                        class="absolute w-[206px] h-[206px] top-0 left-[321px] bg-[#ffe497] rounded-[103px] blur-[33.3px]"
-                      ></div>
-                      <div
-                        class="w-[181px] h-[181px] top-[13px] left-[226px] bg-[#d2d1ff] rounded-[90.5px] absolute blur-[33.3px]"
-                      ></div>
-                      <div
-                        class="flex flex-col w-[491px] items-start justify-end gap-[18px] px-[52px] py-6 absolute top-[139px] left-0 rounded-3xl"
-                      >
-                        <p
-                          class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                        >
-                          <span
-                            class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                            >Wall hanging
-                          </span>
-                          <span
-                            class="text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                            >flower/ bouquet</span
-                          >
-                        </p>
-                        <p
-                          class="relative self-stretch font-description font-[number:var(--description-font-weight)] text-[#b0b0b0] text-[length:var(--description-font-size)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-                        >
-                          Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
-                        </p>
-                        <div class="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
-                          <p
-                            class="flex-1 text-dark leading-[var(--h4-line-height)] relative font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] [font-style:var(--h4-font-style)]"
-                          >
-                            <span
-                              class="font-[number:var(--h4-font-weight)] text-[#ff7f7f] font-h4 [font-style:var(--h4-font-style)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                              >$24.00</span
-                            >
-                            <span
-                              class="text-[#303030] font-h4 [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] text-[length:var(--h4-font-size)]"
-                              >&nbsp;</span
-                            >
-                            <span
-                              class="font-h4 text-[#797777] text-[length:var(--h4-font-size)] line-through [font-style:var(--h4-font-style)] font-[number:var(--h4-font-weight)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)]"
-                              >$24.00</span
-                            >
-                          </p>
-                          <div
-                            class="inline-flex items-center justify-center gap-2.5 px-6 py-2.5 relative flex-[0_0_auto] bg-primary-dark rounded-[10px]"
-                          >
-                            <div
-                              class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-[#ffffff] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                            >
-                              Add to Cart
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <img
-                    class="absolute w-[323px] h-[294px] top-0 left-[187px]"
-                    src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-16.png"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <img
-            class="absolute w-[62px] h-[62px] top-[4033px] left-[2084px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-          />
-          <img
-            class="absolute w-[173px] h-[285px] top-[3142px] left-[3212px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/mask-group.png"
-          />
-          <img
-            class="absolute w-[167px] h-[285px] top-[6825px] left-[3218px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/mask-group-1.png"
-          />
-          <img
-            class="absolute w-[226px] h-[380px] top-[3665px] left-[1465px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/mask-group-2.png"
-          />
-          <div
-            class="absolute w-[1920px] h-[1351px] top-[4200px] left-[1465px] [background:linear-gradient(180deg,rgba(255,255,255,0.33)_0%,rgba(255,223,206,0.15)_100%)]"
-          >
-            <div class="inline-flex absolute top-[100px] left-[574px] flex-col items-center">
-              <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
-                <div
-                  class="mt-[-4.00px] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] relative w-fit font-h3 font-[number:var(--h3-font-weight)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
-                >
-                  PRODUCTS
-                </div>
-              </div>
-              <p
-                class="relative w-fit font-h1 font-[number:var(--h1-font-weight)] text-dark text-[length:var(--h1-font-size)] text-center tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] [font-style:var(--h1-font-style)]"
-              >
-                <span
-                  class="text-[#303030] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
-                  >Why choose
-                </span>
-                <span
-                  class="text-[#ff7f7f] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
-                  >Our Flowers
-                </span>
-              </p>
-            </div>
-            <div
-              class="absolute w-[562px] h-[846px] top-[388px] left-[679px] bg-[url(https://c.animaapp.com/mfms5gth2zVCyY/img/image-18.png)] bg-cover bg-[50%_50%]"
-            >
-              <img
-                class="absolute w-[62px] h-[62px] top-[763px] left-[281px]"
-                src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-              />
-            </div>
-            <div
-              class="w-[409px] gap-3 px-[42px] py-6 top-[405px] left-[258px] bg-[#ffe1d1] flex flex-col items-start justify-end absolute rounded-3xl"
-            >
-              <div
-                class="relative self-stretch mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Lifetime Use
-              </div>
-              <p
-                class="self-stretch text-normal-dark text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-              >
-                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
-              </p>
-            </div>
-            <div
-              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 absolute top-[1063px] left-[258px] bg-[#ffefcf] rounded-3xl"
-            >
-              <div
-                class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Best Quality
-              </div>
-              <p
-                class="self-stretch text-normal-dark text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-              >
-                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
-              </p>
-            </div>
-            <div
-              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 absolute top-[734px] left-[145px] bg-primary rounded-3xl"
-            >
-              <div
-                class="relative self-stretch mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-white text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Eco-friendly
-              </div>
-              <p
-                class="self-stretch text-white text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-              >
-                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
-              </p>
-            </div>
-            <div
-              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 absolute top-[734px] left-[1366px] bg-primary rounded-3xl"
-            >
-              <div
-                class="relative self-stretch mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-white text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Comical Free
-              </div>
-              <p
-                class="self-stretch text-white text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-              >
-                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
-              </p>
-            </div>
-            <div
-              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 top-[405px] left-[1242px] bg-[#ffefcf] absolute rounded-3xl"
-            >
-              <div
-                class="relative self-stretch mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Customization
-              </div>
-              <p
-                class="self-stretch text-normal-dark text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-              >
-                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
-              </p>
-            </div>
-            <div
-              class="flex flex-col w-[409px] items-start justify-end gap-3 px-[42px] py-6 absolute top-[1063px] left-[1242px] bg-[#ffe1d1] rounded-3xl"
-            >
-              <div
-                class="self-stretch text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Wall hanging flower/ bouquet
-              </div>
-              <p
-                class="self-stretch text-normal-dark text-[length:var(--description-font-size)] relative font-description font-[number:var(--description-font-weight)] tracking-[var(--description-letter-spacing)] leading-[var(--description-line-height)] [font-style:var(--description-font-style)]"
-              >
-                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo.
-              </p>
-            </div>
-            <img
-              class="absolute w-[62px] h-[62px] top-[614px] left-[1277px]"
-              src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-            />
-            <img
-              class="absolute w-[62px] h-[62px] top-[727px] left-[563px]"
-              src="https://c.animaapp.com/mfms5gth2zVCyY/img/meteocons-star-fill.svg"
-            />
-          </div>
-          <div class="inline-flex flex-col items-start gap-[82px] absolute top-[5682px] left-[1463px]">
-            <div class="flex relative self-stretch w-full flex-[0_0_auto] flex-col items-center">
-              <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
-                <div
-                  class="relative w-fit mt-[-4.00px] font-h3 font-[number:var(--h3-font-weight)] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
-                >
-                  Collection
-                </div>
-              </div>
-              <p
-                class="relative w-fit font-h1 font-[number:var(--h1-font-weight)] text-dark text-[length:var(--h1-font-size)] text-center tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] [font-style:var(--h1-font-style)]"
-              >
-                <span
-                  class="text-[#303030] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
-                  >Our Best
-                </span>
-                <span
-                  class="text-[#ff7f7f] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
-                  >Collections</span
-                >
-              </p>
-            </div>
-            <img class="relative flex-[0_0_auto]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/frame-37.svg" />
-          </div>
-          <div class="top-[6660px] left-16 absolute w-[2094px] h-[2198px]">
-            <div class="relative h-[2198px]">
-              <div
-                class="absolute w-[1479px] h-[1479px] top-[304px] left-[304px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
-              ></div>
-              <div
-                class="absolute w-[1479px] h-[1479px] top-[415px] left-[311px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
-              ></div>
-            </div>
-          </div>
-          <div class="top-[6858px] left-[2593px] absolute w-[2094px] h-[2198px]">
-            <div class="relative h-[2198px]">
-              <div
-                class="absolute w-[1479px] h-[1479px] top-[304px] left-[304px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
-              ></div>
-              <div
-                class="absolute w-[1479px] h-[1479px] top-[415px] left-[311px] rounded-[739.5px] border border-solid border-[#ffa3a3] rotate-[-48.62deg]"
-              ></div>
-            </div>
-          </div>
-          <div class="absolute w-[1920px] h-[695px] top-[7324px] left-[1465px] bg-[#ffffffe6]"></div>
-          <div class="flex w-[1640px] items-start justify-between absolute top-[7458px] left-[1605px]">
-            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
-              <div class="inline-flex items-center gap-[9px] px-2.5 py-0 relative flex-[0_0_auto]">
-                <img class="relative w-11 h-11" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ion-flower-sharp.svg" />
-                <div
-                  class="w-fit text-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] relative mt-[-1.00px] font-h3 font-[number:var(--h3-font-weight)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
-                >
-                  Flowers
-                </div>
-              </div>
-              <p
-                class="w-[528px] text-normal-dark text-[length:var(--paragraph-font-size)] relative font-paragraph font-[number:var(--paragraph-font-weight)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
-              >
-                Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor tellus diam
-                mauris dolor at dui.
-              </p>
-              <img class="relative flex-[0_0_auto]" src="https://c.animaapp.com/mfms5gth2zVCyY/img/frame-3-1.svg" />
-            </div>
-            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
-              <div
-                class="mt-[-1.00px] text-dark relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Home
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Product
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Pages
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Blog
-              </div>
-              <div
-                class="text-normal-dark relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Contact
-              </div>
-            </div>
-            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
-              <div
-                class="mt-[-1.00px] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] relative w-fit font-h4 font-[number:var(--h4-font-weight)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Products
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Winter Collection
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Summer Collection
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Special Discount
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Top rated Products
-              </div>
-            </div>
-            <div class="inline-flex flex-col items-start gap-6 relative flex-[0_0_auto]">
-              <div
-                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Payment Method
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Credit card
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Debit card
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Bank Transfer
-              </div>
-              <div
-                class="relative w-fit font-h4 font-[number:var(--h4-font-weight)] text-normal-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Paypal
-              </div>
-            </div>
-            <div class="inline-flex flex-col items-start gap-[19px] relative flex-[0_0_auto]">
-              <div
-                class="relative w-fit mt-[-1.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-              >
-                Get Online
-              </div>
-              <img
-                class="relative w-[219px] h-[166px] object-cover"
-                src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-27.png"
-              />
-            </div>
-          </div>
-          <div class="flex w-[1644px] items-center justify-between absolute top-[7905px] left-[1605px]">
-            <p
-              class="relative w-[528px] mt-[-1.00px] font-paragraph font-[number:var(--paragraph-font-weight)] text-normal-dark text-[length:var(--paragraph-font-size)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
-            >
-              © 2024 all right reserved by bkalpdesign
-            </p>
-            <div
-              class="relative w-[245px] mt-[-1.00px] font-paragraph font-[number:var(--paragraph-font-weight)] text-primary text-[length:var(--paragraph-font-size)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
-            >
-              Design By- Bkalp design
-            </div>
-          </div>
-          <img
-            class="absolute w-[1640px] h-px top-[7833px] left-[1605px] object-cover"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/line-3.svg"
-          />
-          <img
-            class="absolute w-[238px] h-[379px] top-[6635px] left-[1465px]"
-            src="https://c.animaapp.com/mfms5gth2zVCyY/img/mask-group-3.png"
-          />
-          <div
-            class="absolute w-[1920px] h-[760px] top-[6564px] left-[1465px] bg-[#ffffff1f] border-t [border-top-style:solid] border-[#ffffff]"
-          >
-            <div class="relative w-[1364px] h-[645px] top-[115px] left-[230px]">
-              <div class="inline-flex absolute top-[21px] left-[387px] flex-col items-center">
-                <div class="inline-flex items-center justify-center gap-2.5 px-6 py-0 relative flex-[0_0_auto]">
-                  <div
-                    class="relative w-fit mt-[-4.00px] font-h3 font-[number:var(--h3-font-weight)] text-normal-dark text-[length:var(--h3-font-size)] tracking-[var(--h3-letter-spacing)] leading-[var(--h3-line-height)] [font-style:var(--h3-font-style)]"
-                  >
-                    TESTIMONIALS
-                  </div>
-                </div>
-                <p
-                  class="relative w-fit font-h1 font-[number:var(--h1-font-weight)] text-dark text-[length:var(--h1-font-size)] text-center tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] [font-style:var(--h1-font-style)]"
-                >
-                  <span
-                    class="text-[#303030] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
-                    >What our
-                  </span>
-                  <span
-                    class="text-[#ff7f7f] font-h1 [font-style:var(--h1-font-style)] font-[number:var(--h1-font-weight)] tracking-[var(--h1-letter-spacing)] leading-[var(--h1-line-height)] text-[length:var(--h1-font-size)]"
-                    >Clients Say</span
-                  >
-                </p>
-              </div>
-              <div class="absolute w-[1364px] h-[645px] top-0 left-0">
-                <img
-                  class="absolute w-[248px] h-[248px] top-0 left-[1116px]"
-                  src="https://c.animaapp.com/mfms5gth2zVCyY/img/bxs-quote-alt-left.svg"
-                />
-                <img
-                  class="absolute w-[248px] h-[217px] top-[428px] left-0"
-                  src="https://c.animaapp.com/mfms5gth2zVCyY/img/bxs-quote-alt-left-1.svg"
-                />
-                <div
-                  class="inline-flex flex-col items-center justify-center gap-[26px] absolute top-[217px] left-[175px]"
-                >
-                  <p
-                    class="w-[1059px] mt-[-1.00px] text-normal-dark text-[length:var(--paragraph-font-size)] text-center relative font-paragraph font-[number:var(--paragraph-font-weight)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
-                  >
-                    Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.Lorem
-                    ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.Lorem ipsum
-                    dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.Lorem ipsum dolor
-                    sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
-                  </p>
-                  <div class="flex items-center justify-between relative self-stretch w-full flex-[0_0_auto]">
-                    <div
-                      class="inline-flex flex-col items-start gap-[9px] px-6 py-1.5 relative flex-[0_0_auto] border-l-2 [border-left-style:solid] border-[#ffa3a3]"
-                    >
-                      <div
-                        class="relative w-[157px] mt-[-2.00px] font-h4 font-[number:var(--h4-font-weight)] text-dark text-[length:var(--h4-font-size)] tracking-[var(--h4-letter-spacing)] leading-[var(--h4-line-height)] [font-style:var(--h4-font-style)]"
-                      >
-                        Bkalp Design
-                      </div>
-                      <div
-                        class="relative w-[157px] font-paragraph font-[number:var(--paragraph-font-weight)] text-normal-dark text-[length:var(--paragraph-font-size)] tracking-[var(--paragraph-letter-spacing)] leading-[var(--paragraph-line-height)] [font-style:var(--paragraph-font-style)]"
-                      >
-                        UI/UX Designer
-                      </div>
-                    </div>
-                    <div class="inline-flex items-center justify-center gap-3 relative flex-[0_0_auto]">
-                      <img
-                        class="relative w-[30.43px] h-[28.94px]"
-                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
-                      />
-                      <img
-                        class="relative w-[30.43px] h-[28.94px]"
-                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
-                      />
-                      <img
-                        class="relative w-[30.43px] h-[28.94px]"
-                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
-                      />
-                      <img
-                        class="relative w-[30.43px] h-[28.94px]"
-                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
-                      />
-                      <img
-                        class="relative w-[30.43px] h-[28.94px]"
-                        src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <h1 class="text-5xl md:text-6xl lg:text-7xl font-normal text-dark leading-tight">
+            Unique Flowers <span class="text-primary-dark">delivered</span> to your doorstep
+          </h1>
+          <p class="text-lg text-normal-dark font-poppins max-w-xl mx-auto lg:mx-0">
+            Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
+          </p>
+          <button class="px-8 py-3 bg-[#ffa3a3] text-white text-xl rounded-md hover:bg-primary-dark transition-colors">
+            Shop Now
+          </button>
         </div>
-      </div>
+        <!-- Hero Image -->
+        <div class="w-full lg:w-1/2">
+          <img class="w-full h-auto max-w-2xl mx-auto" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-13.png" alt="Hero Flower" />
+        </div>
+      </section>
+
+      <!-- Features Section -->
+        <section class="my-16 lg:my-24">
+            <div class="bg-white opacity-95 rounded-lg lg:rounded-[80px_0px_80px_0px] shadow-lg p-8">
+                <div class="flex flex-col md:flex-row items-center justify-center md:justify-between flex-wrap gap-8">
+                    <!-- Feature 1 -->
+                    <div class="flex items-center gap-4">
+                        <img class="w-16 h-16 flex-shrink-0" src="https://c.animaapp.com/mfms5gth2zVCyY/img/emojione-monotone-shopping-bags.svg" alt="Shopping Bag"/>
+                        <div>
+                            <h3 class="text-xl font-medium text-dark">Free Shopping</h3>
+                            <p class="text-base text-normal-dark font-poppins">Cost on all order $0.00</p>
+                        </div>
+                    </div>
+
+                    <!-- Divider for larger screens -->
+                    <div class="hidden md:block w-px h-12 bg-gray-200"></div>
+                    
+                    <!-- Feature 2 -->
+                    <div class="flex items-center gap-4">
+                        <img class="w-16 h-16 flex-shrink-0" src="https://c.animaapp.com/mfms5gth2zVCyY/img/fluent-emoji-high-contrast-delivery-truck.svg" alt="Delivery Truck"/>
+                        <div>
+                            <h3 class="text-xl font-medium text-dark">Free Delivery</h3>
+                            <p class="text-base text-normal-dark font-poppins">We offer FREE deliver</p>
+                        </div>
+                    </div>
+
+                    <!-- Divider for larger screens -->
+                    <div class="hidden md:block w-px h-12 bg-gray-200"></div>
+
+                    <!-- Feature 3 (The corrected item) -->
+                    <div class="flex items-center gap-4">
+                        <img class="w-16 h-16 flex-shrink-0" src="https://c.animaapp.com/mfms5gth2zVCyY/img/emojione-monotone-wrapped-gift.svg" alt="Gift"/>
+                        <div>
+                            <h3 class="text-xl font-medium text-dark">Special Gift</h3>
+                            <p class="text-base text-normal-dark font-poppins">A special gift for you</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+      <!-- Top Selling Products Section -->
+      <section class="py-16 lg:py-24">
+          <div class="text-center space-y-4 mb-12">
+              <h3 class="text-3xl text-normal-dark tracking-widest">PRODUCTS</h3>
+              <h1 class="text-5xl md:text-6xl text-dark">This month’s top selling <span class="text-primary-dark">Product</span></h1>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 items-end">
+              <!-- Product 1 -->
+              <div class="text-center space-y-4">
+                  <div class="bg-[#ffcfcf91] rounded-[110px_110px_0px_110px] p-8 inline-block">
+                      <img class="w-full max-w-xs" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-22.png" alt="Combo Bouquet 01"/>
+                  </div>
+                  <h4 class="text-3xl text-dark">Combo Bouquet 01</h4>
+                  <div class="flex justify-between items-center max-w-xs mx-auto px-4">
+                      <span class="text-2xl font-medium text-dark">$40.00</span>
+                      <div class="flex items-center gap-1.5">
+                          <img class="w-7 h-7" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg" alt="star"/>
+                          <span class="text-2xl text-dark">5.0</span>
+                      </div>
+                  </div>
+              </div>
+              <!-- Product 2 (Center) -->
+              <div class="text-center space-y-4">
+                 <div class="bg-[#ffcfcf91] rounded-[135px_135px_0px_135px] p-8 inline-block">
+                      <img class="w-full max-w-md" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-2.png" alt="Combo Bouquet 02"/>
+                  </div>
+                  <h4 class="text-3xl text-dark">Combo Bouquet 02</h4>
+                  <div class="flex justify-between items-center max-w-xs mx-auto px-4">
+                      <span class="text-2xl font-medium text-dark">$55.00</span>
+                      <div class="flex items-center gap-1.5">
+                          <img class="w-7 h-7" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg" alt="star"/>
+                          <span class="text-2xl text-dark">5.0</span>
+                      </div>
+                  </div>
+              </div>
+              <!-- Product 3 -->
+              <div class="text-center space-y-4">
+                  <div class="bg-[#ffcfcf91] rounded-[110px_110px_0px_110px] p-8 inline-block">
+                      <img class="w-full max-w-xs" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-11.png" alt="Combo Bouquet 03"/>
+                  </div>
+                  <h4 class="text-3xl text-dark">Combo Bouquet 03</h4>
+                  <div class="flex justify-between items-center max-w-xs mx-auto px-4">
+                      <span class="text-2xl font-medium text-dark">$45.00</span>
+                      <div class="flex items-center gap-1.5">
+                          <img class="w-7 h-7" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ic-round-star.svg" alt="star"/>
+                          <span class="text-2xl text-dark">5.0</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </section>
+
+       <!-- Deal of the day Section -->
+        <section class="py-16 lg:py-24">
+            <div class="text-center space-y-4 mb-12">
+                <h3 class="text-3xl text-normal-dark tracking-widest">OFFERS</h3>
+                <h1 class="text-5xl md:text-6xl text-dark">Deal of the day</h1>
+                <!-- Countdown Timer -->
+                <div class="flex flex-wrap justify-center items-center gap-4 pt-4">
+                    <div class="bg-primary text-white p-4 rounded-xl border-2 border-white text-center w-24">
+                        <div class="text-3xl font-medium tracking-widest">24</div>
+                        <div class="text-xl">Days</div>
+                    </div>
+                    <div class="bg-primary text-white p-4 rounded-xl border-2 border-white text-center w-24">
+                        <div class="text-3xl font-medium tracking-widest">36</div>
+                        <div class="text-xl">Hours</div>
+                    </div>
+                    <div class="bg-primary text-white p-4 rounded-xl border-2 border-white text-center w-24">
+                        <div class="text-3xl font-medium tracking-widest">12</div>
+                        <div class="text-xl">Mins</div>
+                    </div>
+                    <div class="bg-primary text-white p-4 rounded-xl border-2 border-white text-center w-24">
+                        <div class="text-3xl font-medium tracking-widest">55</div>
+                        <div class="text-xl">Secs</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deal Products -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 items-end">
+                <!-- Deal Product 1 -->
+                <div class="relative pt-32">
+                    <img class="absolute top-0 left-1/2 -translate-x-1/2 w-56 h-56 object-cover z-10" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-9.png" alt="Deal Product 1"/>
+                    <div class="bg-[#ffffffd9] rounded-3xl p-6 pt-28 text-center shadow-lg">
+                        <h4 class="text-xl text-dark">Wall hanging <span class="text-primary-dark">flower/ bouquet</span></h4>
+                        <p class="font-poppins text-[#b0b0b0] text-sm my-3">Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam.</p>
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+                             <p class="text-xl"><span class="text-primary-dark font-medium">$24.00</span> <span class="text-gray-500 line-through">$28.00</span></p>
+                            <button class="bg-primary-dark text-white text-lg px-6 py-2 rounded-lg">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Deal Product 2 -->
+                 <div class="relative pt-32">
+                    <img class="absolute top-0 left-1/2 -translate-x-1/2 w-56 h-56 object-cover z-10" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-9-1.png" alt="Deal Product 2"/>
+                    <div class="bg-[#ffffffd9] rounded-3xl p-6 pt-28 text-center shadow-lg">
+                        <h4 class="text-xl text-dark">Wall hanging <span class="text-primary-dark">flower/ bouquet</span></h4>
+                        <p class="font-poppins text-[#b0b0b0] text-sm my-3">Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam.</p>
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+                             <p class="text-xl"><span class="text-primary-dark font-medium">$24.00</span> <span class="text-gray-500 line-through">$28.00</span></p>
+                            <button class="bg-primary-dark text-white text-lg px-6 py-2 rounded-lg">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Deal Product 3 -->
+                 <div class="relative pt-32">
+                    <img class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-56 object-contain z-10" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-16.png" alt="Deal Product 3"/>
+                    <div class="bg-[#ffffffd9] rounded-3xl p-6 pt-28 text-center shadow-lg">
+                        <h4 class="text-xl text-dark">Wall hanging <span class="text-primary-dark">flower/ bouquet</span></h4>
+                        <p class="font-poppins text-[#b0b0b0] text-sm my-3">Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam.</p>
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
+                             <p class="text-xl"><span class="text-primary-dark font-medium">$24.00</span> <span class="text-gray-500 line-through">$28.00</span></p>
+                            <button class="bg-primary-dark text-white text-lg px-6 py-2 rounded-lg">Add to Cart</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+      <!-- Testimonials Section -->
+      <section class="py-16 lg:py-24 text-center">
+        <div class="max-w-4xl mx-auto">
+            <h3 class="text-3xl text-normal-dark tracking-widest">TESTIMONIALS</h3>
+            <h1 class="text-5xl md:text-6xl text-dark mt-2">What our <span class="text-primary-dark">Clients Say</span></h1>
+
+            <div class="relative mt-12">
+                <img src="https://c.animaapp.com/mfms5gth2zVCyY/img/bxs-quote-alt-left.svg" alt="quote" class="absolute -top-12 -left-12 w-32 h-32 opacity-10"/>
+                <img src="https://c.animaapp.com/mfms5gth2zVCyY/img/bxs-quote-alt-left-1.svg" alt="quote" class="absolute -bottom-12 -right-12 w-32 h-32 opacity-10"/>
+                
+                <p class="text-lg text-normal-dark font-poppins leading-relaxed">
+                    Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui. Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui. Lorem ipsum dolor sit amet consectetur.
+                </p>
+
+                <div class="flex flex-col md:flex-row items-center justify-between mt-8 gap-6">
+                    <div class="text-left border-l-2 border-primary-dark pl-4">
+                        <h4 class="text-xl text-dark">Bkalp Design</h4>
+                        <p class="text-md text-normal-dark font-poppins">UI/UX Designer</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <img class="w-7 h-7" src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg" alt="star"/>
+                        <img class="w-7 h-7" src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg" alt="star"/>
+                        <img class="w-7 h-7" src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg" alt="star"/>
+                        <img class="w-7 h-7" src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg" alt="star"/>
+                        <img class="w-7 h-7" src="https://c.animaapp.com/mfms5gth2zVCyY/img/star-4.svg" alt="star"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
+
+      <!-- Footer Section -->
+      <footer class="bg-[#ffffffe6] pt-16 lg:pt-24 pb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
+            <!-- Column 1: Brand -->
+            <div class="md:col-span-2 lg:col-span-1 space-y-4">
+                <div class="flex items-center gap-2">
+                    <img class="w-10 h-10" src="https://c.animaapp.com/mfms5gth2zVCyY/img/ion-flower-sharp.svg" alt="Logo"/>
+                    <span class="text-3xl text-dark">Flowers</span>
+                </div>
+                <p class="text-normal-dark font-poppins">
+                    Lorem ipsum dolor sit amet consectetur. Posuere dolor commodo tellus diam mauris dolor at dui.
+                </p>
+                <div class="flex gap-4">
+                    <a href="#"><img src="https://c.animaapp.com/mfms5gth2zVCyY/img/frame-3-1.svg" alt="Social Icons"/></a>
+                </div>
+            </div>
+
+            <!-- Column 2: Home Links -->
+            <div class="space-y-4">
+                <h4 class="text-xl text-dark font-medium">Home</h4>
+                <div class="flex flex-col gap-3 text-normal-dark">
+                    <a href="#">Product</a>
+                    <a href="#">Pages</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+
+            <!-- Column 3: Products Links -->
+             <div class="space-y-4">
+                <h4 class="text-xl text-dark font-medium">Products</h4>
+                <div class="flex flex-col gap-3 text-normal-dark">
+                    <a href="#">Winter Collection</a>
+                    <a href="#">Summer Collection</a>
+                    <a href="#">Special Discount</a>
+                    <a href="#">Top rated Products</a>
+                </div>
+            </div>
+
+            <!-- Column 4: Payment Method -->
+            <div class="space-y-4">
+                <h4 class="text-xl text-dark font-medium">Payment Method</h4>
+                <div class="flex flex-col gap-3 text-normal-dark">
+                    <a href="#">Credit card</a>
+                    <a href="#">Debit card</a>
+                    <a href="#">Bank Transfer</a>
+                    <a href="#">Paypal</a>
+                </div>
+            </div>
+
+            <!-- Column 5: Get Online -->
+            <div class="space-y-4">
+                <h4 class="text-xl text-dark font-medium">Get Online</h4>
+                <img class="w-full max-w-[219px] h-auto object-cover" src="https://c.animaapp.com/mfms5gth2zVCyY/img/image-27.png" alt="Map"/>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-200 mt-12 pt-6 flex flex-col md:flex-row justify-between items-center text-center">
+            <p class="text-normal-dark font-poppins text-sm">&copy; 2024 all right reserved by bkalpdesign</p>
+            <p class="text-primary font-poppins text-sm mt-2 md:mt-0">Design By - Bkalp design</p>
+        </div>
+      </footer>
+
     </div>
   </body>
 </html>
